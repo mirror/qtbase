@@ -6201,9 +6201,10 @@ if [ "$PLATFORM_QPA" = "yes" ]; then
                 echo " You might need to modify the include and library search paths by editing"
                 echo " QMAKE_INCDIR_OPENGL, QMAKE_LIBDIR_OPENGL and QMAKE_LIBS_OPENGL in"
                 echo " ${XQMAKESPEC}."
-                exit 1
+#                exit 1
             fi
-            CFG_OPENGL=no
+#            CFG_OPENGL=no
+            CFG_OPENGL=desktop
         fi
     elif [ "$CFG_OPENGL" = "es1" ]; then
         # OpenGL ES 1.x

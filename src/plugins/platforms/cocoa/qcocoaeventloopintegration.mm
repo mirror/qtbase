@@ -48,7 +48,6 @@
 #include <QtCore/QElapsedTimer>
 
 #include <QDebug>
-#include <QApplication>
 
 void wakeupCallback ( void * ) {
     QPlatformEventLoopIntegration::processEvents();

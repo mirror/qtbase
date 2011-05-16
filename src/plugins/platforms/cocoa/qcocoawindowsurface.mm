@@ -42,10 +42,26 @@
 #include "qcocoawindowsurface.h"
 
 #include <QtCore/qdebug.h>
-
 #include <QtGui/QPainter>
 
 QT_BEGIN_NAMESPACE
+
+/*
+class QCocoaGLPaintDevice : public QGLPaintDevice
+{
+public:
+    QCocoaGLPaintDevice(QPlatformWindow *window)
+        :QGLPaintDevice(), mWindow(window)
+    {
+    }
+
+    QSize size() const { return mWindow->geometry().size(); }
+    QGLContext* context() const { return QGLContext::fromPlatformGLContext(mWindow->glContext()); }
+
+private:
+    QPlatformWindow *mWindow;
+};
+*/
 
 QRect flipedRect(const QRect &sourceRect,int height)
 {
@@ -56,17 +72,17 @@ QRect flipedRect(const QRect &sourceRect,int height)
     return flippedRect;
 }
 
-QCocoaWindowSurface::QCocoaWindowSurface(QWidget *window, WId wId)
+QCocoaWindowSurface::QCocoaWindowSurface(QWindow *window, WId wId)
     : QWindowSurface(window)
 {
-    m_cocoaWindow = static_cast<QCocoaWindow *>(window->platformWindow());
+    qDebug() << "QCocoaWindowSurface" << window << hex << wId << window->winId();
+
+    m_cocoaWindow = reinterpret_cast<QCocoaWindow *>(wId);
 
     const QRect geo = window->geometry();
     NSRect rect = NSMakeRect(geo.x(),geo.y(),geo.width(),geo.height());
-    m_contentView = [[QNSView alloc] initWithWidget:window];
-    m_cocoaWindow->setContentView(m_contentView);
 
-    m_image = new QImage(window->size(),QImage::Format_ARGB32);
+    m_image = new QImage(window->geometry().size(),QImage::Format_ARGB32);
 }
 
 QCocoaWindowSurface::~QCocoaWindowSurface()
@@ -79,7 +95,7 @@ QPaintDevice *QCocoaWindowSurface::paintDevice()
     return m_image;
 }
 
-void QCocoaWindowSurface::flush(QWidget *widget, const QRegion &region, const QPoint &offset)
+void QCocoaWindowSurface::flush(QWindow *widget, const QRegion &region, const QPoint &offset)
 {
     Q_UNUSED(widget);
     Q_UNUSED(offset);
@@ -87,7 +103,9 @@ void QCocoaWindowSurface::flush(QWidget *widget, const QRegion &region, const QP
     QRect geo = region.boundingRect();
 
     NSRect rect = NSMakeRect(geo.x(), geo.y(), geo.width(), geo.height());
-    [m_contentView displayRect:rect];
+    qDebug() << "m_cocoaWindow" << m_cocoaWindow;
+    qDebug() << "m_cocoaWindow->m_windowSurfaceView" << m_cocoaWindow->m_windowSurfaceView;
+    [m_cocoaWindow->m_windowSurfaceView displayRect:rect];
 }
 
 void QCocoaWindowSurface::resize(const QSize &size)
@@ -96,7 +114,7 @@ void QCocoaWindowSurface::resize(const QSize &size)
     delete m_image;
     m_image = new QImage(size,QImage::Format_ARGB32_Premultiplied);
     NSSize newSize = NSMakeSize(size.width(),size.height());
-    [m_contentView setImage:m_image];
+//    [m_cocoaWindow->m_windowSurfaceView setImage:m_image];
 
 }
 

@@ -27,6 +27,7 @@ include(codecs/codecs.pri)
 include(statemachine/statemachine.pri)
 include(xml/xml.pri)
 
+LIBS_PRIVATE += -framework ApplicationServices
 !qpa:mac|darwin:LIBS_PRIVATE += -framework ApplicationServices
 qpa {
     contains(QT_CONFIG, coreservices) {

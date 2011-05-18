@@ -110,7 +110,6 @@ QPixmapData *QCocoaIntegration::createPixmapData(QPixmapData::PixelType type) co
 
 QPlatformWindow *QCocoaIntegration::createPlatformWindow(QWindow *window) const
 {
-    qDebug() <<"createPlatformWindow" << window;
     return new QCocoaWindow(window);
 }
 

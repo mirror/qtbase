@@ -146,6 +146,7 @@
     QWindowSystemInterface::handleMouseEvent(m_window,qt_timestamp,qt_localPoint,QPoint(),m_buttons);
 
 }
+
 - (void)mouseDown:(NSEvent *)theEvent
 {
     m_buttons |= Qt::LeftButton;

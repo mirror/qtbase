@@ -67,7 +67,6 @@ QCocoaWindow::QCocoaWindow(QWindow *tlw)
     [m_nsWindow makeKeyAndOrderFront:nil];
     [m_nsWindow setAcceptsMouseMovedEvents:YES];
 
-
     m_contentView = [[QNSView alloc] initWithQWindow:tlw];
 
     if (tlw->surfaceType() == QWindow::OpenGLSurface) {
@@ -79,10 +78,6 @@ QCocoaWindow::QCocoaWindow(QWindow *tlw)
     } else {
         m_windowSurfaceView = m_contentView;
     }
-
-    qDebug() << "window" << this;
-    qDebug() << "content view" << m_contentView;
-    qDebug() << "windowsurfacebiew" << m_windowSurfaceView;
 
     [m_nsWindow setContentView:m_contentView];
 }

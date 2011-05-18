@@ -46,23 +46,6 @@
 
 QT_BEGIN_NAMESPACE
 
-/*
-class QCocoaGLPaintDevice : public QGLPaintDevice
-{
-public:
-    QCocoaGLPaintDevice(QPlatformWindow *window)
-        :QGLPaintDevice(), mWindow(window)
-    {
-    }
-
-    QSize size() const { return mWindow->geometry().size(); }
-    QGLContext* context() const { return QGLContext::fromPlatformGLContext(mWindow->glContext()); }
-
-private:
-    QPlatformWindow *mWindow;
-};
-*/
-
 QRect flipedRect(const QRect &sourceRect,int height)
 {
     if (!sourceRect.isValid())
@@ -75,9 +58,8 @@ QRect flipedRect(const QRect &sourceRect,int height)
 QCocoaWindowSurface::QCocoaWindowSurface(QWindow *window, WId wId)
     : QWindowSurface(window)
 {
-    qDebug() << "QCocoaWindowSurface" << window << hex << wId << window->winId();
-
-    m_cocoaWindow = reinterpret_cast<QCocoaWindow *>(wId);
+    Q_UNUSED(wId);
+    m_cocoaWindow = static_cast<QCocoaWindow *>(window->handle());
 
     const QRect geo = window->geometry();
     NSRect rect = NSMakeRect(geo.x(),geo.y(),geo.width(),geo.height());
@@ -103,8 +85,6 @@ void QCocoaWindowSurface::flush(QWindow *widget, const QRegion &region, const QP
     QRect geo = region.boundingRect();
 
     NSRect rect = NSMakeRect(geo.x(), geo.y(), geo.width(), geo.height());
-    qDebug() << "m_cocoaWindow" << m_cocoaWindow;
-    qDebug() << "m_cocoaWindow->m_windowSurfaceView" << m_cocoaWindow->m_windowSurfaceView;
     [m_cocoaWindow->m_windowSurfaceView displayRect:rect];
 }
 
@@ -114,8 +94,7 @@ void QCocoaWindowSurface::resize(const QSize &size)
     delete m_image;
     m_image = new QImage(size,QImage::Format_ARGB32_Premultiplied);
     NSSize newSize = NSMakeSize(size.width(),size.height());
-//    [m_cocoaWindow->m_windowSurfaceView setImage:m_image];
-
+    [m_cocoaWindow->m_windowSurfaceView setImage:m_image];
 }
 
 QT_END_NAMESPACE

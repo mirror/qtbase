@@ -34,6 +34,7 @@ SUBDIRS=\
    qfuturewatcher \
    qgetputenv \
    qglobal \
+   qglobalstatic \
    qhash \
    qlibrary \
    qline \

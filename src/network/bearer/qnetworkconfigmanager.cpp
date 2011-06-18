@@ -51,29 +51,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#define Q_GLOBAL_STATIC_QAPP_DESTRUCTION(TYPE, NAME)                    \
-    static QGlobalStatic<TYPE > this_##NAME                             \
-                = { Q_BASIC_ATOMIC_INITIALIZER(0), false };             \
-    static void NAME##_cleanup()                                        \
-    {                                                                   \
-        delete this_##NAME.pointer;                                     \
-        this_##NAME.pointer = 0;                                        \
-    }                                                                   \
-    static TYPE *NAME()                                                 \
-    {                                                                   \
-        if (!this_##NAME.pointer) {                                     \
-            TYPE *x = new TYPE;                                         \
-            if (!this_##NAME.pointer.testAndSetOrdered(0, x))           \
-                delete x;                                               \
-            else {                                                      \
-                qAddPostRoutine(NAME##_cleanup);                        \
-                this_##NAME.pointer->updateConfigurations();            \
-            }                                                           \
-        }                                                               \
-        return this_##NAME.pointer;                                     \
-    }
-
-Q_GLOBAL_STATIC_QAPP_DESTRUCTION(QNetworkConfigurationManagerPrivate, connManager);
+Q_GLOBAL_STATIC(QNetworkConfigurationManagerPrivate, connManager);
 
 QNetworkConfigurationManagerPrivate *qNetworkConfigurationManagerPrivate()
 {
@@ -204,6 +182,8 @@ QNetworkConfigurationManagerPrivate *qNetworkConfigurationManagerPrivate()
 QNetworkConfigurationManager::QNetworkConfigurationManager(QObject *parent)
     : QObject(parent)
 {
+    qAddPostRoutine(connManager.destroy);
+
     QNetworkConfigurationManagerPrivate *priv = qNetworkConfigurationManagerPrivate();
 
     connect(priv, SIGNAL(configurationAdded(QNetworkConfiguration)),
@@ -218,6 +198,8 @@ QNetworkConfigurationManager::QNetworkConfigurationManager(QObject *parent)
             this, SIGNAL(updateCompleted()));
 
     priv->enablePolling();
+
+    priv->updateConfigurations();
 }
 
 /*!

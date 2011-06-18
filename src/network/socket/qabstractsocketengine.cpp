@@ -70,7 +70,7 @@ QSocketEngineHandler::QSocketEngineHandler()
 
 QSocketEngineHandler::~QSocketEngineHandler()
 {
-    if (!socketHandlers())
+    if (!socketHandlers.exists())
         return;
     QMutexLocker locker(&socketHandlers()->mutex);
     socketHandlers()->removeAll(this);

@@ -407,6 +407,8 @@ void QMetaObject::removeGuard(QObject **ptr)
 {
     if (!*ptr)
         return;
+    if (guardHash.isDestroyed())
+        return;
     GuardHash *hash = guardHash();
     /* check that the hash is empty - otherwise we might detach
        the shared_null hash, which will alloc, which is not nice */

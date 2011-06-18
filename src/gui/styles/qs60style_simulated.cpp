@@ -380,42 +380,46 @@ QS60Style::QS60Style()
         loadS60ThemeFromBlob(defaultBlob);
 }
 
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QStringList, enumPartKeys, {
-    const int enumIndex = QS60StyleEnums::staticMetaObject.indexOfEnumerator("SkinParts");
-    Q_ASSERT(enumIndex >= 0);
-    const QMetaEnum metaEnum = QS60StyleEnums::staticMetaObject.enumerator(enumIndex);
-    for (int i = 0; i < metaEnum.keyCount(); ++i) {
-        const QString enumKey = QString::fromLatin1(metaEnum.key(i));
-        QString partKey;
-        // Following loop does following conversions: "SP_QgnNoteInfo" to "qgn_note_info"...
-        for (int charPosition = 3; charPosition < enumKey.length(); charPosition++) {
-            if (charPosition > 3 && enumKey[charPosition].isUpper())
-                partKey.append(QChar::fromLatin1('_'));
-            partKey.append(enumKey[charPosition].toLower());
-        }
-        x->append(partKey);
-    }
-})
-
 QStringList QS60Style::partKeys()
 {
-    return *enumPartKeys();
-}
-
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QStringList, enumColorListKeys, {
-    const int enumIndex = QS60StyleEnums::staticMetaObject.indexOfEnumerator("ColorLists");
-    Q_ASSERT(enumIndex >= 0);
-    const QMetaEnum metaEnum = QS60StyleEnums::staticMetaObject.enumerator(enumIndex);
-    for (int i = 0; i < metaEnum.keyCount(); i++) {
-        const QString enumKey = QString::fromLatin1(metaEnum.key(i));
-        // Following line does following conversions: CL_QsnTextColors to "text"...
-        x->append(enumKey.mid(6, enumKey.length() - 12).toLower());
+    static bool initialized = false;
+    static QStringList enumPartKeys;
+    if (!initialized) {
+        initialized = true;
+        const int enumIndex = QS60StyleEnums::staticMetaObject.indexOfEnumerator("SkinParts");
+        Q_ASSERT(enumIndex >= 0);
+        const QMetaEnum metaEnum = QS60StyleEnums::staticMetaObject.enumerator(enumIndex);
+        for (int i = 0; i < metaEnum.keyCount(); ++i) {
+            const QString enumKey = QString::fromLatin1(metaEnum.key(i));
+            QString partKey;
+            // Following loop does following conversions: "SP_QgnNoteInfo" to "qgn_note_info"...
+            for (int charPosition = 3; charPosition < enumKey.length(); charPosition++) {
+                if (charPosition > 3 && enumKey[charPosition].isUpper())
+                    partKey.append(QChar::fromLatin1('_'));
+                partKey.append(enumKey[charPosition].toLower());
+            }
+            enumPartKeys.append(partKey);
+        }
     }
-})
+    return enumPartKeys;
+}
 
 QStringList QS60Style::colorListKeys()
 {
-    return *enumColorListKeys();
+    static bool initialized = false;
+    static QStringList enumColorListKeys;
+    if (!initialized) {
+        initialized = true;
+        const int enumIndex = QS60StyleEnums::staticMetaObject.indexOfEnumerator("ColorLists");
+        Q_ASSERT(enumIndex >= 0);
+        const QMetaEnum metaEnum = QS60StyleEnums::staticMetaObject.enumerator(enumIndex);
+        for (int i = 0; i < metaEnum.keyCount(); i++) {
+            const QString enumKey = QString::fromLatin1(metaEnum.key(i));
+            // Following line does following conversions: CL_QsnTextColors to "text"...
+            enumColorListKeys.append(enumKey.mid(6, enumKey.length() - 12).toLower());
+        }
+    }
+    return enumColorListKeys;
 }
 
 void QS60Style::setS60Theme(const QHash<QString, QPicture> &parts,

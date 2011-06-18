@@ -112,12 +112,15 @@ QPixmap qt_pixmapForBrush(int brushStyle, bool invert)
     return pm;
 }
 
+static void qt_cleanup_brush_pattern_image_cache();
+
 class QBrushPatternImageCache
 {
 public:
     QBrushPatternImageCache()
         : m_initialized(false)
     {
+        qAddPostRoutine(qt_cleanup_brush_pattern_image_cache);
         init();
     }
 
@@ -153,11 +156,7 @@ private:
     bool m_initialized;
 };
 
-static void qt_cleanup_brush_pattern_image_cache();
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QBrushPatternImageCache, qt_brushPatternImageCache,
-                                 {
-                                     qAddPostRoutine(qt_cleanup_brush_pattern_image_cache);
-                                 })
+Q_GLOBAL_STATIC(QBrushPatternImageCache, qt_brushPatternImageCache)
 
 static void qt_cleanup_brush_pattern_image_cache()
 {
@@ -360,12 +359,17 @@ public:
 };
 #endif
 
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QBrushData, nullBrushInstance,
-                                 {
-                                     x->ref = 1;
-                                     x->style = Qt::BrushStyle(0);
-                                     x->color = Qt::black;
-                                 })
+class QNullBrushData : public QBrushData
+{
+public:
+    QNullBrushData() {
+        ref = 1;
+        style = Qt::BrushStyle(0);
+        color = Qt::black;
+    }
+};
+
+Q_GLOBAL_STATIC(QNullBrushData, nullBrushInstance)
 
 static bool qbrush_check_type(Qt::BrushStyle style) {
     switch (style) {

@@ -239,24 +239,17 @@ void qAddPostRoutine(QtCleanUpFunction p)
 
 void qRemovePostRoutine(QtCleanUpFunction p)
 {
-    QVFuncList *list = postRList();
-    if (!list)
+    if (!postRList.exists())
         return;
+    QVFuncList *list = postRList;
     list->removeAll(p);
 }
 
 void Q_CORE_EXPORT qt_call_post_routines()
 {
-    QVFuncList *list = 0;
-    QT_TRY {
-        list = postRList();
-    } QT_CATCH(const std::bad_alloc &) {
-        // ignore - if we can't allocate a post routine list,
-        // there's a high probability that there's no post
-        // routine to be executed :)
-    }
-    if (!list)
+    if (!postRList.exists())
         return;
+    QVFuncList *list = postRList;
     while (!list->isEmpty())
         (list->takeFirst())();
 }

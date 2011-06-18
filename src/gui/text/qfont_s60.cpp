@@ -52,11 +52,9 @@ Q_GLOBAL_STATIC(QMutex, lastResortFamilyMutex);
 #endif // QT_NO_FREETYPE
 
 extern QStringList qt_symbian_fontFamiliesOnFontServer(); // qfontdatabase_s60.cpp
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QStringList, fontFamiliesOnFontServer, {
-    // We are only interested in the initial font families. No Application fonts.
-    // Therefore, we are allowed to cache the list.
-    x->append(qt_symbian_fontFamiliesOnFontServer());
-});
+// We are only interested in the initial font families. No Application fonts.
+// Therefore, we are allowed to cache the list.
+Q_GLOBAL_STATIC_WITH_ARGS(QStringList, fontFamiliesOnFontServer, qt_symbian_fontFamiliesOnFontServer());
 
 QString QFont::lastResortFont() const
 {

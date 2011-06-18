@@ -41,13 +41,6 @@
 
 #include "qglobal.h"
 
-#ifndef QT_NO_SYSTEMLOCALE
-QT_BEGIN_NAMESPACE
-class QSystemLocale;
-static QSystemLocale *QSystemLocale_globalSystemLocale();
-QT_END_NAMESPACE
-#endif
-
 #include "qplatformdefs.h"
 
 #include "qdatastream.h"

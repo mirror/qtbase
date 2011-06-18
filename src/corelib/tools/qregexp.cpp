@@ -3677,7 +3677,7 @@ static void derefEngine(QRegExpEngine *eng, const QRegExpEngineKey &key)
 {
     if (!eng->ref.deref()) {
 #if !defined(QT_NO_REGEXP_OPTIM)
-        if (globalEngineCache()) {
+        if (!globalEngineCache.isDestroyed() && globalEngineCache()) {
             QMutexLocker locker(mutex());
             QT_TRY {
                 globalEngineCache()->insert(key, eng, 4 + key.pattern.length() / 4);

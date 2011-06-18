@@ -61,6 +61,7 @@
 
 QT_BEGIN_NAMESPACE
 
+static void qt_cleanup_x11gl_share_contexts();
 
 class QX11GLSharedContexts
 {
@@ -71,6 +72,8 @@ public:
         , sharedQGLContext(0)
         , sharePixmap(0)
     {
+        qAddPostRoutine(qt_cleanup_x11gl_share_contexts);
+
         EGLint rgbConfigId;
         EGLint argbConfigId;
 
@@ -199,12 +202,7 @@ private:
     bool         valid;
 };
 
-static void qt_cleanup_x11gl_share_contexts();
-
-Q_GLOBAL_STATIC_WITH_INITIALIZER(QX11GLSharedContexts, qt_x11gl_share_contexts,
-                                 {
-                                     qAddPostRoutine(qt_cleanup_x11gl_share_contexts);
-                                 })
+Q_GLOBAL_STATIC(QX11GLSharedContexts, qt_x11gl_share_contexts)
 
 static void qt_cleanup_x11gl_share_contexts()
 {

@@ -221,6 +221,9 @@ QTextCodecCleanup::~QTextCodecCleanup()
     all = 0;
     localeMapper = 0;
 
+    if (qTextCodecCache.exists())
+        qTextCodecCache->clear();
+
 #ifdef Q_DEBUG_TEXTCODEC
     destroying_is_ok = false;
 #endif
@@ -1010,9 +1013,6 @@ QTextCodec::~QTextCodec()
         QMutexLocker locker(textCodecsMutex());
 #endif
         all->removeAll(this);
-        QTextCodecCache *cache = qTextCodecCache();
-        if (cache)
-            cache->clear();
     }
 }
 

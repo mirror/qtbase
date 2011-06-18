@@ -628,6 +628,81 @@ QList<QSslCertificate> QSslCertificate::fromData(const QByteArray &data, QSsl::E
         : QSslCertificatePrivate::certificatesFromDer(data);
 }
 
+// This code is copied from qsslsocket_openssl.cpp it should somehow be
+// unified with that code
+struct QSslErrorList
+{
+    QMutex mutex;
+    QList<QPair<int, int> > errors;
+};
+Q_GLOBAL_STATIC(QSslErrorList, _q_sslErrorListVerify) // Renamed from _openssl.cpp
+
+static int q_X509Callback(int ok, X509_STORE_CTX *ctx)
+{
+    if (!ok) {
+        // Store the error and at which depth the error was detected.
+        _q_sslErrorListVerify()->errors << qMakePair<int, int>(ctx->error, ctx->error_depth);
+    }
+    // Always return OK to allow verification to continue. We're handle the
+    // errors gracefully after collecting all errors, after verification has
+    // completed.
+    return 1;
+}
+
+/*!
+    Verifies a certificate chain.
+ */
+QList<QSslError> QSslCertificate::verify(QList<QSslCertificate> certificateChain, const QString &hostName)
+{
+    QList<QSslError> errors;
+    if (certificateChain.count() < 0) {
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
+
+    // Setup the store with the default CA certificates
+    X509_STORE *certStore = q_X509_STORE_new();
+    if (!certStore) {
+        qWarning() << "Unable to create certificate store";
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
+
+    QList<QSslCertificate> expiredCerts;
+
+    foreach (const QSslCertificate &caCertificate, QSslSocket::defaultCaCertificates()) {
+        // add expired certs later, so that the
+        // valid ones are used before the expired ones
+        if (!caCertificate.isValid()) {
+            expiredCerts.append(caCertificate);
+        } else {
+	    q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+        }
+    }
+
+    bool addExpiredCerts = true;
+#if defined(Q_OS_MAC) && (MAC_OS_X_VERSION_MAX_ALLOWED == MAC_OS_X_VERSION_10_5)
+    //On Leopard SSL does not work if we add the expired certificates.
+    if (QSysInfo::MacintoshVersion == QSysInfo::MV_10_5)
+       addExpiredCerts = false;
+#endif
+    // now add the expired certs
+    if (addExpiredCerts) {
+        foreach (const QSslCertificate &caCertificate, expiredCerts) {
+	    q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+        }
+    }
+
+    // Register a custom callback to get all verification errors.
+    X509_STORE_set_verify_cb_func(certStore, q_X509Callback);
+
+    //TODO: Finish this. watch out for reentrancy requirement
+
+    q_X509_STORE_free(certStore);
+
+    return errors;
+}
+
 void QSslCertificatePrivate::init(const QByteArray &data, QSsl::EncodingFormat format)
 {
     if (!data.isEmpty()) {

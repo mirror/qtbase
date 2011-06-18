@@ -49,6 +49,7 @@
 
 #include "qmutex.h"
 #include "qnetworkproxy.h"
+#include "qglobalstatic.h"
 
 QT_BEGIN_NAMESPACE
 

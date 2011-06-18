@@ -44,6 +44,8 @@
 
 #include <QFileSystemWatcher>
 
+#include <QGlobalStatic>
+
 #ifdef Q_OS_LINUX
 # ifdef QT_NO_INOTIFY
 #  include <linux/version.h>

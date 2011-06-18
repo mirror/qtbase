@@ -47,6 +47,7 @@
 #include <qthread.h>
 #include <qwaitcondition.h>
 #include <qthreadstorage.h>
+#include <qglobalstatic.h>
 
 #ifdef Q_OS_UNIX
 #include <pthread.h>

@@ -81,6 +81,7 @@
 #include "qwidget_p.h"
 #include <private/qt_cocoa_helpers_mac_p.h>
 #include <private/qdesktopwidget_mac_p.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

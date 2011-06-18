@@ -45,6 +45,7 @@
 #include "qsettings.h"
 #include "qlibraryinfo.h"
 #include "qscopedpointer.h"
+#include "qglobalstatic.h"
 
 #if defined(QT_BUILD_QMAKE) || defined(QT_BOOTSTRAPPED)
 # define BOOTSTRAPPING

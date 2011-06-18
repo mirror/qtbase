@@ -59,6 +59,7 @@
 #include <private/qshortcutmap_p.h>
 #endif
 #include <QtCore/qmutex.h>
+#include <qglobalstatic.h>
 #include <QtGui/qapplication.h>
 #include <QtGui/qgraphicsview.h>
 #include <QtGui/qgraphicsproxywidget.h>

@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "qpixmapdatafactory_p.h"
+#include <qglobalstatic.h>
 
 #ifdef Q_WS_QWS
 # include <QtGui/qscreen_qws.h>

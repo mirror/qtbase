@@ -54,6 +54,7 @@
 #include "qstringlist.h"
 #include "qvariant.h"
 #include "qstringbuilder.h"
+#include "qglobalstatic.h"
 #if defined(Q_WS_WIN)
 #   include "qt_windows.h"
 #   include <time.h>

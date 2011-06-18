@@ -55,6 +55,8 @@
 #include "qcombobox.h"
 #include "private/qkeymapper_p.h"
 #include "private/qfont_p.h"
+#include <qglobalstatic.h>
+
 #ifndef QT_NO_STYLE_S60
 #include "private/qs60style_p.h"
 #endif

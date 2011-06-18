@@ -57,6 +57,7 @@
 #include "qvariant.h"
 #include "qtextdocument.h"
 #include "qdir.h"
+#include <qglobalstatic.h>
 
 #if defined(Q_OS_WINCE)
 #include "qguifunctions_wince.h"

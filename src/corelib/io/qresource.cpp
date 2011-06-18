@@ -54,6 +54,7 @@
 #include "qstringlist.h"
 #include <qshareddata.h>
 #include <qplatformdefs.h>
+#include "qglobalstatic.h"
 #include "private/qabstractfileengine_p.h"
 
 #ifdef Q_OS_UNIX

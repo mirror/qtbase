@@ -42,6 +42,7 @@
 
 #include <QtTest/QtTest>
 #include <iostream>
+#include <qglobalstatic.h>
 
 class tst_QGlobalStatic: public QObject
 {

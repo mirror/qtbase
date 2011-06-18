@@ -43,6 +43,7 @@
 #include "qdecorationplugin_qws.h"
 #include "private/qfactoryloader_p.h"
 #include "qmutex.h"
+#include <qglobalstatic.h>
 
 #include "qapplication.h"
 #include "qdecorationdefault_qws.h"

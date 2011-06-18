@@ -307,6 +307,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qelapsedtimer.h>
+#include <QtCore/qglobalstatic.h>
 #include <QtNetwork/qhostaddress.h>
 #include <QtNetwork/qhostinfo.h>
 

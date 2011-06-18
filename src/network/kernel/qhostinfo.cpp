@@ -49,6 +49,7 @@
 #include <qstringlist.h>
 #include <qthread.h>
 #include <qurl.h>
+#include <qglobalstatic.h>
 #include <private/qnetworksession_p.h>
 
 #ifdef Q_OS_UNIX

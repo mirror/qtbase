@@ -50,6 +50,7 @@
 #include "qdatastream.h"
 #include "qapplication.h"
 #include "qstringlist.h"
+#include <qglobalstatic.h>
 
 #include "qthread.h"
 #include "qthreadstorage.h"

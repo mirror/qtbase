@@ -45,6 +45,7 @@
 #include "qstringlist.h"
 #include "qvariant.h"
 #include "qdatetime.h"
+#include <qglobalstatic.h>
 
 #include "private/qsystemlibrary_p.h"
 

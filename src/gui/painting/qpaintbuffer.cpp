@@ -50,6 +50,7 @@
 #include <private/qrawfont_p.h>
 
 #include <QDebug>
+#include <qglobalstatic.h>
 
 // #define QPAINTBUFFER_DEBUG_DRAW
 

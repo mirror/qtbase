@@ -49,6 +49,7 @@
 #include <qvector.h>
 #include <qstack.h>
 #include <qbitarray.h>
+#include "qglobalstatic.h"
 
 #include <limits.h>
 

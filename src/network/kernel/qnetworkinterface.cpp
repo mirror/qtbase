@@ -44,6 +44,7 @@
 
 #include "qdebug.h"
 #include "qendian.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_NETWORKINTERFACE
 

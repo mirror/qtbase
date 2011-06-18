@@ -53,6 +53,7 @@
 #include <qsocketnotifier.h>
 #include <qstringlist.h>
 #include <qmutex.h>
+#include <qglobalstatic.h>
 
 #include <libpq-fe.h>
 #include <pg_config.h>

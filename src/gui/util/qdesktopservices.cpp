@@ -62,6 +62,7 @@
 #include <qcoreapplication.h>
 #include <qurl.h>
 #include <qmutex.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

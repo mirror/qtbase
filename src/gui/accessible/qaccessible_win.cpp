@@ -49,6 +49,7 @@
 #include "qsettings.h"
 #include <QtCore/qmap.h>
 #include <QtCore/qpair.h>
+#include <qglobalstatic.h>
 #include <QtGui/qgraphicsitem.h>
 #include <QtGui/qgraphicsscene.h>
 #include <QtGui/qgraphicsview.h>

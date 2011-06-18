@@ -53,6 +53,7 @@
 #include <private/qeglproperties_p.h>
 #include <private/qeglcontext_p.h>
 #include <private/qpixmap_x11_p.h>
+#include <qglobalstatic.h>
 
 #include "qmeegopixmapdata.h"
 #include "qmeegolivepixmapdata.h"

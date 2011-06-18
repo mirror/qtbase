@@ -50,6 +50,7 @@
 #include "qhash.h"
 #include "qlibrary.h"
 #include "qdebug.h"
+#include <qglobalstatic.h>
 #include <private/qfontengine_ft_p.h>
 #include <private/qt_x11_p.h>
 #include <private/qpixmap_x11_p.h>

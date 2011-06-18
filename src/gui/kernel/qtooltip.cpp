@@ -57,6 +57,8 @@
 #include <qtextdocument.h>
 #include <qdebug.h>
 #include <private/qstylesheetstyle_p.h>
+#include <qglobalstatic.h>
+
 #ifndef QT_NO_TOOLTIP
 
 #ifdef Q_WS_MAC

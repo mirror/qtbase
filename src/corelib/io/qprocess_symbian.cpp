@@ -72,6 +72,7 @@
 #include <qmutex.h>
 #include <qmap.h>
 #include <qsocketnotifier.h>
+#include <qglobalstatic.h>
 
 #include <errno.h>
 

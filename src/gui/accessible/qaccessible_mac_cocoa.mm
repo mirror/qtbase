@@ -44,6 +44,7 @@
 #include "qaccessible_mac_p.h"
 #include "qdebug.h"
 #include "qtabwidget.h"
+#include <qglobalstatic.h>
 
 #include <private/qt_mac_p.h>
 #include <private/qcocoaview_mac_p.h>

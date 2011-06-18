@@ -54,6 +54,7 @@
 #include "qvariant.h"
 #include "qcache.h"
 #include "qdebug.h"
+#include "qglobalstatic.h"
 #include "private/qguiplatformplugin_p.h"
 
 #ifdef Q_WS_MAC

@@ -50,6 +50,7 @@
 #include "qscreenqnx_qws.h"
 #include "qscreenintegrityfb_qws.h"
 #include <stdlib.h>
+#include <qglobalstatic.h>
 #include "private/qfactoryloader_p.h"
 #include "qscreendriverplugin_qws.h"
 #ifndef QT_NO_QWS_DIRECTFB

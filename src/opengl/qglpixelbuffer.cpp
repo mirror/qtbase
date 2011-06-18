@@ -100,6 +100,7 @@
 #include <private/qglpixelbuffer_p.h>
 #include <private/qfont_p.h>
 #include <qimage.h>
+#include <qglobalstatic.h>
 
 #ifndef QT_OPENGL_ES_2
 #include <private/qpaintengine_opengl_p.h>

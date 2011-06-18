@@ -67,7 +67,7 @@
 #include "qurl.h"
 #include "qmap.h"
 #include <private/qt_mac_p.h>
-
+#include <qglobalstatic.h>
 
 #ifdef Q_WS_MAC32
 #include <QuickTime/QuickTime.h>

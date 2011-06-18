@@ -45,6 +45,7 @@
 #include <QtGui/private/qegl_p.h>
 #include <QtGui/private/qeglproperties_p.h>
 #include <QtGui/private/qeglcontext_p.h>
+#include <QtCore/qglobalstatic.h>
 
 #if !defined(QT_OPENGL_ES_1)
 #include <QtOpenGL/private/qpaintengineex_opengl2_p.h>

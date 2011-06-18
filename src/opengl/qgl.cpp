@@ -44,6 +44,7 @@
 #include "qgl.h"
 #include <qdebug.h>
 #include <qglfunctions.h>
+#include <qglobalstatic.h>
 
 #if defined(Q_WS_X11)
 #include "private/qt_x11_p.h"

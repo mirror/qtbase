@@ -54,6 +54,7 @@
 #define QGLSHADERCACHE_MEEGO_P_H
 
 #include <QtCore/qglobal.h>
+#include <qglobalstatic.h>
 
 #if defined(QT_MEEGO_EXPERIMENTAL_SHADERCACHE) && defined(QT_OPENGL_ES_2)
 

@@ -52,6 +52,7 @@
 #include <qfile.h>
 #include <private/qmutexpool_p.h>
 #include <private/qnet_unix_p.h>
+#include <qglobalstatic.h>
 
 #include <sys/types.h>
 #include <netdb.h>

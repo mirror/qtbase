@@ -49,6 +49,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qthread.h>
 #include <QtCore/private/qcoreapplication_p.h>
+#include <QtCore/qglobalstatic.h>
 
 #ifndef QT_NO_BEARERMANAGEMENT
 

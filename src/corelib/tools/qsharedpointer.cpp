@@ -41,6 +41,8 @@
 
 #include "qsharedpointer.h"
 
+#include "qglobalstatic.h"
+
 // to be sure we aren't causing a namespace clash:
 #include "qshareddata.h"
 

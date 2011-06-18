@@ -44,6 +44,7 @@
 #include "qtextstream.h"
 #include "qvariant.h"
 #include "qfontengine_ft_p.h"
+#include <qglobalstatic.h>
 
 #ifndef QT_NO_FREETYPE
 

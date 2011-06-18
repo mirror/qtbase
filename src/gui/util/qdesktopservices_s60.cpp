@@ -42,6 +42,7 @@
 
 #include <qcoreapplication.h>
 #include <qdir.h>
+#include <qglobalstatic.h>
 #include <qurl.h>
 #include <private/qcore_symbian_p.h>
 

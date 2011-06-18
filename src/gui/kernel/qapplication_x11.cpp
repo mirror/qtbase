@@ -86,6 +86,7 @@
 #include <private/qgraphicssystemfactory_p.h>
 #include "qguiplatformplugin_p.h"
 #include "qkde_p.h"
+#include <qglobalstatic.h>
 
 #if !defined (QT_NO_TABLET)
 extern "C" {

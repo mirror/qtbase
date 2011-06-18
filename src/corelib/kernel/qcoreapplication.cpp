@@ -64,6 +64,7 @@
 #include <private/qfactoryloader_p.h>
 #include <private/qfunctions_p.h>
 #include <private/qlocale_p.h>
+#include "qglobalstatic.h"
 
 #ifdef Q_OS_SYMBIAN
 #  include <exception>

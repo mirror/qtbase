@@ -59,6 +59,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include "qglobalstatic.h"
 
 #include "private/qcore_unix_p.h"
 

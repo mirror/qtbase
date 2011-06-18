@@ -46,6 +46,7 @@
 
 #include "qapplication.h"
 #include "qdebug.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

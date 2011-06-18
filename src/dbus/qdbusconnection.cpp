@@ -43,6 +43,7 @@
 #include <qcoreapplication.h>
 #include <qstringlist.h>
 #include <qthread.h>
+#include <qglobalstatic.h>
 
 #include "qdbusconnection.h"
 #include "qdbusconnectioninterface.h"

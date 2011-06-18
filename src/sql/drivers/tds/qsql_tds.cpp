@@ -51,6 +51,7 @@
 #include "qsql_tds.h"
 
 #include <qvariant.h>
+#include <qglobalstatic.h>
 #include <qdatetime.h>
 #include <qhash.h>
 #include <qregexp.h>

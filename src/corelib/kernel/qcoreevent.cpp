@@ -45,6 +45,7 @@
 
 #include "qmutex.h"
 #include "qset.h"
+#include "qglobalstatic.h"
 
 QT_BEGIN_NAMESPACE
 

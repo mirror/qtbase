@@ -46,6 +46,7 @@
 
 #include "qpixmapdata_gl_p.h"
 
+#include <qglobalstatic.h>
 #include <private/qgl_p.h>
 #include <private/qdrawhelper_p.h>
 #include <private/qimage_p.h>

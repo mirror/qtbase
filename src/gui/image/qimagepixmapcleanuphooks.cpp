@@ -42,7 +42,7 @@
 #include "qimagepixmapcleanuphooks_p.h"
 #include "private/qpixmapdata_p.h"
 #include "private/qimage_p.h"
-
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -43,6 +43,7 @@
 #ifndef QT_NO_CLIPBOARD
 
 #include <QtGui/private/qapplication_p.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

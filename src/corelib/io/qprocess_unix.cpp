@@ -101,6 +101,7 @@ QT_END_NAMESPACE
 #include <qsocketnotifier.h>
 #include <qthread.h>
 #include <qelapsedtimer.h>
+#include "qglobalstatic.h"
 
 #include <errno.h>
 #include <stdlib.h>

@@ -44,6 +44,7 @@
 #include <qcoreapplication.h>
 #include <private/qcoreapplication_p.h>
 #include <qsemaphore.h>
+#include <qglobalstatic.h>
 
 #include <unistd.h>
 #include <errno.h>

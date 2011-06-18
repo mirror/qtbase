@@ -101,6 +101,7 @@
 #include <qimageiohandler.h>
 #include <qset.h>
 #include <qvariant.h>
+#include <qglobalstatic.h>
 
 // factory loader
 #include <qcoreapplication.h>

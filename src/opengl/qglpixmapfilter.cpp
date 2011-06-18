@@ -49,6 +49,7 @@
 #include "qgraphicssystem_gl_p.h"
 #include "qpaintengine_opengl_p.h"
 #include "qcache.h"
+#include <qglobalstatic.h>
 
 #include "qglframebufferobject.h"
 #include "qglshaderprogram.h"

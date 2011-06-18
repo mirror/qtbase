@@ -61,6 +61,7 @@
 #include <QtCore/qmath.h>
 #include <QtGui/qevent.h>
 #include <qnumeric.h>
+#include <qglobalstatic.h>
 
 #include <QtDebug>
 

@@ -58,6 +58,7 @@
 #include <qset.h>
 #include <qsemaphore.h>
 #include <qsharedpointer.h>
+#include "qglobalstatic.h"
 
 #include <private/qorderedmutexlocker_p.h>
 #include <private/qmutexpool_p.h>

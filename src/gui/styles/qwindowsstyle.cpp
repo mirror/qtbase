@@ -44,6 +44,7 @@
 
 #if !defined(QT_NO_STYLE_WINDOWS) || defined(QT_PLUGIN)
 
+#include <qglobalstatic.h>
 #include <private/qsystemlibrary_p.h>
 #include "qapplication.h"
 #include "qbitmap.h"

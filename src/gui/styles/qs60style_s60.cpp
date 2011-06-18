@@ -50,6 +50,7 @@
 #include "private/qvolatileimage_p.h"
 #include "qapplication.h"
 #include "qsettings.h"
+#include <qglobalstatic.h>
 
 #include <w32std.h>
 #include <AknsConstants.h>

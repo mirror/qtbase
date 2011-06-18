@@ -42,6 +42,7 @@
 #include "qplatformdefs.h"
 #include "qtextcodec.h"
 #include "qtextcodec_p.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_TEXTCODEC
 

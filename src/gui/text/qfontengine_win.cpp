@@ -61,6 +61,7 @@
 
 #include <private/qunicodetables_p.h>
 #include <qbitmap.h>
+#include <qglobalstatic.h>
 
 #include <private/qpainter_p.h>
 #include "qpaintengine.h"

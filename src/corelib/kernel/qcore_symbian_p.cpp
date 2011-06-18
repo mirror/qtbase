@@ -45,6 +45,7 @@
 #include "qcore_symbian_p.h"
 #include <string>
 #include <in_sock.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

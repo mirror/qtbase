@@ -47,6 +47,7 @@
 #include "qlibrary_p.h"
 #include "qdebug.h"
 #include "qdir.h"
+#include "qglobalstatic.h"
 
 #if defined(Q_OS_SYMBIAN)
 # include <f32file.h>

@@ -57,6 +57,7 @@
 #include <qfile.h>
 #include <qimagereader.h>
 #include <qbuffer.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

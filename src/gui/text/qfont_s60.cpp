@@ -44,6 +44,7 @@
 #include <private/qt_s60_p.h>
 #include <private/qpixmap_s60_p.h>
 #include "qmutex.h"
+#include "qglobalstatic.h"
 
 QT_BEGIN_NAMESPACE
 

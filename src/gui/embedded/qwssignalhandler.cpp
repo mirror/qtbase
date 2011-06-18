@@ -40,6 +40,7 @@
 ****************************************************************************/
 
 #include "qwssignalhandler_p.h"
+#include <qglobalstatic.h>
 
 #ifndef QT_NO_QWS_SIGNALHANDLER
 

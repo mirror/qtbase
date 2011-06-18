@@ -61,7 +61,9 @@
 #include "qabstractfontengine_p.h"
 #include <qdatetime.h>
 #include "qplatformdefs.h"
+#include <qglobalstatic.h>
 
+#endif
 // for mmap
 #include <stdlib.h>
 #include <unistd.h>

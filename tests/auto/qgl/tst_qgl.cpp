@@ -49,6 +49,7 @@
 #include <qglframebufferobject.h>
 #include <qglcolormap.h>
 #include <qpaintengine.h>
+#include <qglobalstatic.h>
 
 #include <QGraphicsView>
 #include <QGraphicsProxyWidget>

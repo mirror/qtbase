@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include "private/qfactoryloader_p.h"
 #include "qkbddriverplugin_qws.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -79,6 +79,7 @@
 #include <qdesktopwidget.h>
 #include <qevent.h>
 #include <qpixmapcache.h>
+#include <qglobalstatic.h>
 #include <qvarlengtharray.h>
 #include <private/qevent_p.h>
 #include <private/qt_cocoa_helpers_mac_p.h>

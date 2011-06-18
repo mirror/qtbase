@@ -43,6 +43,7 @@
 
 #include "qxlibdisplay.h"
 #include <QtGui/private/qapplication_p.h>
+#include <qglobalstatic.h>
 
 class QXlibResourceMap : public QMap<QByteArray, QXlibNativeInterface::ResourceType>
 {

@@ -47,6 +47,7 @@
 #include "qdir.h"
 #include "qstringlist.h"
 #include "qdatetime.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_QOBJECT
 #include <private/qthread_p.h>

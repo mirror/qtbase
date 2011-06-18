@@ -52,6 +52,7 @@
 #include "qdatastream.h"
 #include "qpointer.h"
 #include "qmutex.h"
+#include <qglobalstatic.h>
 
 #include "qdebug.h"
 

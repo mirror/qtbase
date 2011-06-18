@@ -47,6 +47,7 @@
 
 #include <qglframebufferobject.h>
 #include <qglpixelbuffer.h>
+#include <qglobalstatic.h>
 #include <qcolormap.h>
 #include <qdesktopwidget.h>
 #include <private/qwidget_p.h>

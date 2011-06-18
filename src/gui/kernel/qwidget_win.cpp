@@ -58,6 +58,7 @@
 #include "qscrollbar.h"
 #include "qabstractscrollarea.h"
 #include <private/qabstractscrollarea_p.h>
+#include <qglobalstatic.h>
 
 #include <qdebug.h>
 

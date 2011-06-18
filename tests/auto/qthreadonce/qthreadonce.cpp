@@ -42,6 +42,7 @@
 
 #include "qplatformdefs.h"
 #include "qthreadonce.h"
+#include <qglobalstatic.h>
 
 #ifndef QT_NO_THREAD
 #include "qmutex.h"

@@ -42,6 +42,7 @@
 #ifndef QGLOBALSTATIC_H
 #define QGLOBALSTATIC_H
 
+#include "qglobal.h"
 
 #if defined(QT_NO_THREAD)
 

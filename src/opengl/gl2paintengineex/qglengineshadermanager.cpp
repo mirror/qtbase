@@ -43,6 +43,7 @@
 #include "qglengineshadersource_p.h"
 #include "qpaintengineex_opengl2_p.h"
 #include "qglshadercache_p.h"
+#include <qglobalstatic.h>
 
 #if defined(QT_DEBUG)
 #include <QMetaEnum>

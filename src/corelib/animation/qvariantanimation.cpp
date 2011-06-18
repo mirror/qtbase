@@ -397,6 +397,7 @@ void QVariantAnimation::setEasingCurve(const QEasingCurve &easing)
     d->recalculateCurrentInterval();
 }
 
+#include <qglobalstatic.h>
 typedef QVector<QVariantAnimation::Interpolator> QInterpolatorVector;
 Q_GLOBAL_STATIC(QInterpolatorVector, registeredInterpolators)
 

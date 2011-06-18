@@ -41,6 +41,7 @@
 
 #include "qglfunctions.h"
 #include "qgl_p.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

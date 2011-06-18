@@ -42,6 +42,7 @@
 #include "qthreadpool.h"
 #include "qthreadpool_p.h"
 #include "qelapsedtimer.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_THREAD
 

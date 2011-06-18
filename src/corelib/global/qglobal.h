@@ -2679,8 +2679,6 @@ template <typename T> struct QEnableIf<true, T> { typedef T Type; };
 QT_END_NAMESPACE
 QT_END_HEADER
 
-#include "qglobalstatic.h"
-
 #endif /* __cplusplus */
 
 #endif /* QGLOBAL_H */

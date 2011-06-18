@@ -72,6 +72,7 @@
 #include "qpainter.h"
 
 #include <qdebug.h>
+#include <qglobalstatic.h>
 
 #include "qkbddriverfactory_qws.h"
 #include "qmousedriverfactory_qws.h"

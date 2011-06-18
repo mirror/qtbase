@@ -47,6 +47,7 @@
 #include <qstringlist.h>
 #include <qregexp.h>
 #include <qurl.h>
+#include <qglobalstatic.h>
 
 #include <string.h>
 #include <qt_windows.h>

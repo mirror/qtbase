@@ -66,6 +66,7 @@
 #include "QtNetwork/qnetworkconfigmanager.h"
 #include "QtNetwork/qhttpmultipart.h"
 #include "qhttpmultipart_p.h"
+#include "qglobalstatic.h"
 
 #include "qnetworkreplyhttpimpl_p.h"
 

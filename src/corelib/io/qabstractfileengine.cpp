@@ -51,6 +51,7 @@
 #include "qfsfileengine.h"
 #include "qdiriterator.h"
 #include "qstringbuilder.h"
+#include "qglobalstatic.h"
 
 #include <QtCore/private/qfilesystementry_p.h>
 #include <QtCore/private/qfilesystemmetadata_p.h>

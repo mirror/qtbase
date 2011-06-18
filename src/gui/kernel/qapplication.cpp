@@ -50,6 +50,7 @@
 #include "qevent.h"
 #include "qfile.h"
 #include "qfileinfo.h"
+#include "qglobalstatic.h"
 #include "qgraphicsscene.h"
 #include "qhash.h"
 #include "qset.h"

@@ -61,6 +61,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QLibrary>
 #include <QtCore/QDebug>
+#include <qglobalstatic.h>
 
 #include <private/qapplication_p.h>
 #include <private/qiconloader_p.h>

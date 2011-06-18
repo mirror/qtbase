@@ -48,6 +48,7 @@
 #include <private/qpaintengine_s60_p.h>
 #include <private/qfont_p.h>
 
+#include <qglobalstatic.h>
 #include "qpixmap.h"
 #include "qpixmap_raster_p.h"
 #include <qwidget.h>

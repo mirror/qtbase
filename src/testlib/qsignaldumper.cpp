@@ -46,6 +46,7 @@
 #include <QtCore/qmetatype.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qvariant.h>
+#include <QtCore/qglobalstatic.h>
 
 #include "QtTest/private/qtestlog_p.h"
 

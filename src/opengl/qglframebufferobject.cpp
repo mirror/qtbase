@@ -43,6 +43,7 @@
 #include "qglframebufferobject_p.h"
 
 #include <qdebug.h>
+#include <qglobalstatic.h>
 #include <private/qgl_p.h>
 #include <private/qfont_p.h>
 #if !defined(QT_OPENGL_ES_1)

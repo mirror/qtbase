@@ -54,6 +54,7 @@
 #include <qlabel.h>
 #include <qbitmap.h>
 #include <qmath.h>
+#include <qglobalstatic.h>
 
 #if defined (Q_WS_X11)
 #  include <private/qfontengine_ft_p.h>

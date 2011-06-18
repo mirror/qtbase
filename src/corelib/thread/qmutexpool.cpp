@@ -41,6 +41,7 @@
 
 #include "qatomic.h"
 #include "qmutexpool_p.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_THREAD
 

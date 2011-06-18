@@ -45,6 +45,7 @@
 #ifndef QT_NO_LIBRARY
 
 #include "qlibrary_p.h"
+#include "qglobalstatic.h"
 #include <qstringlist.h>
 #include <qfile.h>
 #include <qfileinfo.h>

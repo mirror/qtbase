@@ -78,6 +78,7 @@
 
 #include "private/qfactoryloader_p.h"
 #include "qmutex.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -44,6 +44,7 @@
 #include "qdbus_symbols_p.h"
 
 #include <QStringList>
+#include <qglobalstatic.h>
 
 #include <private/qobject_p.h>
 

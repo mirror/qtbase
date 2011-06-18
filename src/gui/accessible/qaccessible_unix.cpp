@@ -48,6 +48,7 @@
 #include "qmutex.h"
 #include "qvector.h"
 #include "private/qfactoryloader_p.h"
+#include <qglobalstatic.h>
 
 #include <stdlib.h>
 

@@ -47,6 +47,7 @@
 #include <qobject.h>
 #include <qsocketnotifier.h>
 #include <qhash.h>
+#include <qglobalstatic.h>
 
 #include <directfb.h>
 #include <unistd.h>

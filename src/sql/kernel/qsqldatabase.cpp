@@ -97,6 +97,7 @@
 #include "private/qsqlnulldriver_p.h"
 #include "qmutex.h"
 #include "qhash.h"
+#include "qglobalstatic.h"
 #include <stdlib.h>
 
 QT_BEGIN_NAMESPACE

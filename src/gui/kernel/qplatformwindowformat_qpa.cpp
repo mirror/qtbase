@@ -42,6 +42,7 @@
 #include "qplatformwindowformat_qpa.h"
 
 #include <QtCore/QDebug>
+#include <qglobalstatic.h>
 
 Q_GLOBAL_STATIC(QPlatformWindowFormat, q_platformwindow_default_format);
 

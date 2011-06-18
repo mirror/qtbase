@@ -42,6 +42,7 @@
 #include "qkeysequence.h"
 #include "qkeysequence_p.h"
 #include "private/qapplication_p.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_SHORTCUT
 

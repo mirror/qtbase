@@ -42,6 +42,7 @@
 #include <qvariant.h>
 #include <private/qwidgetitemdata_p.h>
 #include "qfiledialog.h"
+#include <qglobalstatic.h>
 
 #ifndef QT_NO_FILEDIALOG
 #include "qfiledialog_p.h"

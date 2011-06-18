@@ -45,6 +45,7 @@
 #include "qthread.h"
 #include "qthread_p.h"
 #include "qmutex.h"
+#include "qglobalstatic.h"
 
 #include <string.h>
 

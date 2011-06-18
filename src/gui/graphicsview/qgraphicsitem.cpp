@@ -747,6 +747,7 @@
 #ifndef QT_NO_ACCESSIBILITY
 # include "qaccessible.h"
 #endif
+#include <qglobalstatic.h>
 
 #include <private/qgraphicsitem_p.h>
 #include <private/qgraphicswidget_p.h>

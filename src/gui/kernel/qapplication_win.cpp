@@ -94,6 +94,7 @@ extern void qt_wince_hide_taskbar(HWND hwnd); //defined in qguifunctions_wince.c
 #include <private/qkeymapper_p.h>
 #include <private/qlocale_p.h>
 #include <private/qsystemlibrary_p.h>
+#include <qglobalstatic.h>
 #include "qevent_p.h"
 
 //#define ALIEN_DEBUG

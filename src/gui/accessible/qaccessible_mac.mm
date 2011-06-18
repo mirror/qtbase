@@ -56,6 +56,7 @@
 #include "qlistview.h"
 #include "qtableview.h"
 #include "qdockwidget.h"
+#include <qglobalstatic.h>
 
 #include <private/qt_mac_p.h>
 #include <private/qwidget_p.h>

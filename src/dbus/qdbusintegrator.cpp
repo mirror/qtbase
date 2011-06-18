@@ -47,6 +47,7 @@
 #include <qstringlist.h>
 #include <qtimer.h>
 #include <qthread.h>
+#include <qglobalstatic.h>
 
 #include "qdbusargument.h"
 #include "qdbusconnection_p.h"

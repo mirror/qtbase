@@ -42,6 +42,7 @@
 #include "qstylefactory.h"
 #include "qstyleplugin.h"
 #include "private/qfactoryloader_p.h"
+#include <qglobalstatic.h>
 #include "qmutex.h"
 
 #include "qapplication.h"

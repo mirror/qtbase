@@ -44,6 +44,7 @@
 
 #include <qdatetime.h>
 #include <qurl.h>
+#include "qglobalstatic.h"
 
 #include <qdebug.h>
 

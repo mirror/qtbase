@@ -50,6 +50,7 @@
 #include "qmetaobject.h"
 #include "qmutex.h"
 #include <private/qfactoryloader_p.h>
+#include <qglobalstatic.h>
 
 #include "qwidget.h"
 

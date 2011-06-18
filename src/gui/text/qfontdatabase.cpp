@@ -49,6 +49,7 @@
 #include "qmutex.h"
 #include "private/qunicodetables_p.h"
 #include "qfontengine_p.h"
+#include <qglobalstatic.h>
 
 #ifdef Q_WS_QPA
 #include <QtGui/private/qapplication_p.h>

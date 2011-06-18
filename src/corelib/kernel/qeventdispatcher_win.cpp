@@ -54,6 +54,7 @@
 #include "qcoreapplication_p.h"
 #include <private/qthread_p.h>
 #include <private/qmutexpool_p.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

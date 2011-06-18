@@ -42,6 +42,7 @@
 #include <qdebug.h>
 #include <private/qfontengine_p.h>
 #include <qmath.h>
+#include <qglobalstatic.h>
 #include <private/qmath_p.h>
 #include <private/qdrawhelper_p.h>
 #include <private/qpaintengine_p.h>

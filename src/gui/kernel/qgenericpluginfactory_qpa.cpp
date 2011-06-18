@@ -45,6 +45,7 @@
 #include "private/qfactoryloader_p.h"
 #include "qgenericplugin_qpa.h"
 #include "qdebug.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

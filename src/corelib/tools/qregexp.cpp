@@ -3663,6 +3663,8 @@ struct QRegExpPrivate
 };
 
 #if !defined(QT_NO_REGEXP_OPTIM)
+#include "qglobalstatic.h"
+
 uint qHash(const QRegExpEngineKey &key)
 {
     return qHash(key.pattern);

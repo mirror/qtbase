@@ -49,6 +49,7 @@
 #include "qgraphicssystem_raster_p.h"
 #include "qgraphicssystem_runtime_p.h"
 #include "qdebug.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

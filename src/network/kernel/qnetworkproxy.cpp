@@ -227,6 +227,7 @@
 #include "qhash.h"
 #include "qmutex.h"
 #include "qurl.h"
+#include "qglobalstatic.h"
 
 #ifndef QT_NO_BEARERMANAGEMENT
 #include <QtNetwork/QNetworkConfiguration>

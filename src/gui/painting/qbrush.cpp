@@ -50,6 +50,7 @@
 #include <QtCore/qcoreapplication.h>
 #include "private/qstylehelper_p.h"
 #include <QtCore/qnumeric.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

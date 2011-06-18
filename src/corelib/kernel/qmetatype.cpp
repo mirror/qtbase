@@ -49,6 +49,7 @@
 #include "qvector.h"
 #include "qlocale.h"
 #include "qeasingcurve.h"
+#include "qglobalstatic.h"
 
 #ifdef QT_BOOTSTRAPPED
 # ifndef QT_NO_GEOM_VARIANT

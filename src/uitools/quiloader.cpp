@@ -50,6 +50,7 @@
 #include <ui4_p.h>
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qglobalstatic.h>
 #include <QtGui/QAction>
 #include <QtGui/QActionGroup>
 #include <QtGui/QApplication>

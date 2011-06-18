@@ -45,6 +45,8 @@
 #include <QThreadStorage>
 #include <QScopedPointer>
 
+#include <qglobalstatic.h>
+
 #include <charconv.h>
 
 struct QSymbianCodecInitData {

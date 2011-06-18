@@ -44,6 +44,7 @@
 #include "qpixmapdata_vg_p.h"
 #include "qvgimagepool_p.h"
 #include "qvg_p.h"
+#include <qglobalstatic.h>
 
 #if !defined(QT_NO_EGL)
 

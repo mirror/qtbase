@@ -55,6 +55,7 @@
 #include <limits.h>
 #include <math.h>
 #include <qdebug.h>
+#include <qglobalstatic.h>
 #include <QVarLengthArray>
 
 QT_BEGIN_NAMESPACE

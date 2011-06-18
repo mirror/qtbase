@@ -128,6 +128,7 @@
 #include <qsize.h>
 #include <qcolor.h>
 #include <qvariant.h>
+#include <qglobalstatic.h>
 
 // factory loader
 #include <qcoreapplication.h>

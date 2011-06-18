@@ -43,6 +43,7 @@
 #include <qdebug.h>
 #include <qmath.h>
 #include <qmutex.h>
+#include <qglobalstatic.h>
 
 // QtGui
 #include "qbitmap.h"

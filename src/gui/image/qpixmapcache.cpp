@@ -44,6 +44,7 @@
 #include "qobject.h"
 #include "qdebug.h"
 #include "qpixmapcache_p.h"
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

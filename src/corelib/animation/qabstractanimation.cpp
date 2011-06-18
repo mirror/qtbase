@@ -162,6 +162,7 @@
 QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_THREAD
+#include <qglobalstatic.h>
 Q_GLOBAL_STATIC(QThreadStorage<QUnifiedTimer *>, unifiedTimer)
 #endif
 

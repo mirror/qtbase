@@ -52,6 +52,7 @@
 #include "qnetworkaccesscachebackend_p.h"
 #include "qabstractnetworkcache.h"
 #include "qhostinfo.h"
+#include "qglobalstatic.h"
 
 #include "private/qnoncontiguousbytedevice_p.h"
 

@@ -50,6 +50,7 @@
 #include <private/qmenubar_p.h>
 #include <private/qt_s60_p.h>
 #include <QtCore/qlibrary.h>
+#include <qglobalstatic.h>
 
 #ifdef Q_WS_S60
 #include <eikmenub.h>

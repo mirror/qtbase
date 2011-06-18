@@ -48,6 +48,7 @@
 #include <QtGui/private/qapplication_p.h>
 #include <QtCore/QBuffer>
 #include <QtCore/QLibrary>
+#include <qglobalstatic.h>
 
 #include <QDebug>
 

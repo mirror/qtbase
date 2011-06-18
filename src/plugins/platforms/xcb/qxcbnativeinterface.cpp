@@ -45,6 +45,7 @@
 
 #include <QtGui/private/qapplication_p.h>
 #include <QtCore/QMap>
+#include <qglobalstatic.h>
 
 #include <QtCore/QDebug>
 

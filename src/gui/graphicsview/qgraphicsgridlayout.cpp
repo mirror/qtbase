@@ -90,6 +90,7 @@
 #include "qgraphicswidget.h"
 #include "qgridlayoutengine_p.h"
 #include <QtCore/qdebug.h>
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

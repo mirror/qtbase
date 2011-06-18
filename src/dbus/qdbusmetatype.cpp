@@ -48,6 +48,7 @@
 #include <qglobal.h>
 #include <qreadwritelock.h>
 #include <qvector.h>
+#include <qglobalstatic.h>
 
 #include "qdbusmessage.h"
 #include "qdbusunixfiledescriptor.h"

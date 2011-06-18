@@ -49,6 +49,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qstringlist.h>
+#include <qglobalstatic.h>
 
 #ifndef QT_NO_BEARERMANAGEMENT
 

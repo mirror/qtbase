@@ -55,9 +55,11 @@
 #include "qcolormap.h"
 #include "qdebug.h"
 #include "qmenu.h"
+#include "qglobalstatic.h"
 #include "private/qmenu_p.h"
 #include "private/qbackingstore_p.h"
 #include "private/qwindowsurface_x11_p.h"
+#include <qglobalstatic.h>
 
 //extern bool qt_sendSpontaneousEvent(QObject *, QEvent *); //qapplication_x11.cpp
 

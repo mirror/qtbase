@@ -52,6 +52,7 @@
 #include "qpluginloader.h"
 #include "private/qobject_p.h"
 #include "private/qcoreapplication_p.h"
+#include "qglobalstatic.h"
 
 QT_BEGIN_NAMESPACE
 

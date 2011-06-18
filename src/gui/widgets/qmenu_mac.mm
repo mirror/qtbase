@@ -43,6 +43,7 @@
 #include "qhash.h"
 #include <qdebug.h>
 #include "qapplication.h"
+#include <qglobalstatic.h>
 #include <private/qt_mac_p.h>
 #include "qregexp.h"
 #include "qmainwindow.h"

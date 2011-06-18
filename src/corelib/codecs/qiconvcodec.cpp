@@ -44,6 +44,7 @@
 #include <qlibrary.h>
 #include <qdebug.h>
 #include <qthreadstorage.h>
+#include "qglobalstatic.h"
 
 #include <errno.h>
 #include <locale.h>

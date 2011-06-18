@@ -52,6 +52,7 @@
 #include "qtextcodec.h"
 #include "qiodevice.h"
 #include "qhash.h"
+#include <qglobalstatic.h>
 
 #include <private/qunicodetables_p.h>
 #include "qfont_p.h"

@@ -51,6 +51,7 @@
 #include "private/qsqlnulldriver_p.h"
 #include "qvector.h"
 #include "qmap.h"
+#include "qglobalstatic.h"
 
 QT_BEGIN_NAMESPACE
 

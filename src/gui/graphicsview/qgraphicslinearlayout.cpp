@@ -125,6 +125,7 @@
 #ifdef QT_DEBUG
 #include <QtCore/qdebug.h>
 #endif
+#include <qglobalstatic.h>
 
 QT_BEGIN_NAMESPACE
 

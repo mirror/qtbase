@@ -48,6 +48,7 @@
 #include <qrgb.h>
 #include <qpaintengine.h>
 #include <qdesktopwidget.h>
+#include <qglobalstatic.h>
 #include <private/qapplication_p.h>
 #include <private/qwsdisplay_qws_p.h>
 #include <private/qwidget_p.h>

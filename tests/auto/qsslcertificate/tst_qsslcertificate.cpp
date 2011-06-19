@@ -895,13 +895,14 @@ void tst_QSslCertificate::verify()
     QVERIFY(errors[0] == QSslError(QSslError::UnspecifiedError));
     errors.clear();
 
-    // Verify a cert signed with a valid CA - damn the Qt test certs aren't valid!
-    QList<QSslCertificate> caCerts = QSslCertificate::fromPath(SRCDIR "certificates/ca-cert.pem");
+    // Verify a valid cert signed by a CA
+    QList<QSslCertificate> caCerts = QSslCertificate::fromPath(SRCDIR "verify-certs/cacert.pem");
     QSslSocket::addDefaultCaCertificate(caCerts.first());
 
-    QList<QSslCertificate> toVerify = QSslCertificate::fromPath(SRCDIR "certificates/cert.pem");
+    QList<QSslCertificate> toVerify = QSslCertificate::fromPath(SRCDIR "verify-certs/test-ocsp-good-cert.pem");
     errors = QSslCertificate::verify(toVerify, QString());
-    qDebug() << errors;
+    QVERIFY(errors.count() == 0);
+    errors.clear();
 }
 
 #endif // QT_NO_OPENSSL

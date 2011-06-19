@@ -121,7 +121,7 @@ public:
     static QList<QSslCertificate> fromData(
         const QByteArray &data, QSsl::EncodingFormat format = QSsl::Pem);
 
-    static QList<QSslError> verify(QList<QSslCertificate> certificateChain, const QString &hostName);
+    static QList<QSslError> verify(QList<QSslCertificate> certificateChain, const QString &hostName=QString());
 
     Qt::HANDLE handle() const;
 

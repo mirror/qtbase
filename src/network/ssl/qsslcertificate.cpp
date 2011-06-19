@@ -700,7 +700,8 @@ static QSslError _q_OpenSSL_to_QSslError(int errorCode, const QSslCertificate &c
 }
 
 /*!
-    Verifies a certificate chain.
+    Verifies a certificate chain. If a hostName is specified then the certificate is
+    also checked to see if it is valid for the specified hostName.
     Note that the first certificate in the list should be the leaf certificate of
     the chain to be verified.
  */

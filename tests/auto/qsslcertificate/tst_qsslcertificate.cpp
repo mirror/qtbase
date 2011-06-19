@@ -115,6 +115,7 @@ private slots:
     void blacklistedCertificates();
     void toText();
     void multipleCommonNames();
+    void verify();
 
 // ### add tests for certificate bundles (multiple certificates concatenated into a single
 //     structure); both PEM and DER formatted
@@ -881,6 +882,26 @@ void tst_QSslCertificate::multipleCommonNames()
     QStringList commonNames = certList[0].subjectInfo(QSslCertificate::CommonName);
     QVERIFY(commonNames.contains(QString("www.example.com")));
     QVERIFY(commonNames.contains(QString("www2.example.com")));
+}
+
+void tst_QSslCertificate::verify()
+{
+    QList<QSslError> errors;
+    QList<QSslCertificate> certificateChain;
+
+    // Empty chain is unspecified error
+    errors = QSslCertificate::verify(certificateChain, QString());
+    QVERIFY(errors.count() == 1); 
+    QVERIFY(errors[0] == QSslError(QSslError::UnspecifiedError));
+    errors.clear();
+
+    // Verify a cert signed with a valid CA - damn the Qt test certs aren't valid!
+    QList<QSslCertificate> caCerts = QSslCertificate::fromPath(SRCDIR "certificates/ca-cert.pem");
+    QSslSocket::addDefaultCaCertificate(caCerts.first());
+
+    QList<QSslCertificate> toVerify = QSslCertificate::fromPath(SRCDIR "certificates/cert.pem");
+    errors = QSslCertificate::verify(toVerify, QString());
+    qDebug() << errors;
 }
 
 #endif // QT_NO_OPENSSL

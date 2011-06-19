@@ -121,6 +121,7 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qmap.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvarlengtharray.h>
@@ -649,13 +650,64 @@ static int q_X509Callback(int ok, X509_STORE_CTX *ctx)
     return 1;
 }
 
+static QSslError _q_OpenSSL_to_QSslError(int errorCode, const QSslCertificate &cert)
+{
+    QSslError error;
+    switch (errorCode) {
+    case X509_V_OK:
+        // X509_V_OK is also reported if the peer had no certificate.
+        break;
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+        error = QSslError(QSslError::UnableToGetIssuerCertificate, cert); break;
+    case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE:
+        error = QSslError(QSslError::UnableToDecryptCertificateSignature, cert); break;
+    case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY:
+        error = QSslError(QSslError::UnableToDecodeIssuerPublicKey, cert); break;
+    case X509_V_ERR_CERT_SIGNATURE_FAILURE:
+        error = QSslError(QSslError::CertificateSignatureFailed, cert); break;
+    case X509_V_ERR_CERT_NOT_YET_VALID:
+        error = QSslError(QSslError::CertificateNotYetValid, cert); break;
+    case X509_V_ERR_CERT_HAS_EXPIRED:
+        error = QSslError(QSslError::CertificateExpired, cert); break;
+    case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
+        error = QSslError(QSslError::InvalidNotBeforeField, cert); break;
+    case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
+        error = QSslError(QSslError::InvalidNotAfterField, cert); break;
+    case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+        error = QSslError(QSslError::SelfSignedCertificate, cert); break;
+    case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+        error = QSslError(QSslError::SelfSignedCertificateInChain, cert); break;
+    case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+        error = QSslError(QSslError::UnableToGetLocalIssuerCertificate, cert); break;
+    case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+        error = QSslError(QSslError::UnableToVerifyFirstCertificate, cert); break;
+    case X509_V_ERR_CERT_REVOKED:
+        error = QSslError(QSslError::CertificateRevoked, cert); break;
+    case X509_V_ERR_INVALID_CA:
+        error = QSslError(QSslError::InvalidCaCertificate, cert); break;
+    case X509_V_ERR_PATH_LENGTH_EXCEEDED:
+        error = QSslError(QSslError::PathLengthExceeded, cert); break;
+    case X509_V_ERR_INVALID_PURPOSE:
+        error = QSslError(QSslError::InvalidPurpose, cert); break;
+    case X509_V_ERR_CERT_UNTRUSTED:
+        error = QSslError(QSslError::CertificateUntrusted, cert); break;
+    case X509_V_ERR_CERT_REJECTED:
+        error = QSslError(QSslError::CertificateRejected, cert); break;
+    default:
+        error = QSslError(QSslError::UnspecifiedError, cert); break;
+    }
+    return error;
+}
+
 /*!
     Verifies a certificate chain.
+    Note that the first certificate in the list should be the leaf certificate of
+    the chain to be verified.
  */
 QList<QSslError> QSslCertificate::verify(QList<QSslCertificate> certificateChain, const QString &hostName)
 {
     QList<QSslError> errors;
-    if (certificateChain.count() < 0) {
+    if (certificateChain.count() <= 0) {
 	errors << QSslError(QSslError::UnspecifiedError);
 	return errors;
     }
@@ -693,10 +745,59 @@ QList<QSslError> QSslCertificate::verify(QList<QSslCertificate> certificateChain
         }
     }
 
+    _q_sslErrorListVerify()->mutex.lock();
+
     // Register a custom callback to get all verification errors.
     X509_STORE_set_verify_cb_func(certStore, q_X509Callback);
 
-    //TODO: Finish this. watch out for reentrancy requirement
+    int verifyResult;
+
+    // Build the chain in the certificate store
+    foreach (const QSslCertificate &cert, certificateChain) {
+	X509_STORE_CTX *storeContext = q_X509_STORE_CTX_new();
+	if (!storeContext) {
+	    q_X509_STORE_free(certStore);
+	    errors << QSslError(QSslError::UnspecifiedError);
+	    return errors;
+	}
+
+	if(!q_X509_STORE_CTX_init(storeContext, certStore, (X509 *)cert.handle(), 0)) {
+	    q_X509_STORE_CTX_free(storeContext);
+	    q_X509_STORE_free(certStore);
+	    errors << QSslError(QSslError::UnspecifiedError);
+	    return errors;
+	}
+
+	// Now we can actually perform the verification of the chain we have built
+	verifyResult = q_X509_verify_cert(storeContext);
+
+	q_X509_STORE_CTX_free(storeContext);
+    }
+
+    // If verifyResult is > 0 the cert is ok
+    qDebug() << "Verify result is " << verifyResult;
+
+    // Now process the errors
+    const QList<QPair<int, int> > errorList = _q_sslErrorListVerify()->errors;
+    _q_sslErrorListVerify()->errors.clear();
+
+    _q_sslErrorListVerify()->mutex.unlock();
+
+    // Translate the errors
+    if (QSslCertificatePrivate::isBlacklisted(certificateChain[0])) {
+        QSslError error(QSslError::CertificateBlacklisted, certificateChain[0]);
+        errors << error;
+    }
+
+    // TODO: Check the certificate name (this code should be shared with qsslsocket_openssl.cpp
+
+    // Translate errors from the error list into QSslErrors.
+    for (int i = 0; i < errorList.size(); ++i) {
+        const QPair<int, int> &errorAndDepth = errorList.at(i);
+        int err = errorAndDepth.first;
+        int depth = errorAndDepth.second;
+        errors << _q_OpenSSL_to_QSslError(err, certificateChain.value(depth));
+    }
 
     q_X509_STORE_free(certStore);
 

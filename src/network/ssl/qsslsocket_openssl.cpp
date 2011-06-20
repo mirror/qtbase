@@ -1467,4 +1467,103 @@ bool QSslSocketBackendPrivate::isMatchingHostname(const QString &cn, const QStri
     return true;
 }
 
+Q_GLOBAL_STATIC(QSslErrorList, _q_sslErrorListVerify)
+
+QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certificateChain, const QString &hostName)
+{
+    QList<QSslError> errors;
+    if (certificateChain.count() <= 0) {
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
+
+    // Setup the store with the default CA certificates
+    X509_STORE *certStore = q_X509_STORE_new();
+    if (!certStore) {
+        qWarning() << "Unable to create certificate store";
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
+
+    QList<QSslCertificate> expiredCerts;
+
+    foreach (const QSslCertificate &caCertificate, QSslSocket::defaultCaCertificates()) {
+        // add expired certs later, so that the
+        // valid ones are used before the expired ones
+        if (!caCertificate.isValid()) {
+            expiredCerts.append(caCertificate);
+        } else {
+	    q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+        }
+    }
+
+    bool addExpiredCerts = true;
+#if defined(Q_OS_MAC) && (MAC_OS_X_VERSION_MAX_ALLOWED == MAC_OS_X_VERSION_10_5)
+    //On Leopard SSL does not work if we add the expired certificates.
+    if (QSysInfo::MacintoshVersion == QSysInfo::MV_10_5)
+       addExpiredCerts = false;
+#endif
+    // now add the expired certs
+    if (addExpiredCerts) {
+        foreach (const QSslCertificate &caCertificate, expiredCerts) {
+	    q_X509_STORE_add_cert(certStore, (X509 *)caCertificate.handle());
+        }
+    }
+
+    _q_sslErrorListVerify()->mutex.lock();
+
+    // Register a custom callback to get all verification errors.
+    X509_STORE_set_verify_cb_func(certStore, q_X509Callback);
+
+    // Build the chain in the certificate store
+    foreach (const QSslCertificate &cert, certificateChain) {
+	X509_STORE_CTX *storeContext = q_X509_STORE_CTX_new();
+	if (!storeContext) {
+	    q_X509_STORE_free(certStore);
+	    errors << QSslError(QSslError::UnspecifiedError);
+	    return errors;
+	}
+
+	if(!q_X509_STORE_CTX_init(storeContext, certStore, (X509 *)cert.handle(), 0)) {
+	    q_X509_STORE_CTX_free(storeContext);
+	    q_X509_STORE_free(certStore);
+	    errors << QSslError(QSslError::UnspecifiedError);
+	    return errors;
+	}
+
+	// Now we can actually perform the verification of the chain we have built.
+	// We ignore the result of this function since we process errors via the
+	// callback.
+	(void) q_X509_verify_cert(storeContext);
+
+	q_X509_STORE_CTX_free(storeContext);
+    }
+
+    // Now process the errors
+    const QList<QPair<int, int> > errorList = _q_sslErrorListVerify()->errors;
+    _q_sslErrorListVerify()->errors.clear();
+
+    _q_sslErrorListVerify()->mutex.unlock();
+
+    // Translate the errors
+    if (QSslCertificatePrivate::isBlacklisted(certificateChain[0])) {
+        QSslError error(QSslError::CertificateBlacklisted, certificateChain[0]);
+        errors << error;
+    }
+
+    // TODO: Check the certificate name (this code should be shared with qsslsocket_openssl.cpp
+
+    // Translate errors from the error list into QSslErrors.
+    for (int i = 0; i < errorList.size(); ++i) {
+        const QPair<int, int> &errorAndDepth = errorList.at(i);
+        int err = errorAndDepth.first;
+        int depth = errorAndDepth.second;
+        errors << _q_OpenSSL_to_QSslError(err, certificateChain.value(depth));
+    }
+
+    q_X509_STORE_free(certStore);
+
+    return errors;
+}
+
 QT_END_NAMESPACE

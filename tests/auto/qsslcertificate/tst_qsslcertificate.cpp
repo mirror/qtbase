@@ -887,10 +887,10 @@ void tst_QSslCertificate::multipleCommonNames()
 void tst_QSslCertificate::verify()
 {
     QList<QSslError> errors;
-    QList<QSslCertificate> certificateChain;
+    QList<QSslCertificate> toVerify;
 
     // Empty chain is unspecified error
-    errors = QSslCertificate::verify(certificateChain, QString());
+    errors = QSslCertificate::verify(toVerify, QString());
     QVERIFY(errors.count() == 1); 
     QVERIFY(errors[0] == QSslError(QSslError::UnspecifiedError));
     errors.clear();
@@ -899,9 +899,22 @@ void tst_QSslCertificate::verify()
     QList<QSslCertificate> caCerts = QSslCertificate::fromPath(SRCDIR "verify-certs/cacert.pem");
     QSslSocket::addDefaultCaCertificate(caCerts.first());
 
-    QList<QSslCertificate> toVerify = QSslCertificate::fromPath(SRCDIR "verify-certs/test-ocsp-good-cert.pem");
+    toVerify = QSslCertificate::fromPath(SRCDIR "verify-certs/test-ocsp-good-cert.pem");
     errors = QSslCertificate::verify(toVerify, QString());
     QVERIFY(errors.count() == 0);
+    errors.clear();
+
+    // Test a blacklisted certificate
+    toVerify = QSslCertificate::fromPath(SRCDIR "verify-certs/test-addons-mozilla-org-cert.pem");
+    errors = QSslCertificate::verify(toVerify, QString());
+    bool foundBlack = false;
+    foreach (const QSslError &error, errors) {
+	if (error.error() == QSslError::CertificateBlacklisted) {
+	    foundBlack = true;
+	    break;
+	}
+    }
+    QVERIFY(foundBlack);
     errors.clear();
 }
 

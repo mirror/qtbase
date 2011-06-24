@@ -133,9 +133,7 @@ public:
         Symbol_Math,              //   Sm
         Symbol_Currency,          //   Sc
         Symbol_Modifier,          //   Sk
-        Symbol_Other,             //   So
-
-        Punctuation_Dask = Punctuation_Dash // ### Qt 5: remove
+        Symbol_Other              //   So
     };
 
     enum Direction

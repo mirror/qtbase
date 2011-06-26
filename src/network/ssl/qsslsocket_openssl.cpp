@@ -1467,8 +1467,6 @@ bool QSslSocketBackendPrivate::isMatchingHostname(const QString &cn, const QStri
     return true;
 }
 
-Q_GLOBAL_STATIC(QSslErrorList, _q_sslErrorListVerify)
-
 QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certificateChain, const QString &hostName)
 {
     QList<QSslError> errors;
@@ -1510,40 +1508,59 @@ QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certifi
         }
     }
 
-    _q_sslErrorListVerify()->mutex.lock();
+    _q_sslErrorList()->mutex.lock();
 
     // Register a custom callback to get all verification errors.
     X509_STORE_set_verify_cb_func(certStore, q_X509Callback);
 
-    // Build the chain in the certificate store
-    foreach (const QSslCertificate &cert, certificateChain) {
-	X509_STORE_CTX *storeContext = q_X509_STORE_CTX_new();
-	if (!storeContext) {
+    // Build the chain of intermediate certificates
+    STACK_OF(X509) *intermediates = 0;
+    if (certificateChain.length() > 1) {
+	intermediates = (STACK_OF(X509) *) q_sk_new_null();
+
+	if (!intermediates) {
 	    q_X509_STORE_free(certStore);
 	    errors << QSslError(QSslError::UnspecifiedError);
 	    return errors;
 	}
-
-	if(!q_X509_STORE_CTX_init(storeContext, certStore, (X509 *)cert.handle(), 0)) {
-	    q_X509_STORE_CTX_free(storeContext);
-	    q_X509_STORE_free(certStore);
-	    errors << QSslError(QSslError::UnspecifiedError);
-	    return errors;
+	
+	bool first = true;
+	foreach (const QSslCertificate &cert, certificateChain) {
+	    if (first) {
+		first = false;
+		continue;
+	    }
+	    q_sk_push( (_STACK *)intermediates, (X509 *)cert.handle());
 	}
-
-	// Now we can actually perform the verification of the chain we have built.
-	// We ignore the result of this function since we process errors via the
-	// callback.
-	(void) q_X509_verify_cert(storeContext);
-
-	q_X509_STORE_CTX_free(storeContext);
     }
 
-    // Now process the errors
-    const QList<QPair<int, int> > errorList = _q_sslErrorListVerify()->errors;
-    _q_sslErrorListVerify()->errors.clear();
+    X509_STORE_CTX *storeContext = q_X509_STORE_CTX_new();
+    if (!storeContext) {
+	q_X509_STORE_free(certStore);
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
 
-    _q_sslErrorListVerify()->mutex.unlock();
+    if(!q_X509_STORE_CTX_init(storeContext, certStore, (X509 *)certificateChain[0].handle(), intermediates)) {
+	q_X509_STORE_CTX_free(storeContext);
+	q_X509_STORE_free(certStore);
+	errors << QSslError(QSslError::UnspecifiedError);
+	return errors;
+    }
+
+    // Now we can actually perform the verification of the chain we have built.
+    // We ignore the result of this function since we process errors via the
+    // callback.
+    (void) q_X509_verify_cert(storeContext);
+
+    q_X509_STORE_CTX_free(storeContext);
+    q_sk_free( (_STACK *) intermediates);
+
+    // Now process the errors
+    const QList<QPair<int, int> > errorList = _q_sslErrorList()->errors;
+    _q_sslErrorList()->errors.clear();
+
+    _q_sslErrorList()->mutex.unlock();
 
     // Translate the errors
     if (QSslCertificatePrivate::isBlacklisted(certificateChain[0])) {

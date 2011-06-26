@@ -900,6 +900,7 @@ void tst_QSslCertificate::verify()
     QSslSocket::addDefaultCaCertificate(caCerts.first());
 
     toVerify = QSslCertificate::fromPath(SRCDIR "verify-certs/test-ocsp-good-cert.pem");
+
     errors = QSslCertificate::verify(toVerify, QString());
     QVERIFY(errors.count() == 0);
     errors.clear();
@@ -916,6 +917,27 @@ void tst_QSslCertificate::verify()
     }
     QVERIFY(foundBlack);
     errors.clear();
+
+    // This one is expired and untrusted
+    toVerify = QSslCertificate::fromPath(SRCDIR "more-certificates/cert-large-serial-number.pem");
+    errors = QSslCertificate::verify(toVerify, QString());
+    QVERIFY(errors.contains(QSslError(QSslError::SelfSignedCertificate, toVerify[0])));
+    QVERIFY(errors.contains(QSslError(QSslError::CertificateExpired, toVerify[0])));
+    errors.clear();
+    toVerify.clear();
+
+    // This one is signed by a valid cert, but the signer is not a valid CA
+    toVerify << QSslCertificate::fromPath(SRCDIR "verify-certs/test-intermediate-not-ca-cert.pem").first();
+    toVerify << QSslCertificate::fromPath(SRCDIR "verify-certs/test-ocsp-good-cert.pem").first();
+    errors = QSslCertificate::verify(toVerify, QString());
+    QVERIFY(errors.contains(QSslError(QSslError::InvalidCaCertificate, toVerify[1])));
+    toVerify.clear();
+
+    // This one is signed by a valid cert, and the signer is a valid CA
+    toVerify << QSslCertificate::fromPath(SRCDIR "verify-certs/test-intermediate-is-ca-cert.pem").first();
+    toVerify << QSslCertificate::fromPath(SRCDIR "verify-certs/test-intermediate-ca-cert.pem").first();
+    errors = QSslCertificate::verify(toVerify, QString());
+    QVERIFY(errors.length() == 0);
 }
 
 #endif // QT_NO_OPENSSL

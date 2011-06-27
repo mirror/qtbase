@@ -1530,7 +1530,11 @@ QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certifi
 		first = false;
 		continue;
 	    }
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
 	    q_sk_push( (_STACK *)intermediates, (X509 *)cert.handle());
+#else
+	    q_sk_push( (STACK *)intermediates, (X509 *)cert.handle());
+#endif
 	}
     }
 

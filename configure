@@ -713,6 +713,7 @@ CFG_DECLARATIVE_DEBUG=yes
 CFG_WEBKIT=auto # (yes|no|auto|debug)
 CFG_JAVASCRIPTCORE_JIT=auto
 CFG_LOCATION=auto
+CFG_LIBPROXY=auto
 
 CFG_GFX_AVAILABLE="linuxfb transformed qvfb vnc multiscreen directfb"
 CFG_GFX_ON="linuxfb multiscreen"
@@ -1042,7 +1043,7 @@ while [ "$#" -gt 0 ]; do
         VAL=no
         ;;
     #Qt style yes options
-    -incremental|-qvfb|-profile|-shared|-static|-sm|-xinerama|-xshape|-xsync|-xinput|-egl|-reduce-exports|-pch|-separate-debug-info|-stl|-freetype|-xcursor|-xfixes|-xrandr|-xrender|-mitshm|-fontconfig|-xkb|-xcb|-nis|-qdbus|-dbus|-dbus-linked|-glib|-gstreamer|-gtkstyle|-cups|-iconv|-largefile|-h|-help|-v|-verbose|-debug|-release|-fast|-accessibility|-confirm-license|-gnumake|-framework|-qt3support|-debug-and-release|-exceptions|-cocoa|-carbon|-universal|-harfbuzz|-prefix-install|-silent|-armfpa|-optimized-qmake|-dwarf2|-reduce-relocations|-sse|-openssl|-openssl-linked|-ptmalloc|-xmlpatterns|-phonon|-phonon-backend|-multimedia|-audio-backend|-svg|-declarative|-declarative-debug|-javascript-jit|-script|-scripttools|-rpath|-force-pkg-config|-s60|-usedeffiles|-icu)
+    -incremental|-qvfb|-profile|-shared|-static|-sm|-xinerama|-xshape|-xsync|-xinput|-egl|-reduce-exports|-pch|-separate-debug-info|-stl|-freetype|-xcursor|-xfixes|-xrandr|-xrender|-mitshm|-fontconfig|-xkb|-xcb|-nis|-qdbus|-dbus|-dbus-linked|-glib|-gstreamer|-gtkstyle|-cups|-iconv|-largefile|-h|-help|-v|-verbose|-debug|-release|-fast|-accessibility|-confirm-license|-gnumake|-framework|-qt3support|-debug-and-release|-exceptions|-cocoa|-carbon|-universal|-harfbuzz|-prefix-install|-silent|-armfpa|-optimized-qmake|-dwarf2|-reduce-relocations|-sse|-openssl|-openssl-linked|-ptmalloc|-libproxy|-xmlpatterns|-phonon|-phonon-backend|-multimedia|-audio-backend|-svg|-declarative|-declarative-debug|-javascript-jit|-script|-scripttools|-rpath|-force-pkg-config|-s60|-usedeffiles|-icu)
         VAR=`echo $1 | sed "s,^-\(.*\),\1,"`
         VAL=yes
         ;;
@@ -1907,6 +1908,13 @@ while [ "$#" -gt 0 ]; do
         [ "$VAL" = "yes" ] && VAL=qt
         if [ "$VAL" = "qt" ] || [ "$VAL" = "no" ] || [ "$VAL" = "system" ]; then
             CFG_LIBTIFF="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    libproxy)
+        if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
+            CFG_LIBPROXY="$VAL"
         else
             UNKNOWN_OPT=yes
         fi
@@ -3729,6 +3737,7 @@ Usage:  $relconf [-h] [-prefix <dir>] [-prefix-install] [-bindir <dir>] [-libdir
         [-no-multimedia] [-multimedia] [-no-phonon] [-phonon] [-no-phonon-backend] [-phonon-backend]
         [-no-media-backend] [-media-backend] [-no-audio-backend] [-audio-backend] 
         [-no-openssl] [-openssl] [-openssl-linked]
+        [-no-libproxy] [-libproxy]
         [-no-gtkstyle] [-gtkstyle] [-no-svg] [-svg] [-no-webkit] [-webkit] [-webkit-debug]
         [-no-javascript-jit] [-javascript-jit]
         [-no-script] [-script] [-no-scripttools] [-scripttools] 
@@ -3979,6 +3988,9 @@ Third Party Libraries:
 
     -ptmalloc .......... Override the system memory allocator with ptmalloc.
                          (Experimental.)
+
+    -no-libproxy ....... Do not compile libproxy support.
+ +  -libproxy .......... Enable run-time libproxy support.
 
 Additional options:
 
@@ -6690,6 +6702,23 @@ if [ "$CFG_GETIFADDRS" != "no" ]; then
     fi
 fi
 
+# find if the platform supports IPv6
+if [ "$CFG_LIBPROXY" != "no" ]; then
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/libproxy "libproxy" $L_FLAGS $I_FLAGS $l_FLAGS $MAC_CONFIG_TEST_COMMANDLINE; then
+        CFG_LIBPROXY=yes
+    else
+        if [ "$CFG_LIBPROXY" = "yes" ] && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
+            echo "libproxy support cannot be enabled due to functionality tests!"
+            echo " Turn on verbose messaging (-v) to $0 to see the final report."
+            echo " If you believe this message is in error you may use the continue"
+            echo " switch (-continue) to $0 to continue."
+            exit 101
+        else
+            CFG_LIBPROXY=no
+        fi
+    fi
+fi
+
 # detect OpenSSL
 if [ "$CFG_OPENSSL" != "no" ] && [ "$XPLATFORM_SYMBIAN_SBSV2" = "no" ]; then
     if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/openssl "OpenSSL" $L_FLAGS $I_FLAGS $l_FLAGS $MAC_CONFIG_TEST_COMMANDLINE; then
@@ -7245,6 +7274,7 @@ fi
 [ "$CFG_GSTREAMER" = "yes" ] && QT_CONFIG="$QT_CONFIG gstreamer"
 [ "$CFG_DBUS" = "yes" ] && QT_CONFIG="$QT_CONFIG dbus"
 [ "$CFG_DBUS" = "linked" ] && QT_CONFIG="$QT_CONFIG dbus dbus-linked"
+[ "$CFG_LIBPROXY" = "yes" ] && QT_CONFIG="$QT_CONFIG libproxy"
 [ "$CFG_NAS" = "system" ] && QT_CONFIG="$QT_CONFIG nas"
 [ "$CFG_OPENSSL" = "yes" ] && QT_CONFIG="$QT_CONFIG openssl"
 [ "$CFG_OPENSSL" = "linked" ] && QT_CONFIG="$QT_CONFIG openssl-linked"
@@ -8690,6 +8720,7 @@ fi
 echo "IPv6 ifname support .... $CFG_IPV6IFNAME"
 echo "getaddrinfo support .... $CFG_GETADDRINFO"
 echo "getifaddrs support ..... $CFG_GETIFADDRS"
+echo "libproxy support ....... $CFG_LIBPROXY"
 echo "Accessibility .......... $CFG_ACCESSIBILITY"
 echo "NIS support ............ $CFG_NIS"
 echo "CUPS support ........... $CFG_CUPS"

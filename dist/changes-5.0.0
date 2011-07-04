@@ -49,6 +49,7 @@ QtGui
 
 QtNetwork
 ---------
+* QNetworkProxy: Added libproxy support to find the system proxy
 
 QtOpenGL
 --------

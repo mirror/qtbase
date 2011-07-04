@@ -1376,6 +1376,11 @@ void QNetworkProxyFactory::setApplicationProxyFactory(QNetworkProxyFactory *fact
     SOCKS server for all queries. If SOCKS isn't enabled, it will use
     the HTTPS proxy for all TcpSocket and UrlRequest queries.
 
+    On systems supported by libproxy (Linux for example), this function
+    will use libproxy's proxy factory. Note that libproxy support have to
+    be enabled in your Qt build. See http://code.google.com/p/libproxy/
+    for more information on libproxy.
+
     On other systems, there is no standardised method of obtaining the
     system proxy configuration. This function may be improved in
     future versions to support those systems.

@@ -176,6 +176,9 @@ public:
     QList<QSslError> sslErrors() const;
 
     static bool supportsSsl();
+    static long opensslVersion();
+    static QString opensslVersionString();
+
     void ignoreSslErrors(const QList<QSslError> &errors);
 
 public Q_SLOTS:

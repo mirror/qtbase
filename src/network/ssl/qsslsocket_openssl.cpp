@@ -1266,33 +1266,14 @@ bool QSslSocketBackendPrivate::startHandshake()
         // if we're the server, don't check CN
         if (mode == QSslSocket::SslClientMode) {
             QString peerName = (verificationPeerName.isEmpty () ? q->peerName() : verificationPeerName);
-            QStringList commonNameList = configuration.peerCertificate.subjectInfo(QSslCertificate::CommonName);
-            bool matched = false;
 
-            foreach (const QString &commonName, commonNameList) {
-                if (isMatchingHostname(commonName.toLower(), peerName.toLower())) {
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched) {
-                foreach (const QString &altName, configuration.peerCertificate
-                         .alternateSubjectNames().values(QSsl::DnsEntry)) {
-                    if (isMatchingHostname(altName.toLower(), peerName.toLower())) {
-                        matched = true;
-                        break;
-                    }
-                }
-            }
-
-        if (!matched) {
-            // No matches in common names or alternate names.
-            QSslError error(QSslError::HostNameMismatch, configuration.peerCertificate);
-            errors << error;
-            emit q->peerVerifyError(error);
-            if (q->state() != QAbstractSocket::ConnectedState)
-                return false;
+            if (!isMatchingHostname(configuration.peerCertificate, peerName)) {
+                // No matches in common names or alternate names.
+                QSslError error(QSslError::HostNameMismatch, configuration.peerCertificate);
+                errors << error;
+                emit q->peerVerifyError(error);
+                if (q->state() != QAbstractSocket::ConnectedState)
+                    return false;
             }
         }
     } else {
@@ -1425,6 +1406,25 @@ QString QSslSocketBackendPrivate::getErrorsFromOpenSsl()
         errorString.append(QString::fromAscii(error)); // error is ascii according to man ERR_error_string
     }
     return errorString;
+}
+
+bool QSslSocketBackendPrivate::isMatchingHostname(const QSslCertificate &cert, const QString &peerName)
+{
+    QStringList commonNameList = cert.subjectInfo(QSslCertificate::CommonName);
+    
+    foreach (const QString &commonName, commonNameList) {
+        if (isMatchingHostname(commonName.toLower(), peerName.toLower())) {
+            return true;
+        }
+    }
+
+    foreach (const QString &altName, cert.alternateSubjectNames().values(QSsl::DnsEntry)) {
+        if (isMatchingHostname(altName.toLower(), peerName.toLower())) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool QSslSocketBackendPrivate::isMatchingHostname(const QString &cn, const QString &hostname)
@@ -1572,7 +1572,12 @@ QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certifi
         errors << error;
     }
 
-    // TODO: Check the certificate name (this code should be shared with qsslsocket_openssl.cpp
+    // Check the certificate name against the hostname if one was specified
+    if ((!hostName.isEmpty()) && (!isMatchingHostname(certificateChain[0], hostName))) {
+        // No matches in common names or alternate names.
+        QSslError error(QSslError::HostNameMismatch, certificateChain[0]);
+        errors << error;
+    }
 
     // Translate errors from the error list into QSslErrors.
     for (int i = 0; i < errorList.size(); ++i) {

@@ -95,8 +95,8 @@ public:
 
     inline int size() const { return d->size; }
     inline void detach()
-    { if (d->ref != 1) detach_helper(); }
-    inline bool isDetached() const { return d->ref == 1; }
+    { if (d->ref.load() != 1) detach_helper(); }
+    inline bool isDetached() const { return d->ref.load() == 1; }
     inline void setSharable(bool sharable) { if (!sharable) detach(); d->sharable = sharable; }
     inline bool isSharedWith(const QLinkedList<T> &other) const { return d == other.d; }
 
@@ -253,7 +253,7 @@ void QLinkedList<T>::detach_helper()
 {
     union { QLinkedListData *d; Node *e; } x;
     x.d = new QLinkedListData;
-    x.d->ref = 1;
+    x.d->ref.store(1);
     x.d->size = d->size;
     x.d->sharable = true;
     Node *original = e->n;
@@ -282,7 +282,7 @@ void QLinkedList<T>::free(QLinkedListData *x)
 {
     Node *y = reinterpret_cast<Node*>(x);
     Node *i = y->n;
-    if (x->ref == 0) {
+    if (x->ref.load() == 0) {
         while(i != y) {
             Node *n = i;
             i = i->n;

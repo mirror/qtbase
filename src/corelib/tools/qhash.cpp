@@ -206,7 +206,7 @@ QHashData *QHashData::detach_helper2(void (*node_duplicate)(Node *, void *),
     d = new QHashData;
     d->fakeNext = 0;
     d->buckets = 0;
-    d->ref = 1;
+    d->ref.store(1);
     d->size = size;
     d->nodeSize = nodeSize;
     d->userNumBits = userNumBits;

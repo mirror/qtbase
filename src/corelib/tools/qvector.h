@@ -144,8 +144,8 @@ public:
     void reserve(int size);
     inline void squeeze() { realloc(d->size, d->size); d->capacity = 0; }
 
-    inline void detach() { if (d->ref != 1) detach_helper(); }
-    inline bool isDetached() const { return d->ref == 1; }
+    inline void detach() { if (d->ref.load() != 1) detach_helper(); }
+    inline bool isDetached() const { return d->ref.load() == 1; }
     inline void setSharable(bool sharable) { if (!sharable) detach(); d->sharable = sharable; }
     inline bool isSharedWith(const QVector<T> &other) const { return d == other.d; }
 
@@ -337,7 +337,7 @@ void QVector<T>::detach_helper()
 { realloc(d->size, d->alloc); }
 template <typename T>
 void QVector<T>::reserve(int asize)
-{ if (asize > d->alloc) realloc(d->size, asize); if (d->ref == 1) d->capacity = 1; }
+{ if (asize > d->alloc) realloc(d->size, asize); if (d->ref.load() == 1) d->capacity = 1; }
 template <typename T>
 void QVector<T>::resize(int asize)
 { realloc(asize, (asize > d->alloc || (!d->capacity && asize < d->size && asize < (d->alloc >> 1))) ?
@@ -411,7 +411,7 @@ template <typename T>
 QVector<T>::QVector(int asize)
 {
     d = malloc(asize);
-    d->ref = 1;
+    d->ref.store(1);
     d->alloc = d->size = asize;
     d->sharable = true;
     d->capacity = false;
@@ -429,7 +429,7 @@ template <typename T>
 QVector<T>::QVector(int asize, const T &t)
 {
     d = malloc(asize);
-    d->ref = 1;
+    d->ref.store(1);
     d->alloc = d->size = asize;
     d->sharable = true;
     d->capacity = false;
@@ -443,7 +443,7 @@ template <typename T>
 QVector<T>::QVector(std::initializer_list<T> args)
 {
     d = malloc(int(args.size()));
-    d->ref = 1;
+    d->ref.store(1);
     d->alloc = d->size = int(args.size());
     d->sharable = true;
     d->capacity = false;
@@ -477,7 +477,7 @@ void QVector<T>::realloc(int asize, int aalloc)
     union { QVectorData *d; Data *p; } x;
     x.d = d;
 
-    if (QTypeInfo<T>::isComplex && asize < d->size && d->ref == 1 ) {
+    if (QTypeInfo<T>::isComplex && asize < d->size && d->ref.load() == 1 ) {
         // call the destructor on all objects that need to be
         // destroyed when shrinking
         pOld = p->array + d->size;
@@ -488,13 +488,13 @@ void QVector<T>::realloc(int asize, int aalloc)
         }
     }
 
-    if (aalloc != d->alloc || d->ref != 1) {
+    if (aalloc != d->alloc || d->ref.load() != 1) {
         // (re)allocate memory
         if (QTypeInfo<T>::isStatic) {
             x.d = malloc(aalloc);
             Q_CHECK_PTR(x.p);
             x.d->size = 0;
-        } else if (d->ref != 1) {
+        } else if (d->ref.load() != 1) {
             x.d = malloc(aalloc);
             Q_CHECK_PTR(x.p);
             if (QTypeInfo<T>::isComplex) {
@@ -515,7 +515,7 @@ void QVector<T>::realloc(int asize, int aalloc)
                     QT_RETHROW;
             }
         }
-        x.d->ref = 1;
+        x.d->ref.store(1);
         x.d->alloc = aalloc;
         x.d->sharable = true;
         x.d->capacity = d->capacity;
@@ -572,7 +572,7 @@ Q_OUTOFLINE_TEMPLATE T QVector<T>::value(int i, const T &defaultValue) const
 template <typename T>
 void QVector<T>::append(const T &t)
 {
-    if (d->ref != 1 || d->size + 1 > d->alloc) {
+    if (d->ref.load() != 1 || d->size + 1 > d->alloc) {
         const T copy(t);
         realloc(d->size, (d->size + 1 > d->alloc) ?
                     QVectorData::grow(sizeOfTypedData(), d->size + 1, sizeof(T), QTypeInfo<T>::isStatic)
@@ -596,7 +596,7 @@ Q_TYPENAME QVector<T>::iterator QVector<T>::insert(iterator before, size_type n,
     int offset = int(before - p->array);
     if (n != 0) {
         const T copy(t);
-        if (d->ref != 1 || d->size + n > d->alloc)
+        if (d->ref.load() != 1 || d->size + n > d->alloc)
             realloc(d->size, QVectorData::grow(sizeOfTypedData(), d->size + n, sizeof(T),
                                                QTypeInfo<T>::isStatic));
         if (QTypeInfo<T>::isStatic) {

@@ -300,8 +300,8 @@ public:
     void reserve(int size);
     inline void squeeze() { reserve(1); }
 
-    inline void detach() { if (d->ref != 1) detach_helper(); }
-    inline bool isDetached() const { return d->ref == 1; }
+    inline void detach() { if (d->ref.load() != 1) detach_helper(); }
+    inline bool isDetached() const { return d->ref.load() == 1; }
     inline void setSharable(bool sharable) { if (!sharable) detach(); d->sharable = sharable; }
     inline bool isSharedWith(const QHash<Key, T> &other) const { return d == other.d; }
 

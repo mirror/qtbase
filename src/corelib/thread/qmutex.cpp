@@ -140,10 +140,7 @@ QT_BEGIN_NAMESPACE
 */
 QMutex::QMutex(RecursionMode mode)
 {
-    if (mode == Recursive)
-        d = new QRecursiveMutexPrivate;
-    else
-        d = 0;
+    d.store(mode == Recursive ? new QRecursiveMutexPrivate : 0);
 }
 
 /*!
@@ -154,8 +151,8 @@ QMutex::QMutex(RecursionMode mode)
 QMutex::~QMutex()
 {
     if (isRecursive())
-        delete static_cast<QRecursiveMutexPrivate *>(d._q_value);
-    else if (d) {
+        delete static_cast<QRecursiveMutexPrivate *>(d.load());
+    else if (d.load()) {
 #ifndef Q_OS_LINUX
         if (d->possiblyUnlocked && tryLock()) { unlock(); return; }
 #endif
@@ -236,7 +233,7 @@ QMutex::~QMutex()
 
 */
 bool QBasicMutex::isRecursive() {
-    QMutexPrivate *d = this->d;
+    QMutexPrivate *d = this->d.load();
     if (quintptr(d) <= 0x3)
         return false;
     return d->recursive;

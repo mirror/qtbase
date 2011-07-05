@@ -211,8 +211,8 @@ void tst_QSharedPointer::basics()
         QVERIFY(! (ptr == otherData));
         QVERIFY(! (otherData == ptr));
     }
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref == 1);
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref.load() == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref.load() == 1);
 
     {
         // create another object:
@@ -224,8 +224,8 @@ void tst_QSharedPointer::basics()
 
         // otherData is deleted here
     }
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref == 1);
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref.load() == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref.load() == 1);
 
     {
         // create a copy:
@@ -241,8 +241,8 @@ void tst_QSharedPointer::basics()
         QCOMPARE(copy.data(), aData);
         QVERIFY(copy == aData);
     }
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref == 1);
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref.load() == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref.load() == 1);
 
     {
         // create a weak reference:
@@ -273,8 +273,8 @@ void tst_QSharedPointer::basics()
         QVERIFY(strong == ptr);
         QCOMPARE(strong.data(), aData);
     }
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref == 1);
-    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->weakref.load() == 1);
+    QVERIFY(!refCountData(ptr) || refCountData(ptr)->strongref.load() == 1);
 
     // aData is deleted here
 }
@@ -559,15 +559,15 @@ void tst_QSharedPointer::upCast()
         QVERIFY(baseptr == derivedptr);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QWeakPointer<DerivedData> derivedptr = qWeakPointerCast<DerivedData>(baseptr);
         QVERIFY(baseptr == derivedptr);
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QWeakPointer<Data> weakptr = baseptr;
@@ -575,16 +575,16 @@ void tst_QSharedPointer::upCast()
         QVERIFY(baseptr == derivedptr);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QSharedPointer<DerivedData> derivedptr = baseptr.staticCast<DerivedData>();
         QVERIFY(baseptr == derivedptr);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 }
 
 class OtherObject: public QObject
@@ -959,8 +959,8 @@ void tst_QSharedPointer::dynamicCast()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QWeakPointer<Data> weakptr = baseptr;
@@ -969,8 +969,8 @@ void tst_QSharedPointer::dynamicCast()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QSharedPointer<DerivedData> derivedptr = baseptr.dynamicCast<DerivedData>();
@@ -978,8 +978,8 @@ void tst_QSharedPointer::dynamicCast()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 }
 
 void tst_QSharedPointer::dynamicCastDifferentPointers()
@@ -994,8 +994,8 @@ void tst_QSharedPointer::dynamicCastDifferentPointers()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QWeakPointer<Data> weakptr = baseptr;
@@ -1004,8 +1004,8 @@ void tst_QSharedPointer::dynamicCastDifferentPointers()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QSharedPointer<DiffPtrDerivedData> derivedptr = baseptr.dynamicCast<DiffPtrDerivedData>();
@@ -1013,8 +1013,8 @@ void tst_QSharedPointer::dynamicCastDifferentPointers()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         Stuffing *nakedptr = dynamic_cast<Stuffing *>(baseptr.data());
@@ -1039,8 +1039,8 @@ void tst_QSharedPointer::dynamicCastVirtualBase()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QWeakPointer<Data> weakptr = baseptr;
@@ -1049,8 +1049,8 @@ void tst_QSharedPointer::dynamicCastVirtualBase()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QSharedPointer<VirtualDerived> derivedptr = baseptr.dynamicCast<VirtualDerived>();
@@ -1058,8 +1058,8 @@ void tst_QSharedPointer::dynamicCastVirtualBase()
         QCOMPARE(derivedptr.data(), aData);
         QCOMPARE(static_cast<Data *>(derivedptr.data()), baseptr.data());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 }
 
 void tst_QSharedPointer::dynamicCastFailure()
@@ -1071,15 +1071,15 @@ void tst_QSharedPointer::dynamicCastFailure()
         QSharedPointer<DerivedData> derivedptr = qSharedPointerDynamicCast<DerivedData>(baseptr);
         QVERIFY(derivedptr.isNull());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 
     {
         QSharedPointer<DerivedData> derivedptr = baseptr.dynamicCast<DerivedData>();
         QVERIFY(derivedptr.isNull());
     }
-    QCOMPARE(int(refCountData(baseptr)->weakref), 1);
-    QCOMPARE(int(refCountData(baseptr)->strongref), 1);
+    QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
+    QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 }
 #endif
 
@@ -1375,8 +1375,8 @@ void tst_QSharedPointer::creating()
         QCOMPARE(Data::destructorCounter, 1);
 
         // valgrind will complain here if something happened to the pointer
-        QVERIFY(d->weakref == 1);
-        QVERIFY(d->strongref == 0);
+        QVERIFY(d->weakref.load() == 1);
+        QVERIFY(d->strongref.load() == 0);
     }
     check();
 

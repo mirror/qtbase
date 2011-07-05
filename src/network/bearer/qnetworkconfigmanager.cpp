@@ -46,34 +46,36 @@
 
 #include <QtCore/qstringlist.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qmutex.h>
 
 #ifndef QT_NO_BEARERMANAGEMENT
 
 QT_BEGIN_NAMESPACE
 
-#define Q_GLOBAL_STATIC_QAPP_DESTRUCTION(TYPE, NAME)                    \
-    static QGlobalStatic<TYPE > this_##NAME                             \
-                = { Q_BASIC_ATOMIC_INITIALIZER(0), false };             \
-    static void NAME##_cleanup()                                        \
-    {                                                                   \
-        delete this_##NAME.pointer;                                     \
-        this_##NAME.pointer = 0;                                        \
-    }                                                                   \
-    static TYPE *NAME()                                                 \
-    {                                                                   \
-        if (!this_##NAME.pointer) {                                     \
-            TYPE *x = new TYPE;                                         \
-            if (!this_##NAME.pointer.testAndSetOrdered(0, x))           \
-                delete x;                                               \
-            else {                                                      \
-                qAddPostRoutine(NAME##_cleanup);                        \
-                this_##NAME.pointer->updateConfigurations();            \
-            }                                                           \
-        }                                                               \
-        return this_##NAME.pointer;                                     \
-    }
+static QNetworkConfigurationManagerPrivate * volatile connManager_ptr;
+Q_GLOBAL_STATIC(QMutex, connManager_mutex)
 
-Q_GLOBAL_STATIC_QAPP_DESTRUCTION(QNetworkConfigurationManagerPrivate, connManager);
+static void connManager_cleanup()
+{
+    delete connManager_ptr;
+    connManager_ptr = 0;
+}
+
+static QNetworkConfigurationManagerPrivate *connManager()
+{
+    if (!connManager_ptr) {
+        QMutexLocker locker(connManager_mutex());
+        if (!connManager_ptr) {
+            qAddPostRoutine(connManager_cleanup);
+
+            QNetworkConfigurationManagerPrivate *ptr;
+            ptr = new QNetworkConfigurationManagerPrivate;
+            ptr->updateConfigurations();
+            connManager_ptr = ptr;
+        }
+    }
+    return connManager_ptr;
+}
 
 QNetworkConfigurationManagerPrivate *qNetworkConfigurationManagerPrivate()
 {

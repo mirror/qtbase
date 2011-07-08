@@ -98,8 +98,6 @@ public:
 
     enum Category
     {
-        NoCategory,    // ### Qt 5: replace with Other_NotAssigned
-
         Mark_NonSpacing,          //   Mn
         Mark_SpacingCombining,    //   Mc
         Mark_Enclosing,           //   Me

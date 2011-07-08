@@ -176,8 +176,8 @@ public:
     QList<QSslError> sslErrors() const;
 
     static bool supportsSsl();
-    static long opensslVersion();
-    static QString opensslVersionString();
+    static long sslLibraryVersionNumber();
+    static QString sslLibraryVersionString();
 
     void ignoreSslErrors(const QList<QSslError> &errors);
 

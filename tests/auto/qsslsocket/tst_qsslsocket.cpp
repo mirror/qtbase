@@ -2055,8 +2055,8 @@ void tst_QSslSocket::versionAccessors()
     if (!QSslSocket::supportsSsl())
         return;
 
-    qDebug() << QSslSocket::opensslVersionString();
-    qDebug() << QString::number(QSslSocket::opensslVersion(), 16);
+    qDebug() << QSslSocket::sslLibraryVersionString();
+    qDebug() << QString::number(QSslSocket::sslLibraryVersionNumber(), 16);
 }
 
 #endif // QT_NO_OPENSSL

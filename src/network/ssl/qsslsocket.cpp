@@ -1598,21 +1598,22 @@ bool QSslSocket::supportsSsl()
 }
 
 /*!
-    Returns the openssl version. Note that this is the version of
-    openssl in use at run-time not compile time. If no SSL support
-    is available then this will return an undefined value.
+    Returns the version number of the SSL library in use. Note that
+    this is the version of the library in use at run-time not compile
+    time. If no SSL support is available then this will return an
+    undefined value.
 */
-long QSslSocket::opensslVersion()
+long QSslSocket::sslLibraryVersionNumber()
 {
     return QSslSocketPrivate::opensslVersionNumber();
 }
 
 /*!
-    Returns the openssl version string. Note that this is the version
-    of openssl in use at run-time not compile time. If no SSL support
-    is available then this will return an empty value.
+    Returns the version string of the SSL library in use. Note that
+    this is the version of the library in use at run-time not compile
+    time. If no SSL support is available then this will return an empty value.
 */
-QString QSslSocket::opensslVersionString()
+QString QSslSocket::sslLibraryVersionString()
 {
     return QSslSocketPrivate::opensslVersionString();
 }

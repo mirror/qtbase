@@ -1558,7 +1558,11 @@ QList<QSslError> QSslSocketBackendPrivate::verify(QList<QSslCertificate> certifi
     (void) q_X509_verify_cert(storeContext);
 
     q_X509_STORE_CTX_free(storeContext);
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     q_sk_free( (_STACK *) intermediates);
+#else
+    q_sk_free( (STACK *) intermediates);
+#endif
 
     // Now process the errors
     const QList<QPair<int, int> > errorList = _q_sslErrorList()->errors;

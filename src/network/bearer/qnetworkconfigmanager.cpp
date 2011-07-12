@@ -52,29 +52,30 @@
 
 QT_BEGIN_NAMESPACE
 
-static QNetworkConfigurationManagerPrivate * volatile connManager_ptr;
+static QBasicAtomicPointer<QNetworkConfigurationManagerPrivate> connManager_ptr;
 Q_GLOBAL_STATIC(QMutex, connManager_mutex)
 
 static void connManager_cleanup()
 {
-    delete connManager_ptr;
-    connManager_ptr = 0;
+    // this is not atomic or thread-safe!
+    delete connManager_ptr.load();
+    connManager_ptr.store(0);
 }
 
 static QNetworkConfigurationManagerPrivate *connManager()
 {
-    if (!connManager_ptr) {
+    QNetworkConfigurationManagerPrivate *ptr = connManager_ptr.loadAcquire();
+    if (!ptr) {
         QMutexLocker locker(connManager_mutex());
-        if (!connManager_ptr) {
+        if (!(ptr = connManager_ptr.loadAcquire())) {
             qAddPostRoutine(connManager_cleanup);
 
-            QNetworkConfigurationManagerPrivate *ptr;
             ptr = new QNetworkConfigurationManagerPrivate;
             ptr->updateConfigurations();
-            connManager_ptr = ptr;
+            connManager_ptr.storeRelease(ptr);
         }
     }
-    return connManager_ptr;
+    return ptr;
 }
 
 QNetworkConfigurationManagerPrivate *qNetworkConfigurationManagerPrivate()

@@ -45,24 +45,19 @@
 #ifndef QT_NO_THREAD
 #include "qatomic.h"
 #include "qmutex_p.h"
-# include "qelapsedtimer.h"
+#include "qelapsedtimer.h"
 
-#include <linux/futex.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <errno.h>
+#include "qlinuxfutex_p.h"
 
 QT_BEGIN_NAMESPACE
 
-static inline int _q_futex(QMutexPrivate *volatile *addr, int op, int val, const struct timespec *timeout)
+static volatile void *privateToFutex(QMutexPrivate *addr)
 {
     volatile int *int_addr = reinterpret_cast<volatile int *>(addr);
 #if Q_BYTE_ORDER == Q_BIG_ENDIAN && QT_POINTER_SIZE == 8
     int_addr++; //We want a pointer to the 32 least significant bit of QMutex::d
 #endif
-    int *addr2 = 0;
-    int val2 = 0;
-    return syscall(SYS_futex, int_addr, op, val, timeout, addr2, val2);
+    return int_addr;
 }
 
 static inline QMutexPrivate *dummyFutexValue()
@@ -103,7 +98,7 @@ bool QBasicMutex::lockInternal(int timeout)
                     ts.tv_nsec = xtimeout % (Q_INT64_C(1000) * 1000 * 1000);
                     pts = &ts;
                 }
-                int r = _q_futex(&this->d._q_value, FUTEX_WAIT, quintptr(dummyFutexValue()), pts);
+                int r = qt_futex_wait(privateToFutex(this->d), quintptr(dummyFutexValue()), pts);
                 if (r != 0 && errno == ETIMEDOUT)
                     return false;
             }
@@ -124,7 +119,7 @@ void QBasicMutex::unlockInternal()
 
     if (d == dummyFutexValue()) {
         this->d.fetchAndStoreRelease(0);
-        _q_futex(&this->d._q_value, FUTEX_WAKE, 1, 0);
+        qt_futex_wake(privateToFutex(this->d), 1);
         return;
     }
 

@@ -14,7 +14,8 @@ HEADERS += thread/qmutex_p.h \
            thread/qmutexpool_p.h \
            thread/qorderedmutexlocker_p.h \
            thread/qreadwritelock_p.h \
-           thread/qthread_p.h
+           thread/qthread_p.h \
+           thread/qlinuxfutex_p.h
 
 SOURCES += thread/qatomic.cpp \
            thread/qmutex.cpp \
@@ -41,6 +42,6 @@ integrity:SOURCES += thread/qmutex_unix.cpp \
 
 unix: {
     macx-*       { SOURCES += thread/qmutex_mac.cpp }
-    else:linux-* { SOURCES += thread/qmutex_linux.cpp }
+    else:linux-* { SOURCES += thread/qmutex_linux.cpp thread/qlinuxfutex.cpp }
     else         { SOURCES += thread/qmutex_unix.cpp }
 }

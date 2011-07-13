@@ -96,7 +96,11 @@ uint qHash(const QByteArray &key)
 
 uint qHash(const QString &key)
 {
-    return hash(key.unicode(), key.size());
+    QStringData *data = const_cast<QString&>(key).data_ptr();
+    if (data->hash) return data->hash;
+    uint h = hash(key.unicode(), key.size());
+    if (data->ref > 0) data->hash = h;
+    return h;
 }
 
 uint qHash(const QStringRef &key)

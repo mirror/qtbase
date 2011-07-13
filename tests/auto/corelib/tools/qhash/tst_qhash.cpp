@@ -79,8 +79,8 @@ private slots:
     void iterators(); // sligthly modified from tst_QMap
     void keys_values_uniqueKeys(); // slightly modified from tst_QMap
     void noNeedlessRehashes();
-
     void const_shared_null();
+    void stringHash();
 };
 
 struct Foo {
@@ -1248,6 +1248,25 @@ void tst_QHash::const_shared_null()
     QHash<int, QString> hash2;
     hash2.setSharable(true);
     QVERIFY(!hash2.isDetached());
+}
+
+void tst_QHash::stringHash()
+{
+    QHash<QString, int> hash;
+    QString litteral1 = QStringLiteral("litteral1");
+    QString litteral2 = QStringLiteral("litteral2");
+    QString string1 = litteral1 + litteral2;
+
+    QCOMPARE(qHash(QString("")), qHash(QStringLiteral("")));
+    QCOMPARE(qHash(QString("a")), qHash(QStringLiteral("a")));
+    QCOMPARE(qHash(litteral1), qHash(litteral1));
+    QCOMPARE(qHash(litteral1), qHash(QString("litteral1")));
+    QCOMPARE(qHash(litteral2), qHash(QString("litteral2")));
+    QCOMPARE(qHash(string1), qHash(QString(litteral1 + litteral2)));
+    QVERIFY(qHash(litteral1) != qHash(litteral2));
+    QString string2 = string1;
+    string2[1]='o';
+    QVERIFY(qHash(string2) != qHash(string1));
 }
 
 QTEST_APPLESS_MAIN(tst_QHash)

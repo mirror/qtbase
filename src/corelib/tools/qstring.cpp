@@ -798,8 +798,8 @@ const QString::Null QString::null = { };
     \sa split()
 */
 
-const QConstStringData<1> QString::shared_null = { { Q_REFCOUNT_INITIALIZER(-1), 0, 0, false, { 0 } }, { 0 } };
-const QConstStringData<1> QString::shared_empty = { { Q_REFCOUNT_INITIALIZER(-1), 0, 0, false, { 0 } }, { 0 } };
+const QConstStringData<1> QString::shared_null = { { Q_REFCOUNT_INITIALIZER(-1), 0, 0, 0, false, 0, { 0 } }, { 0 } };
+const QConstStringData<1> QString::shared_empty = { { Q_REFCOUNT_INITIALIZER(-1), 0, 0, 0, false, 0, { 0 } }, { 0 } };
 
 int QString::grow(int size)
 {
@@ -1053,6 +1053,7 @@ QString::QString(const QChar *unicode, int size)
         d->size = size;
         d->alloc = (uint) size;
         d->capacityReserved = false;
+        d->hash = 0;
         d->offset = 0;
         memcpy(d->data(), unicode, size * sizeof(QChar));
         d->data()[size] = '\0';
@@ -1085,6 +1086,7 @@ QString::QString(const QChar *unicode)
              d->size = size;
              d->alloc = (uint) size;
              d->capacityReserved = false;
+             d->hash = 0;
              d->offset = 0;
              memcpy(d->data(), unicode, size * sizeof(QChar));
              d->data()[size] = '\0';
@@ -1110,6 +1112,7 @@ QString::QString(int size, QChar ch)
         d->size = size;
         d->alloc = (uint) size;
         d->capacityReserved = false;
+        d->hash = 0;
         d->offset = 0;
         d->data()[size] = '\0';
         ushort *i = d->data() + size;
@@ -1134,6 +1137,7 @@ QString::QString(int size, Qt::Initialization)
     d->size = size;
     d->alloc = (uint) size;
     d->capacityReserved = false;
+    d->hash = 0;
     d->offset = 0;
     d->data()[size] = '\0';
 }
@@ -1156,6 +1160,7 @@ QString::QString(QChar ch)
     d->size = 1;
     d->alloc = 1;
     d->capacityReserved = false;
+    d->hash = 0;
     d->offset = 0;
     d->data()[0] = ch.unicode();
     d->data()[1] = '\0';
@@ -1335,6 +1340,7 @@ void QString::realloc(int alloc)
         x->size = qMin(alloc, d->size);
         x->alloc = (uint) alloc;
         x->capacityReserved = d->capacityReserved;
+        x->hash = 0;
         x->offset =0;
         ::memcpy(x->data(), d->data(), x->size * sizeof(QChar));
         x->data()[x->size] = 0;
@@ -3779,6 +3785,7 @@ QString::Data *QString::fromLatin1_helper(const char *str, int size)
         d->size = size;
         d->alloc = (uint) size;
         d->capacityReserved = false;
+        d->hash = 0;
         d->offset = 0;
         d->data()[size] = '\0';
         ushort *dst = d->data();

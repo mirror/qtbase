@@ -77,17 +77,21 @@ class QLatin1String;
 class QStringRef;
 template <typename T> class QVector;
 
+
 struct QStringData {
     QtPrivate::RefCount ref;
     int size;
-    uint alloc : 31;
-    uint capacityReserved : 1;
+    uint alloc;
+    uint hash;
+    quint64 capacityReserved : 1;
+    quint64 reserved : 63;
     union {
         qptrdiff offset; // will always work as we add/subtract from a ushort ptr
-        ushort d[sizeof(qptrdiff)/sizeof(ushort)];
+        ushort d[sizeof(quint64)/sizeof(ushort)];
     };
-    inline ushort *data() { return d + sizeof(qptrdiff)/sizeof(ushort) + offset; }
-    inline const ushort *data() const { return d + sizeof(qptrdiff)/sizeof(ushort) + offset; }
+    inline ushort *data() { return d + sizeof(quint64)/sizeof(ushort) + offset; }
+    inline const ushort *data() const { return d + sizeof(quint64)/sizeof(ushort) + offset; }
+    //NOTE: sizeof(QStringData) == 32 to get 16-byte alignment to ease SIMD operations
 };
 
 template<int N> struct QConstStringData;
@@ -129,11 +133,33 @@ template<int N> struct QConstStringData
 
 #if defined(QT_UNICODE_LITERAL_II)
 #  define QT_UNICODE_LITERAL(str) QT_UNICODE_LITERAL_II(str)
+
+
+# if defined(Q_COMPILER_CONSTEXPR)
+namespace QtPrivate {
+    template <uint N>
+    Q_DECL_CONSTEXPR static inline uint QString_consthash_helper(const char16_t *p, uint h)
+    {
+        return QString_consthash_helper<N-1>(p+1 , (((h << 4) + *p) ^ ((((h << 4) + *p) & 0xf0000000) >> 23)) & 0x0fffffff);
+    }
+    template<>
+    Q_DECL_CONSTEXPR uint inline QString_consthash_helper<0>(const char16_t *, uint h)
+    {
+        return h;
+    }
+};
+# define QT_QSTRING_CONSTHASH(SIZE, STR) QtPrivate::QString_consthash_helper<SIZE-1>(STR, 0)
+# else
+# define QT_QSTRING_CONSTHASH(SIZE, STR) 0
+# endif //Q_COMPILER_CONSTEXPR
+
+
 # if defined(Q_COMPILER_LAMBDA)
 #  define QStringLiteral(str) ([]() -> QConstStringDataPtr<sizeof(QT_UNICODE_LITERAL(str))/2 - 1> { \
-        enum { Size = sizeof(QT_UNICODE_LITERAL(str))/2 - 1 }; \
+        enum { Size = sizeof(QT_UNICODE_LITERAL(str))/2 - 1, \
+               Hash = QT_QSTRING_CONSTHASH(Size, QT_UNICODE_LITERAL(str)) }; \
         static const QConstStringData<Size> qstring_literal = \
-        { { Q_REFCOUNT_INITIALIZER(-1), Size, 0, 0, { 0 } }, QT_UNICODE_LITERAL(str) }; \
+        { { Q_REFCOUNT_INITIALIZER(-1), Size, 0, Hash, 0, 0, { 0 } }, QT_UNICODE_LITERAL(str) }; \
         QConstStringDataPtr<Size> holder = { &qstring_literal }; \
     return holder; }())
 
@@ -144,13 +170,15 @@ template<int N> struct QConstStringData
 
 #  define QStringLiteral(str) \
     __extension__ ({ \
-        enum { Size = sizeof(QT_UNICODE_LITERAL(str))/2 - 1 }; \
+        enum { Size = sizeof(QT_UNICODE_LITERAL(str))/2 - 1, \
+               Hash = QT_QSTRING_CONSTHASH(Size, QT_UNICODE_LITERAL(str)) }; \
         static const QConstStringData<Size> qstring_literal = \
-        { { Q_REFCOUNT_INITIALIZER(-1), Size, 0, 0, { 0 } }, QT_UNICODE_LITERAL(str) }; \
+        { { Q_REFCOUNT_INITIALIZER(-1), Size, 0, 0, Hash, 0, { 0 } }, QT_UNICODE_LITERAL(str) }; \
         QConstStringDataPtr<Size> holder = { &qstring_literal }; \
         holder; })
 # endif
-#endif
+
+#endif //QT_QSTRING_UNICODE_MARKER
 
 #ifndef QStringLiteral
 // no lambdas, not GCC, or GCC in C++98 mode with 4-byte wchar_t
@@ -702,7 +730,7 @@ inline QChar *QString::data()
 inline const QChar *QString::constData() const
 { return reinterpret_cast<const QChar*>(d->data()); }
 inline void QString::detach()
-{ if (d->ref != 1 || d->offset) realloc(); }
+{ if (d->ref != 1 || d->offset) realloc(); else if (d->ref == 1) d->hash = 0; }
 inline bool QString::isDetached() const
 { return d->ref == 1; }
 inline QString &QString::operator=(const QLatin1String &s)

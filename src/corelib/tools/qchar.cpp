@@ -527,9 +527,9 @@ QChar::QChar(uchar ch)
 */
 bool QChar::isPrint() const
 {
-    const int test = FLAG(Other_Control) |
-                     FLAG(Other_NotAssigned);
-    return !(FLAG(qGetProp(ucs)->category) & test);
+    static const uint test = FLAG(Other_Control) |
+                             FLAG(Other_NotAssigned);
+    return (FLAG(qGetProp(ucs)->category) & test) == 0;
 }
 
 /*!
@@ -540,10 +540,10 @@ bool QChar::isSpace() const
 {
     if(ucs >= 9 && ucs <=13)
         return true;
-    const int test = FLAG(Separator_Space) |
-                     FLAG(Separator_Line) |
-                     FLAG(Separator_Paragraph);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Separator_Space) |
+                             FLAG(Separator_Line) |
+                             FLAG(Separator_Paragraph);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!
@@ -554,10 +554,10 @@ bool QChar::isSpace() const
 */
 bool QChar::isMark() const
 {
-    const int test = FLAG(Mark_NonSpacing) |
-                     FLAG(Mark_SpacingCombining) |
-                     FLAG(Mark_Enclosing);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Mark_NonSpacing) |
+                             FLAG(Mark_SpacingCombining) |
+                             FLAG(Mark_Enclosing);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!
@@ -566,14 +566,14 @@ bool QChar::isMark() const
 */
 bool QChar::isPunct() const
 {
-    const int test = FLAG(Punctuation_Connector) |
-                     FLAG(Punctuation_Dash) |
-                     FLAG(Punctuation_Open) |
-                     FLAG(Punctuation_Close) |
-                     FLAG(Punctuation_InitialQuote) |
-                     FLAG(Punctuation_FinalQuote) |
-                     FLAG(Punctuation_Other);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Punctuation_Connector) |
+                             FLAG(Punctuation_Dash) |
+                             FLAG(Punctuation_Open) |
+                             FLAG(Punctuation_Close) |
+                             FLAG(Punctuation_InitialQuote) |
+                             FLAG(Punctuation_FinalQuote) |
+                             FLAG(Punctuation_Other);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!
@@ -582,12 +582,12 @@ bool QChar::isPunct() const
 */
 bool QChar::isLetter() const
 {
-    const int test = FLAG(Letter_Uppercase) |
-                     FLAG(Letter_Lowercase) |
-                     FLAG(Letter_Titlecase) |
-                     FLAG(Letter_Modifier) |
-                     FLAG(Letter_Other);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Letter_Uppercase) |
+                             FLAG(Letter_Lowercase) |
+                             FLAG(Letter_Titlecase) |
+                             FLAG(Letter_Modifier) |
+                             FLAG(Letter_Other);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!
@@ -598,10 +598,10 @@ bool QChar::isLetter() const
 */
 bool QChar::isNumber() const
 {
-    const int test = FLAG(Number_DecimalDigit) |
-                     FLAG(Number_Letter) |
-                     FLAG(Number_Other);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Number_DecimalDigit) |
+                             FLAG(Number_Letter) |
+                             FLAG(Number_Other);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!
@@ -610,15 +610,15 @@ bool QChar::isNumber() const
 */
 bool QChar::isLetterOrNumber() const
 {
-    const int test = FLAG(Letter_Uppercase) |
-                     FLAG(Letter_Lowercase) |
-                     FLAG(Letter_Titlecase) |
-                     FLAG(Letter_Modifier) |
-                     FLAG(Letter_Other) |
-                     FLAG(Number_DecimalDigit) |
-                     FLAG(Number_Letter) |
-                     FLAG(Number_Other);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Letter_Uppercase) |
+                             FLAG(Letter_Lowercase) |
+                             FLAG(Letter_Titlecase) |
+                             FLAG(Letter_Modifier) |
+                             FLAG(Letter_Other) |
+                             FLAG(Number_DecimalDigit) |
+                             FLAG(Number_Letter) |
+                             FLAG(Number_Other);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 
@@ -638,11 +638,11 @@ bool QChar::isDigit() const
 */
 bool QChar::isSymbol() const
 {
-    const int test = FLAG(Symbol_Math) |
-                     FLAG(Symbol_Currency) |
-                     FLAG(Symbol_Modifier) |
-                     FLAG(Symbol_Other);
-    return FLAG(qGetProp(ucs)->category) & test;
+    static const uint test = FLAG(Symbol_Math) |
+                             FLAG(Symbol_Currency) |
+                             FLAG(Symbol_Modifier) |
+                             FLAG(Symbol_Other);
+    return (FLAG(qGetProp(ucs)->category) & test) != 0;
 }
 
 /*!

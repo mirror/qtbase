@@ -542,6 +542,57 @@ QSslKey QSslCertificate::publicKey() const
     return key;
 }
 
+void QSslCertificate::extensions() const
+{
+    if (!d->x509)
+        return;
+
+    int count = q_X509_get_ext_count(d->x509);
+    qDebug() << count << "extensions found";
+
+    for (int i=0; i < count; i++) {
+        X509_EXTENSION *ext = q_X509_get_ext(d->x509, i);
+
+        QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
+        qDebug() << "Extension: " << name;
+
+        // Get the extension specific method object if available
+        const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
+        if (!meth) {
+            qDebug() << "   This extension has no special support";
+            continue;
+        }
+        qDebug("i2v: %p", meth->i2v);
+        qDebug("d2i: %p", meth->d2i);
+        qDebug("i2s: %p", meth->i2s);
+        qDebug("i2r: %p", meth->i2r);
+
+        const unsigned char *data = ext->value->data;
+        void *ext_internal = q_X509V3_EXT_d2i(ext);
+
+        // If this extension can be converted
+        if (meth->i2v && ext_internal) {
+            STACK_OF(CONF_VALUE) *val = meth->i2v(meth, ext_internal, 0);
+
+            for(int j=0; j < q_sk_num((STACK *)val); j++) {
+                CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
+                if (nval->name)
+                    qDebug() << "   Name: " << nval->name;
+                if (nval->value)
+                    qDebug() << "   Value: " << nval->value;
+            }
+        }
+#if 0 // Crashes on subject key identifier extension
+        else if (meth->i2s && ext_internal) {
+            qDebug() << meth->i2s(meth, ext);
+        }
+#endif
+        else {
+            qDebug() << "Unable to convert safely";
+        }
+    }
+}
+
 /*!
     Returns this certificate converted to a PEM (Base64) encoded
     representation.

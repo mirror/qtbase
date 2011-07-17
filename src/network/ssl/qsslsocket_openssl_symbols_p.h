@@ -369,6 +369,8 @@ void q_X509_free(X509 *a);
 X509_EXTENSION *q_X509_get_ext(X509 *a, int b);
 int q_X509_get_ext_count(X509 *a);
 void *q_X509_get_ext_d2i(X509 *a, int b, int *c, int *d);
+const X509V3_EXT_METHOD *q_X509V3_EXT_get(X509_EXTENSION *a);
+void *q_X509V3_EXT_d2i(X509_EXTENSION *a);
 X509_NAME *q_X509_get_issuer_name(X509 *a);
 X509_NAME *q_X509_get_subject_name(X509 *a);
 int q_X509_verify_cert(X509_STORE_CTX *ctx);

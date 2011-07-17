@@ -110,6 +110,7 @@ public:
     QDateTime effectiveDate() const;
     QDateTime expiryDate() const;
     QSslKey publicKey() const;
+    void extensions() const;
 
     QByteArray toPem() const;
     QByteArray toDer() const;

@@ -117,6 +117,7 @@ private slots:
     void multipleCommonNames();
     void subjectAndIssuerAttributes();
     void verify();
+    void extensions();
 
 // ### add tests for certificate bundles (multiple certificates concatenated into a single
 //     structure); both PEM and DER formatted
@@ -965,6 +966,16 @@ void tst_QSslCertificate::verify()
     errors = QSslCertificate::verify(toVerify, QLatin1String("fail.example.com"));
     QVERIFY(errors.contains(QSslError(QSslError::HostNameMismatch, toVerify[0])));
     toVerify.clear();
+}
+
+void tst_QSslCertificate::extensions()
+{
+    QList<QSslCertificate> certList =
+        QSslCertificate::fromPath(SRCDIR "more-certificates/natwest-banking.pem");
+    QVERIFY2(certList.count() > 0, "Please run this test from the source directory");
+
+    QSslCertificate cert = certList[0];
+    cert.extensions();
 }
 
 #endif // QT_NO_OPENSSL

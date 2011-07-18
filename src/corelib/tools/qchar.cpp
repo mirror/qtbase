@@ -321,8 +321,6 @@ QT_BEGIN_NAMESPACE
     \value Vertical
     \value Wide
 
-    \omitvalue Single
-
     \sa decomposition()
 */
 
@@ -386,12 +384,6 @@ QT_BEGIN_NAMESPACE
     \value ByteOrderSwapped
     \value ParagraphSeparator
     \value LineSeparator
-
-    \omitvalue null
-    \omitvalue replacement
-    \omitvalue byteOrderMark
-    \omitvalue byteOrderSwapped
-    \omitvalue nbsp
 */
 
 /*!
@@ -978,7 +970,7 @@ QString QChar::decomposition(uint ucs4)
 
 /*!
     Returns the tag defining the composition of the character. Returns
-    QChar::Single if no decomposition exists.
+    QChar::NoDecomposition if no decomposition exists.
 */
 QChar::Decomposition QChar::decompositionTag() const
 {
@@ -988,7 +980,7 @@ QChar::Decomposition QChar::decompositionTag() const
 /*!
     \overload
     Returns the tag defining the composition of the UCS-4-encoded character
-    specified by \a ucs4. Returns QChar::Single if no decomposition exists.
+    specified by \a ucs4. Returns QChar::NoDecomposition if no decomposition exists.
 */
 QChar::Decomposition QChar::decompositionTag(uint ucs4)
 {
@@ -1255,19 +1247,6 @@ ushort QChar::toCaseFolded(ushort ucs2)
     return ucs2 + qGetProp(ucs2)->caseFoldDiff;
 }
 
-
-/*!
-    \fn char QChar::latin1() const
-
-    Use toLatin1() instead.
-*/
-
-/*!
-    \fn char QChar::ascii() const
-
-    Use toAscii() instead.
-*/
-
 /*!
     \fn char QChar::toLatin1() const
 
@@ -1426,30 +1405,6 @@ QDataStream &operator>>(QDataStream &in, QChar &chr)
 
     Returns true if the numeric Unicode value of \a c1 is greater than
     that of \a c2; otherwise returns false.
-*/
-
-/*!
-    \fn bool QChar::mirrored() const
-
-    Use hasMirrored() instead.
-*/
-
-/*!
-    \fn QChar QChar::lower() const
-
-    Use toLower() instead.
-*/
-
-/*!
-    \fn QChar QChar::upper() const
-
-    Use toUpper() instead.
-*/
-
-/*!
-    \fn bool QChar::networkOrdered()
-
-    See if QSysInfo::ByteOrder == QSysInfo::BigEndian instead.
 */
 
 

@@ -44,6 +44,8 @@
 
 #include <QtCore>
 
+QT_BEGIN_NAMESPACE
+
 namespace Qt {
 namespace Native {
     enum Status {Success, Failure};
@@ -224,5 +226,7 @@ class QNativeInput
     Qt::Native::Status subscribeForNativeEvents();
     Qt::Native::Status unsubscribeForNativeEvents();
 };
+
+QT_END_NAMESPACE
 
 #endif // Q_NATIVE_INPUT

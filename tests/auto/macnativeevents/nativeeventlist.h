@@ -45,6 +45,8 @@
 #include <QtCore>
 #include "qnativeevents.h"
 
+QT_BEGIN_NAMESPACE
+
 class NativeEventList : public QObject
 {
     Q_OBJECT;
@@ -78,5 +80,7 @@ private:
     int defaultWaitMs;
     int debug;
 };
+
+QT_END_NAMESPACE
 
 #endif

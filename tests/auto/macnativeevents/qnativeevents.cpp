@@ -41,6 +41,8 @@
 
 #include "qnativeevents.h"
 
+QT_BEGIN_NAMESPACE
+
 QNativeInput::QNativeInput(bool subscribe)
 {
     if (subscribe)
@@ -376,3 +378,4 @@ QTextStream &operator>>(QTextStream &s, QNativeModifierEvent *e)
     return s;
 }
 
+QT_END_NAMESPACE

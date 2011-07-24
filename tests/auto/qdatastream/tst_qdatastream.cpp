@@ -55,6 +55,8 @@ Q_DECLARE_METATYPE(qint64)
 //TESTED_CLASS=
 //TESTED_FILES=
 
+QT_BEGIN_NAMESPACE
+
 class tst_QDataStream : public QObject
 {
 Q_OBJECT
@@ -3226,6 +3228,8 @@ void tst_QDataStream::floatingPointPrecision()
     }
 
 }
+
+QT_END_NAMESPACE
 
 QTEST_MAIN(tst_QDataStream)
 #include "tst_qdatastream.moc"

@@ -58,7 +58,7 @@ static QVarLengthArray<int> *varLengthArrayX;
 static QVarLengthArray<int, 512> *varLengthArrayY;
 static QVector<int> *vectorX;
 
-void foo()
+void tst_foo()
 {
     cacheX = 0;
     hashX = 0;

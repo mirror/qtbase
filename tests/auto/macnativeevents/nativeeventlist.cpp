@@ -41,6 +41,8 @@
 
 #include "nativeeventlist.h"
 
+QT_BEGIN_NAMESPACE
+
 NativeEventList::NativeEventList(int defaultWaitMs)
     : playbackMultiplier(1.0)
     , currIndex(-1)
@@ -112,3 +114,4 @@ void NativeEventList::setTimeMultiplier(float multiplier)
     playbackMultiplier = multiplier;
 }
 
+QT_END_NAMESPACE

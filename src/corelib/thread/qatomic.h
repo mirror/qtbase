@@ -43,7 +43,7 @@
 #define QATOMIC_H
 
 #include <QtCore/qglobal.h>
-#include <QtCore/qoldbasicatomic.h>
+#include <QtCore/qbasicatomic.h>
 
 QT_BEGIN_HEADER
 

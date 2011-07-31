@@ -42,7 +42,11 @@
 
 #include <QtCore/qglobal.h>
 
+#if defined(QT_MOC) || defined(QT_BUILD_QMAKE) || defined(QT_RCC) || defined(QT_UIC) || defined(QT_BOOTSTRAPPED)
+#  include <QtCore/qatomic_bootstrap.h>
+#else
 #  define QT_OLD_ATOMICS
+#endif
 
 #ifdef QT_OLD_ATOMICS
 # include "qoldbasicatomic.h"
@@ -198,10 +202,10 @@ struct QBasicAtomicPointer
 #  define Q_BASIC_ATOMIC_INITIALIZER(a) { (a) }
 #endif
 
+#endif // QT_OLD_ATOMICS
+
 QT_END_NAMESPACE
 
 QT_END_HEADER
-
-#endif // QT_OLD_ATOMICS
 
 #endif // QBASIC_ATOMIC

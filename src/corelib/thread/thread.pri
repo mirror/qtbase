@@ -7,7 +7,8 @@ HEADERS += thread/qmutex.h \
            thread/qthread.h \
            thread/qthreadstorage.h \
            thread/qwaitcondition.h \
-           thread/qatomic.h
+           thread/qatomic.h \
+           thread/qoldbasicatomic.h
 
 # private headers
 HEADERS += thread/qmutex_p.h \
@@ -44,3 +45,4 @@ unix: {
     else:linux-* { SOURCES += thread/qmutex_linux.cpp }
     else         { SOURCES += thread/qmutex_unix.cpp }
 }
+

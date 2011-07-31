@@ -64,37 +64,12 @@ public:
     volatile int _q_value;
 #endif
 
-    // Non-atomic API
-    inline bool operator==(int value) const
-    {
-        return _q_value == value;
-    }
-
-    inline bool operator!=(int value) const
-    {
-        return _q_value != value;
-    }
-
-    inline bool operator!() const
-    {
-        return _q_value == 0;
-    }
-
-    inline operator int() const
-    {
-        return _q_value;
-    }
-
-    inline QBasicAtomicInt &operator=(int value)
-    {
-#ifdef QT_ARCH_PARISC
-        this->_q_lock[0] = this->_q_lock[1] = this->_q_lock[2] = this->_q_lock[3] = -1;
-#endif
-        _q_value = value;
-        return *this;
-    }
-
     // Atomic API, implemented in qatomic_XXX.h
+
+    int load() const { return _q_value; }
+    int loadAcquire() { return _q_value; }
+    void store(int newValue) { _q_value = newValue; }
+    void storeRelease(int newValue) { _q_value = newValue; }
 
     static bool isReferenceCountingNative();
     static bool isReferenceCountingWaitFree();
@@ -148,42 +123,12 @@ public:
     T * volatile _q_value;
 #endif
 
-    // Non-atomic API
-    inline bool operator==(T *value) const
-    {
-        return _q_value == value;
-    }
-
-    inline bool operator!=(T *value) const
-    {
-        return !operator==(value);
-    }
-
-    inline bool operator!() const
-    {
-        return operator==(0);
-    }
-
-    inline operator T *() const
-    {
-        return _q_value;
-    }
-
-    inline T *operator->() const
-    {
-        return _q_value;
-    }
-
-    inline QBasicAtomicPointer<T> &operator=(T *value)
-    {
-#ifdef QT_ARCH_PARISC
-        this->_q_lock[0] = this->_q_lock[1] = this->_q_lock[2] = this->_q_lock[3] = -1;
-#endif
-        _q_value = value;
-        return *this;
-    }
-
     // Atomic API, implemented in qatomic_XXX.h
+
+    T *load() const { return _q_value; }
+    T *loadAcquire() { return _q_value; }
+    void store(T *newValue) { _q_value = newValue; }
+    void storeRelease(T *newValue) { _q_value = newValue; }
 
     static bool isTestAndSetNative();
     static bool isTestAndSetWaitFree();

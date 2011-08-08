@@ -134,6 +134,13 @@ private slots:
     void disconnectNotSignalMetaMethod();
     void autoConnectionBehavior();
     void baseDestroyed();
+    void pointerConnect();
+    void emitInDefinedOrderPointer();
+    void customTypesPointer();
+    void connectCxx0x();
+    void connectToStaticCxx0x();
+    void connectCxx0xTypeMatching();
+    void connectConvert();
 protected:
 };
 
@@ -166,6 +173,7 @@ void tst_QObject::cleanup()
 class SenderObject : public QObject
 {
     Q_OBJECT
+    friend class tst_QObject; //in order to access the signal function pointers
 
 public:
     SenderObject() : aPublicSlotCalled(0), recursionCount(0) {}
@@ -904,6 +912,7 @@ public slots:
         connect(sender(), SIGNAL(signal1()), next, SLOT(slot2()));
 
         // modify the sender list in 'this'
+        //connect(next, &QObject::destroyed, this, &QObject::deleteLater);
         connect(next, SIGNAL(destroyed()), this, SLOT(deleteLater()));
         connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(deleteLater()));
         disconnect(next, SIGNAL(destroyed()), this, SLOT(deleteLater()));
@@ -1143,6 +1152,7 @@ struct CustomType
 };
 
 Q_DECLARE_METATYPE(CustomType*)
+Q_DECLARE_METATYPE(CustomType)
 
 class QCustomTypeChecker: public QObject
 {
@@ -2001,8 +2011,9 @@ void tst_QObject::sender()
 
         QThread thread;
         receiver->moveToThread(&thread);
-        connect(sender, SIGNAL(destroyed()),
-                &thread, SLOT(quit()),
+        /*connect(sender, &QObject::destroyed,
+                &thread, &QThread::quit,*/
+        connect(sender, SIGNAL(destroyed()), &thread, SLOT(quit()),
                 Qt::DirectConnection);
 
         QCOMPARE(receiver->sender(), (QObject *)0);
@@ -4060,6 +4071,443 @@ void tst_QObject::baseDestroyed()
     //When d goes out of scope, slotUseList should not be called as the BaseDestroyed has
     // already been destroyed while ~QObject emit destroyed
 }
+
+void tst_QObject::pointerConnect()
+{
+    SenderObject *s = new SenderObject;
+    ReceiverObject *r1 = new ReceiverObject;
+    ReceiverObject *r2 = new ReceiverObject;
+    r1->reset();
+    r2->reset();
+    ReceiverObject::sequence = 0;
+
+    QVERIFY( connect( s, &SenderObject::signal1 , r1, &ReceiverObject::slot1  , Qt::UniqueConnection) );
+    QVERIFY( connect( s, &SenderObject::signal1 , r2, &ReceiverObject::slot1  , Qt::UniqueConnection) );
+    QVERIFY( connect( s, &SenderObject::signal1 , r1, &ReceiverObject::slot3  , Qt::UniqueConnection) );
+    QVERIFY( connect( s, &SenderObject::signal3 , r1, &ReceiverObject::slot3  , Qt::UniqueConnection) );
+
+    s->emitSignal1();
+    s->emitSignal2();
+    s->emitSignal3();
+    s->emitSignal4();
+
+    QCOMPARE( r1->count_slot1, 1 );
+    QCOMPARE( r1->count_slot2, 0 );
+    QCOMPARE( r1->count_slot3, 2 );
+    QCOMPARE( r1->count_slot4, 0 );
+    QCOMPARE( r2->count_slot1, 1 );
+    QCOMPARE( r2->count_slot2, 0 );
+    QCOMPARE( r2->count_slot3, 0 );
+    QCOMPARE( r2->count_slot4, 0 );
+    QCOMPARE( r1->sequence_slot1, 1 );
+    QCOMPARE( r2->sequence_slot1, 2 );
+    QCOMPARE( r1->sequence_slot3, 4 );
+
+    r1->reset();
+    r2->reset();
+    ReceiverObject::sequence = 0;
+
+    QVERIFY( connect( s, &SenderObject::signal4, r1, &ReceiverObject::slot4  , Qt::UniqueConnection) );
+    QVERIFY( connect( s, &SenderObject::signal4, r2, &ReceiverObject::slot4  , Qt::UniqueConnection) );
+//    QVERIFY(!connect( s, &SenderObject::signal4, r2, &ReceiverObject::slot4  , Qt::UniqueConnection) );
+    QVERIFY( connect( s, &SenderObject::signal1, r2, &ReceiverObject::slot4  , Qt::UniqueConnection) );
+//    QVERIFY(!connect( s, &SenderObject::signal4, r1, &ReceiverObject::slot4  , Qt::UniqueConnection) );
+
+    s->emitSignal4();
+    QCOMPARE( r1->count_slot4, 1 );
+    QCOMPARE( r2->count_slot4, 1 );
+    QCOMPARE( r1->sequence_slot4, 1 );
+    QCOMPARE( r2->sequence_slot4, 2 );
+
+    r1->reset();
+    r2->reset();
+    ReceiverObject::sequence = 0;
+
+    connect( s, &SenderObject::signal4 , r1, &ReceiverObject::slot4  );
+
+    s->emitSignal4();
+    QCOMPARE( r1->count_slot4, 2 );
+    QCOMPARE( r2->count_slot4, 1 );
+    QCOMPARE( r1->sequence_slot4, 3 );
+    QCOMPARE( r2->sequence_slot4, 2 );
+
+    delete s;
+    delete r1;
+    delete r2;
+
+#ifdef QT_QOBJECT_DEFAULT_ARGUMENT
+    {
+        DefaultArguments o;
+        QVERIFY( connect(&o, &DefaultArguments::theOriginalSignal, &o, &DefaultArguments::theSecondSignal) );
+        QVERIFY( connect(&o, &DefaultArguments::theSecondSignal, &o, &DefaultArguments::theSlot) );
+        QVERIFY( o.result.isEmpty() );
+        o.emitTheSecondSignal();
+        QCOMPARE(o.result, QString("secondDefault"));
+        o.result = "Not called";
+        o.emitTheOriginalSignal();
+        QCOMPARE(o.result, QString("secondDefault"));
+    }
+#endif
+}
+
+void tst_QObject::emitInDefinedOrderPointer()
+{
+    SenderObject sender;
+    ReceiverObject receiver1, receiver2, receiver3, receiver4;
+
+    QObject::Connection h0 = connect(&sender, &SenderObject::signal1, &receiver1, &SequenceObject::slot1);
+    QObject::Connection h1 = connect(&sender, &SenderObject::signal1, &receiver2, &SequenceObject::slot1);
+    connect(&sender, &SenderObject::signal1, &receiver3, &SequenceObject::slot1);
+    connect(&sender, &SenderObject::signal1, &receiver4, &SequenceObject::slot1);
+    connect(&sender, &SenderObject::signal1, &receiver1, &SequenceObject::slot2);
+    connect(&sender, &SenderObject::signal1, &receiver2, &SequenceObject::slot2);
+    connect(&sender, &SenderObject::signal1, &receiver3, &SequenceObject::slot2);
+    connect(&sender, &SenderObject::signal1, &receiver4, &SequenceObject::slot2);
+
+    int sequence;
+    ReceiverObject::sequence = sequence = 0;
+    sender.emitSignal1();
+    QCOMPARE(receiver1.sequence_slot1, ++sequence);
+    QCOMPARE(receiver2.sequence_slot1, ++sequence);
+    QCOMPARE(receiver3.sequence_slot1, ++sequence);
+    QCOMPARE(receiver4.sequence_slot1, ++sequence);
+    QCOMPARE(receiver1.sequence_slot2, ++sequence);
+    QCOMPARE(receiver2.sequence_slot2, ++sequence);
+    QCOMPARE(receiver3.sequence_slot2, ++sequence);
+    QCOMPARE(receiver4.sequence_slot2, ++sequence);
+
+    QObject::disconnect(h1);
+    h1 = connect(&sender, &SenderObject::signal1, &receiver2, &SequenceObject::slot1);
+
+    ReceiverObject::sequence = sequence =  0;
+    sender.emitSignal1();
+    QCOMPARE(receiver1.sequence_slot1, ++sequence);
+    QCOMPARE(receiver3.sequence_slot1, ++sequence);
+    QCOMPARE(receiver4.sequence_slot1, ++sequence);
+    QCOMPARE(receiver1.sequence_slot2, ++sequence);
+    QCOMPARE(receiver2.sequence_slot2, ++sequence);
+    QCOMPARE(receiver3.sequence_slot2, ++sequence);
+    QCOMPARE(receiver4.sequence_slot2, ++sequence);
+    QCOMPARE(receiver2.sequence_slot1, ++sequence);
+
+    QObject::disconnect(h0);
+    h0 = connect(&sender, &SenderObject::signal1, &receiver1, &SequenceObject::slot1);
+
+    ReceiverObject::sequence = sequence =  0;
+    sender.emitSignal1();
+    QCOMPARE(receiver3.sequence_slot1, ++sequence);
+    QCOMPARE(receiver4.sequence_slot1, ++sequence);
+    QCOMPARE(receiver1.sequence_slot2, ++sequence);
+    QCOMPARE(receiver2.sequence_slot2, ++sequence);
+    QCOMPARE(receiver3.sequence_slot2, ++sequence);
+    QCOMPARE(receiver4.sequence_slot2, ++sequence);
+    QCOMPARE(receiver2.sequence_slot1, ++sequence);
+    QCOMPARE(receiver1.sequence_slot1, ++sequence);
+}
+
+
+void tst_QObject::customTypesPointer()
+{
+    CustomType t0;
+    CustomType t1(1, 2, 3);
+    CustomType t2(2, 3, 4);
+
+    {
+        QCustomTypeChecker checker;
+        QCOMPARE(instanceCount, 4);
+
+        connect(&checker, &QCustomTypeChecker::signal1, &checker, &QCustomTypeChecker::slot1,
+                Qt::DirectConnection);
+        QCOMPARE(checker.received.value(), 0);
+        checker.doEmit(t1);
+        QCOMPARE(checker.received.value(), t1.value());
+        checker.received = t0;
+
+
+        checker.disconnect();
+
+        int idx = qRegisterMetaType<CustomType>("CustomType");
+        QCOMPARE(QMetaType::type("CustomType"), idx);
+
+        connect(&checker, &QCustomTypeChecker::signal1, &checker, &QCustomTypeChecker::slot1,
+                Qt::QueuedConnection);
+        QCOMPARE(instanceCount, 4);
+        checker.doEmit(t2);
+        QCOMPARE(instanceCount, 5);
+        QCOMPARE(checker.received.value(), t0.value());
+
+        QCoreApplication::processEvents();
+        QCOMPARE(checker.received.value(), t2.value());
+        QCOMPARE(instanceCount, 4);
+
+        QVERIFY(QMetaType::isRegistered(idx));
+        QCOMPARE(qRegisterMetaType<CustomType>("CustomType"), idx);
+        QCOMPARE(QMetaType::type("CustomType"), idx);
+        QVERIFY(QMetaType::isRegistered(idx));
+    }
+    QCOMPARE(instanceCount, 3);
+}
+
+void tst_QObject::connectCxx0x()
+{
+    SenderObject *s = new SenderObject;
+    ReceiverObject *r1 = new ReceiverObject;
+
+    QObject::connect(s, &SenderObject::signal1, r1, &ReceiverObject::slot1);
+    QObject::connect(s, &SenderObject::signal3, r1, &ReceiverObject::slot2);
+    QObject::connect(s, &SenderObject::signal3, r1, &ReceiverObject::slot2);
+    QObject::connect(s, &SenderObject::signal3, r1, &ReceiverObject::slot2);
+
+    r1->reset();
+    QCOMPARE( r1->count_slot1, 0 );
+    QCOMPARE( r1->count_slot2, 0 );
+
+    s->emitSignal1();
+    QCOMPARE( r1->count_slot1, 1 );
+    QCOMPARE( r1->count_slot2, 0 );
+
+    s->emitSignal3();
+    QCOMPARE( r1->count_slot1, 1 );
+    QCOMPARE( r1->count_slot2, 3 );
+
+    // connect signal to signal
+    QObject::connect(s, &SenderObject::signal2, s, &SenderObject::signal1);
+
+    r1->reset();
+    s->emitSignal2();
+    QCOMPARE( r1->count_slot1, 1 );
+
+    delete s;
+    delete r1;
+}
+
+int receivedCount;
+void receiverFunction() { ++receivedCount; }
+
+void tst_QObject::connectToStaticCxx0x()
+{
+    SenderObject *s = new SenderObject;
+
+    void (*receiver)() = receiverFunction;
+
+    QObject::connect(s, &SenderObject::signal1, receiver);
+    receivedCount = 0;
+    s->emitSignal1();
+    QCOMPARE(receivedCount, 1);
+
+    QObject::connect(s, &SenderObject::signal1, receiver);
+    receivedCount = 0;
+    s->emitSignal1();
+    QCOMPARE(receivedCount, 2);
+
+    delete s;
+}
+
+class LotsOfSignalsAndSlots: public QObject
+{
+    Q_OBJECT
+    typedef void (*fptr)();
+
+    public slots:
+        void slot_v() {}
+        void slot_vi(int) {}
+        void slot_vii(int, int) {}
+        void slot_viii(int, int, int) {}
+        int slot_i() { return 0; }
+        int slot_ii(int) { return 0; }
+        int slot_iii(int, int) { return 0; }
+        int slot_iiii(int, int, int) { return 0; }
+        void slot_vRi(int &) {}
+        void slot_vs(short) {}
+        void slot_vRs(short&) {}
+   /*     #ifdef Q_COMPILER_RVALUE_REFS
+        void slot_vOi(int &&) {}
+        void slot_vOs(short &&) {}
+        #endif*/
+        void slot_vPFvvE(fptr) {}
+
+        static void static_slot_v() {}
+        static void static_slot_vi(int) {}
+        static void static_slot_vii(int, int) {}
+        static void static_slot_viii(int, int, int) {}
+        static int static_slot_i() { return 0; }
+        static int static_slot_ii(int) { return 0; }
+        static int static_slot_iii(int, int) { return 0; }
+        static int static_slot_iiii(int, int, int) { return 0; }
+        static void static_slot_vRi(int &) {}
+        static void static_slot_vs(short) {}
+        static void static_slot_vRs(short&) {}
+/*        #if defined(Q_COMPILER_RVALUE_REFS) || defined(QT_ENABLE_CXX0X)
+        static void static_slot_vOi(int &&) {}
+        static void static_slot_vOs(short &&) {}
+        #endif*/
+        static void static_slot_vPFvvE(fptr) {}
+
+    signals:
+        void signal_v();
+        void signal_vi(int);
+        void signal_vii(int, int);
+        void signal_viii(int, int, int);
+        void signal_vRi(int &);
+        void signal_vs(short);
+        void signal_vRs(short &);
+/*        #if defined(Q_COMPILER_RVALUE_REFS) || defined(QT_ENABLE_CXX0X)
+        void signal_vOi(int &&);
+        void signal_vOs(short &&);
+        #endif*/
+        void signal_vPFvvE(fptr);
+
+        void signal(short&, short, long long, short);
+        void otherSignal(const char *);
+};
+
+void tst_QObject::connectCxx0xTypeMatching()
+{
+    // this is just about connecting the signals to the slots
+    // if this fails, this will be a compiler failure
+    typedef LotsOfSignalsAndSlots Foo;
+    Foo obj;
+
+    // member connects
+    QObject::connect(&obj, &Foo::signal_v, &obj, &Foo::slot_v);
+    QObject::connect(&obj, &Foo::signal_v, &obj, &Foo::slot_i);
+
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_v);
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_i);
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_ii);
+
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_v);
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_i);
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_ii);
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_vii);
+    QObject::connect(&obj, &Foo::signal_vii, &obj, &Foo::slot_iii);
+
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_v);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_i);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_ii);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_vii);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_iii);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_viii);
+    QObject::connect(&obj, &Foo::signal_viii, &obj, &Foo::slot_iiii);
+
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_vi); // repeated from above
+    QObject::connect(&obj, &Foo::signal_vRi, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRi, &obj, &Foo::slot_vRi);
+/*#if defined(Q_COMPILER_RVALUE_REFS) || defined(QT_ENABLE_CXX0X)
+    QObject::connect(&obj, &Foo::signal_vOi, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vRi, &obj, &Foo::slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vOi, &obj, &Foo::slot_vOi);
+#endif*/
+    // these are not supposed to compile:
+    //QObject::connect(&obj, &Foo::signal_vi, &obj, &Foo::slot_vRi);
+    //QObject::connect(&obj, &Foo::signal_vOi, &obj, &Foo::slot_vRi);
+
+    QObject::connect(&obj, &Foo::signal_vs, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRs, &obj, &Foo::slot_vi);
+/*#if defined(Q_COMPILER_RVALUE_REFS) || defined(QT_ENABLE_CXX0X)
+    QObject::connect(&obj, &Foo::signal_vOs, &obj, &Foo::slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRs, &obj, &Foo::slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vOs, &obj, &Foo::slot_vOi);
+    // these are not supposed to compile:
+    //QObject::connect(&obj, &Foo::signal_vOs, &obj, &Foo::slot_vRi);
+    //QObject::connect(&obj, &Foo::signal_vRs, &obj, &Foo::slot_vRi);
+#endif*/
+
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &obj, &Foo::slot_v);
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &obj, &Foo::slot_i);
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &obj, &Foo::slot_vPFvvE);
+
+    QObject::connect(&obj, &Foo::signal_v, &Foo::static_slot_v);
+    QObject::connect(&obj, &Foo::signal_v, &Foo::static_slot_i);
+
+    QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_v);
+    QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_i);
+    QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_ii);
+
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_v);
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_i);
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_ii);
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_vii);
+    QObject::connect(&obj, &Foo::signal_vii, &Foo::static_slot_iii);
+
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_v);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_i);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_ii);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_vii);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_iii);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_viii);
+    QObject::connect(&obj, &Foo::signal_viii, &Foo::static_slot_iiii);
+
+/*#if defined(Q_COMPILER_RVALUE_REFS) && defined(QT_ENABLE_CXX0X)
+    QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vRi, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRi, &Foo::static_slot_vRi);
+    QObject::connect(&obj, &Foo::signal_vRi, &Foo::static_slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vOi, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vOi, &Foo::static_slot_vOi);
+    //QObject::connect(&obj, &Foo::signal_vi, &Foo::static_slot_vRi);
+    //QObject::connect(&obj, &Foo::signal_vOi, &Foo::static_slot_vRi);
+#endif*/
+
+    QObject::connect(&obj, &Foo::signal_vs, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRs, &Foo::static_slot_vi);
+/*#if defined(Q_COMPILER_RVALUE_REFS) && defined(QT_ENABLE_CXX0X)
+    QObject::connect(&obj, &Foo::signal_vOs, &Foo::static_slot_vi);
+    QObject::connect(&obj, &Foo::signal_vRs, &Foo::static_slot_vOi);
+    QObject::connect(&obj, &Foo::signal_vOs, &Foo::static_slot_vOi);
+    //QObject::connect(&obj, &Foo::signal_vOs, &Foo::static_slot_vRi);
+    //QObject::connect(&obj, &Foo::signal_vRs, &Foo::static_slot_vRi);
+#endif*/
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &Foo::static_slot_v);
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &Foo::static_slot_i);
+    QObject::connect(&obj, &Foo::signal_vPFvvE, &Foo::static_slot_vPFvvE);
+
+}
+
+class StringVariant : public QObject
+{ Q_OBJECT
+signals:
+    void stringSignal(const QString &str);
+public slots:
+    void variantSlot(const QVariant &v) { var = v; }
+public:
+    QVariant var;
+    friend class tst_QObject;
+};
+
+struct Functor {
+    QVariant *var;
+    void operator() (const QVariant &v) {
+        *var = v;
+    }
+};
+
+void tst_QObject::connectConvert()
+{
+    StringVariant obj;
+    QVERIFY(connect(&obj, &StringVariant::stringSignal, &obj, &StringVariant::variantSlot));
+    QString s = QString::fromLatin1("Hello World");
+    emit obj.stringSignal(s);
+    QCOMPARE(obj.var.toString(), s);
+
+    QVariant var;
+    Functor f;
+    f.var = &var;
+    QVERIFY(connect(&obj, &StringVariant::stringSignal, f));
+    s = QString::fromLatin1("GoodBye");
+    emit obj.stringSignal(s);
+    QCOMPARE(obj.var.toString(), s);
+    QCOMPARE(var, obj.var);
+}
+
+
 
 QTEST_MAIN(tst_QObject)
 #include "tst_qobject.moc"

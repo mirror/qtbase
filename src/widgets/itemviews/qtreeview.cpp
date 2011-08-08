@@ -320,12 +320,12 @@ void QTreeView::setHeader(QHeaderView *header)
             d->header->setSelectionModel(d->selectionModel);
     }
 
-    connect(d->header, SIGNAL(sectionResized(int,int,int)),
-            this, SLOT(columnResized(int,int,int)));
-    connect(d->header, SIGNAL(sectionMoved(int,int,int)),
-            this, SLOT(columnMoved()));
-    connect(d->header, SIGNAL(sectionCountChanged(int,int)),
-            this, SLOT(columnCountChanged(int,int)));
+    connect(d->header, &QHeaderView::sectionResized,
+            this, &QTreeView::columnResized);
+    connect(d->header, &QHeaderView::sectionMoved,
+            this, &QTreeView::columnMoved);
+    connect(d->header, &QHeaderView::sectionCountChanged,
+            this, &QTreeView::columnCountChanged);
     connect(d->header, SIGNAL(sectionHandleDoubleClicked(int)),
             this, SLOT(resizeColumnToContents(int)));
     connect(d->header, SIGNAL(geometriesChanged()),

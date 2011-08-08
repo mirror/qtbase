@@ -66,10 +66,10 @@ class QString;
 #  define QT_NO_EMIT
 # else
 #   define slots
-#   define signals protected
+#   define signals public
 # endif
 # define Q_SLOTS
-# define Q_SIGNALS protected
+# define Q_SIGNALS public
 # define Q_PRIVATE_SLOT(d, signature)
 # define Q_EMIT
 #ifndef QT_NO_EMIT
@@ -291,6 +291,7 @@ public:
 
 struct Q_CORE_EXPORT QMetaObject
 {
+    class Connection;
     const char *className() const;
     const QMetaObject *superClass() const;
 
@@ -336,7 +337,7 @@ struct Q_CORE_EXPORT QMetaObject
     static QByteArray normalizedType(const char *type);
 
     // internal index-based connect
-    static bool connect(const QObject *sender, int signal_index,
+    static Connection connect(const QObject *sender, int signal_index,
                         const QObject *receiver, int method_index,
                         int type = 0, int *types = 0);
     // internal index-based disconnect
@@ -443,7 +444,8 @@ struct Q_CORE_EXPORT QMetaObject
         QueryPropertyStored,
         QueryPropertyEditable,
         QueryPropertyUser,
-        CreateInstance
+        CreateInstance,
+        IndexOfMethod
     };
 
     int static_metacall(Call, int, void **) const;
@@ -456,6 +458,32 @@ struct Q_CORE_EXPORT QMetaObject
         const void *extradata;
     } d;
 };
+
+class QMetaObject::Connection {
+    void *d_ptr; //QObjectPrivate::Connection*
+    explicit Connection(void *data) : d_ptr(data) {  }
+    friend class QObject;
+    friend class QMetaObject;
+public:
+    ~Connection();
+    Connection(const Connection &other);
+    Connection &operator=(const Connection &other);
+#ifdef qdoc
+    operator bool();
+#else
+    typedef void *Connection::*RestrictedBool;
+    operator RestrictedBool() { return d_ptr ? &Connection::d_ptr : 0;  }
+#endif
+    
+#ifdef Q_COMPILER_RVALUE_REFS
+    inline Connection(Connection &&o) : d_ptr(o.d_ptr) { o.d_ptr = 0; }
+    inline Connection &operator=(Connection &&other)
+    { qSwap(d_ptr, other.d_ptr); return *this; }
+#endif
+};
+
+
+
 
 typedef const QMetaObject& (*QMetaObjectAccessor)();
 

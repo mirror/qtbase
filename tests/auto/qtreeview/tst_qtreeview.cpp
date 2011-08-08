@@ -58,6 +58,8 @@ Q_DECLARE_METATYPE(QAbstractItemView::DragDropMode)
 Q_DECLARE_METATYPE(QAbstractItemView::EditTriggers)
 Q_DECLARE_METATYPE(QAbstractItemView::EditTrigger)
 
+Q_DECLARE_METATYPE(QItemSelection)
+
 static void initStandardTreeModel(QStandardItemModel *model)
 {
     QStandardItem *item;
@@ -2270,8 +2272,8 @@ void tst_QTreeView::selection()
     treeView.setSelectionBehavior(QAbstractItemView::SelectRows);
     treeView.setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-    connect(treeView.selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)),
-            this, SLOT(selectionOrderTest()));
+    connect(treeView.selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &tst_QTreeView::selectionOrderTest);
 
     treeView.show();
 

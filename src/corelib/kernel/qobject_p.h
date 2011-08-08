@@ -61,6 +61,7 @@
 #include "QtCore/qvector.h"
 #include "QtCore/qreadwritelock.h"
 #include "QtCore/qvariant.h"
+#include "../global/qnumeric_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -114,18 +115,31 @@ public:
     {
         QObject *sender;
         QObject *receiver;
-        StaticMetaCallFunction callFunction;
+        union {
+            StaticMetaCallFunction callFunction;
+            QObject::QSlotObjectBase *slotObj;
+        };
         // The next pointer for the singly-linked ConnectionList
         Connection *nextConnectionList;
         //senders linked list
         Connection *next;
         Connection **prev;
         QBasicAtomicPointer<int> argumentTypes;
+        QAtomicInt ref_;
         ushort method_offset;
         ushort method_relative;
         ushort connectionType : 3; // 0 == auto, 1 == direct, 2 == queued, 4 == blocking
+        ushort isSlotObject : 1;
+        Connection() : nextConnectionList(0), ref_(2) {}
         ~Connection();
         int method() const { return method_offset + method_relative; }
+        void ref() { ref_.ref(); }
+        void deref() {
+            if (!ref_.deref()) {
+                Q_ASSERT(!receiver);
+                delete this;
+            }
+        }
     };
     // ConnectionList is a singly-linked list
     struct ConnectionList {
@@ -248,6 +262,9 @@ class Q_CORE_EXPORT QMetaCallEvent : public QEvent
 public:
     QMetaCallEvent(ushort method_offset, ushort method_relative, QObjectPrivate::StaticMetaCallFunction callFunction , const QObject *sender, int signalId,
                    int nargs = 0, int *types = 0, void **args = 0, QSemaphore *semaphore = 0);
+    QMetaCallEvent(QObject::QSlotObjectBase *slotObj, const QObject *sender, int signalId,
+                   int nargs = 0, int *types = 0, void **args = 0, QSemaphore *semaphore = 0);
+
     ~QMetaCallEvent();
 
     inline int id() const { return method_offset_ + method_relative_; }
@@ -258,6 +275,7 @@ public:
     virtual void placeMetaCall(QObject *object);
 
 private:
+    QObject::QSlotObjectBase *slotObj_;
     const QObject *sender_;
     int signalId_;
     int nargs_;

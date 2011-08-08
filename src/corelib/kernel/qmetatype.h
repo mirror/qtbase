@@ -45,10 +45,6 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qatomic.h>
 
-#ifndef QT_NO_DATASTREAM
-#include <QtCore/qdatastream.h>
-#endif
-
 #ifdef Bool
 #error qmetatype.h must be included before any header file that defines Bool
 #endif

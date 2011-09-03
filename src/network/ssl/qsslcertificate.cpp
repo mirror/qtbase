@@ -542,6 +542,57 @@ QSslKey QSslCertificate::publicKey() const
     return key;
 }
 
+/*
+ * Convert extensions to a variant map. The naming of the keys of the map are
+ * taken from RFC 5280.
+ */
+static void x509ExtensionToValue(X509_EXTENSION *ext)
+{
+    ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
+    int nid = q_OBJ_obj2nid(obj);
+
+    QVariantMap result;
+
+    if (nid == NID_basic_constraints) {
+        BASIC_CONSTRAINTS *basic = reinterpret_cast<BASIC_CONSTRAINTS *>(q_X509V3_EXT_d2i(ext));
+
+        result[QLatin1String("cA")] = basic->ca ? true : false;
+        result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
+
+        q_BASIC_CONSTRAINTS_free(basic);
+    }
+    else if (nid == NID_info_access) {
+        AUTHORITY_INFO_ACCESS *info = reinterpret_cast<AUTHORITY_INFO_ACCESS *>(q_X509V3_EXT_d2i(ext));
+
+        for (int i=0; i < q_sk_num((STACK *)info); i++) {
+            ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
+
+            qDebug() << "AIA: " << QSslCertificatePrivate::asn1ObjectName(ad->method);
+
+            GENERAL_NAME *name = ad->location;
+            if (name->type == GEN_URI) {
+                int len = q_ASN1_STRING_length(name->d.uniformResourceIdentifier);
+                if (len < 0 || len >= 8192) {
+                    // broken name
+                    continue;
+                }
+
+                const char *uriStr = reinterpret_cast<const char *>(q_ASN1_STRING_data(name->d.uniformResourceIdentifier));
+                const QString uri = QString::fromLatin1(uriStr, len);
+
+                result[QSslCertificatePrivate::asn1ObjectName(ad->method)] = uri;
+            }
+            else {
+                qDebug() << "Strange location type" << name->type;
+            }
+        }
+
+        q_sk_pop_free((STACK*)info, reinterpret_cast<void(*)(void*)>(q_sk_free));
+    }
+
+    qDebug() << result;
+}
+
 void QSslCertificate::extensions() const
 {
     if (!d->x509)
@@ -556,16 +607,22 @@ void QSslCertificate::extensions() const
         QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
         qDebug() << "Extension: " << name;
 
+        bool critical = q_X509_EXTENSION_get_critical(ext);
+        qDebug() << "Critical" << critical;
+
+        // Lets see if we have custom support for this one
+        x509ExtensionToValue(ext);
+
         // Get the extension specific method object if available
         const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
         if (!meth) {
             qDebug() << "   This extension has no special support";
             continue;
         }
-        qDebug("i2v: %p", meth->i2v);
-        qDebug("d2i: %p", meth->d2i);
-        qDebug("i2s: %p", meth->i2s);
-        qDebug("i2r: %p", meth->i2r);
+        //qDebug("i2v: %p", meth->i2v);
+        //qDebug("d2i: %p", meth->d2i);
+        //qDebug("i2s: %p", meth->i2s);
+        //qDebug("i2r: %p", meth->i2r);
 
         const unsigned char *data = ext->value->data;
         void *ext_internal = q_X509V3_EXT_d2i(ext);
@@ -582,11 +639,9 @@ void QSslCertificate::extensions() const
                     qDebug() << "   Value: " << nval->value;
             }
         }
-#if 0 // Crashes on subject key identifier extension
         else if (meth->i2s && ext_internal) {
-            qDebug() << meth->i2s(meth, ext);
+            qDebug() << meth->i2s(meth, ext_internal);
         }
-#endif
         else {
             qDebug() << "Unable to convert safely";
         }

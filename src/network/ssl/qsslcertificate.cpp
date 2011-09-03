@@ -546,24 +546,28 @@ QSslKey QSslCertificate::publicKey() const
  * Convert extensions to a variant map. The naming of the keys of the map are
  * taken from RFC 5280.
  */
-static void x509ExtensionToValue(X509_EXTENSION *ext)
+static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
 {
     ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
     int nid = q_OBJ_obj2nid(obj);
 
-    QVariantMap result;
+    // The following have no internal structure
+    // NID_subject_key_identifier
 
     if (nid == NID_basic_constraints) {
         BASIC_CONSTRAINTS *basic = reinterpret_cast<BASIC_CONSTRAINTS *>(q_X509V3_EXT_d2i(ext));
 
+        QVariantMap result;
         result[QLatin1String("cA")] = basic->ca ? true : false;
         result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
 
         q_BASIC_CONSTRAINTS_free(basic);
+        return result;
     }
     else if (nid == NID_info_access) {
         AUTHORITY_INFO_ACCESS *info = reinterpret_cast<AUTHORITY_INFO_ACCESS *>(q_X509V3_EXT_d2i(ext));
 
+        QVariantMap result;
         for (int i=0; i < q_sk_num((STACK *)info); i++) {
             ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
 
@@ -588,9 +592,10 @@ static void x509ExtensionToValue(X509_EXTENSION *ext)
         }
 
         q_sk_pop_free((STACK*)info, reinterpret_cast<void(*)(void*)>(q_sk_free));
+        return result;
     }
 
-    qDebug() << result;
+    return QVariant();
 }
 
 void QSslCertificate::extensions() const
@@ -611,7 +616,11 @@ void QSslCertificate::extensions() const
         qDebug() << "Critical" << critical;
 
         // Lets see if we have custom support for this one
-        x509ExtensionToValue(ext);
+        QVariant extensionValue = x509ExtensionToValue(ext);
+        if (extensionValue.isValid()) {
+            qDebug() << extensionValue;
+            continue;
+        }
 
         // Get the extension specific method object if available
         const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);

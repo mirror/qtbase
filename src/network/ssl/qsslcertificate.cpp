@@ -550,9 +550,21 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
     // Get the extension specific method object if available
     const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
     if (!meth) {
-        qDebug() << "   This extension has no special support";
-        // TODO: hexdump
-        return QVariant();
+        QByteArray result;
+        BIO *bio = q_BIO_new(q_BIO_s_mem());
+        if (!bio)
+            return result;
+
+        q_ASN1_STRING_print(bio, reinterpret_cast<ASN1_STRING *>(ext->value));
+        
+        QVarLengthArray<char, 16384> data;
+        int count = q_BIO_read(bio, data.data(), 16384);
+        if ( count > 0 ) {
+            result = QByteArray( data.data(), count );
+        }
+
+        q_BIO_free(bio);
+        return result;
     }
 
     //qDebug("i2v: %p", meth->i2v);
@@ -567,20 +579,50 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
     if (meth->i2v && ext_internal) {
         STACK_OF(CONF_VALUE) *val = meth->i2v(meth, ext_internal, 0);
         
+        QVariantMap map;
+        QVariantList list;
+        bool isMap = false;
+
         for(int j=0; j < q_sk_num((STACK *)val); j++) {
             CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
-            if (nval->name)
-                qDebug() << "   Name: " << nval->name;
-            if (nval->value)
-                qDebug() << "   Value: " << nval->value;
+            if (nval->name && nval->value) {
+                isMap = true;
+                map[nval->name] = nval->value;
+            }
+            else if (nval->name) {
+                list << nval->name;
+            }
+            else if (nval->value) {
+                list << nval->value;
+            }
         }
+
+        if (isMap)
+            return map;
+        else
+            return list;
     }
     else if (meth->i2s && ext_internal) {
         qDebug() << meth->i2s(meth, ext_internal);
+        QVariant result(meth->i2s(meth, ext_internal));
+        return result;
     }
-    else {
-        // TODO: Hex dump
-        qDebug() << "Unable to convert safely";
+    else if (meth->i2r && ext_internal) {
+        QByteArray result;
+        BIO *bio = q_BIO_new(q_BIO_s_mem());
+        if (!bio)
+            return result;
+
+        meth->i2r(meth, ext_internal, bio, 0);
+
+        QVarLengthArray<char, 16384> data;
+        int count = q_BIO_read(bio, data.data(), 16384);
+        if ( count > 0 ) {
+            result = QByteArray( data.data(), count );
+        }
+
+        q_BIO_free(bio);
+        return result;
     }
 
     return QVariant();
@@ -594,9 +636,6 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
 {
     ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
     int nid = q_OBJ_obj2nid(obj);
-
-    // The following have no internal structure
-    // NID_subject_key_identifier
 
     if (nid == NID_basic_constraints) {
         BASIC_CONSTRAINTS *basic = reinterpret_cast<BASIC_CONSTRAINTS *>(q_X509V3_EXT_d2i(ext));
@@ -614,8 +653,6 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
         QVariantMap result;
         for (int i=0; i < q_sk_num((STACK *)info); i++) {
             ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
-
-            qDebug() << "AIA: " << QSslCertificatePrivate::asn1ObjectName(ad->method);
 
             GENERAL_NAME *name = ad->location;
             if (name->type == GEN_URI) {
@@ -694,7 +731,11 @@ void QSslCertificate::extensions() const
             continue;
         }
 
-        x509UnknownExtensionToValue(ext);
+        extensionValue = x509UnknownExtensionToValue(ext);
+        if (extensionValue.isValid()) {
+            qDebug() << extensionValue;
+            continue;
+        }
     }
 }
 

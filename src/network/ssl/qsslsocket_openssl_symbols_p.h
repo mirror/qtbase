@@ -374,6 +374,7 @@ void *q_X509V3_EXT_d2i(X509_EXTENSION *a);
 int q_X509_EXTENSION_get_critical(X509_EXTENSION *a);
 void q_BASIC_CONSTRAINTS_free(BASIC_CONSTRAINTS *a);
 void q_AUTHORITY_KEYID_free(AUTHORITY_KEYID *a);
+int q_ASN1_STRING_print(BIO *a, const ASN1_STRING *b);
 X509_NAME *q_X509_get_issuer_name(X509 *a);
 X509_NAME *q_X509_get_subject_name(X509 *a);
 int q_X509_verify_cert(X509_STORE_CTX *ctx);

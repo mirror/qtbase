@@ -373,6 +373,7 @@ const X509V3_EXT_METHOD *q_X509V3_EXT_get(X509_EXTENSION *a);
 void *q_X509V3_EXT_d2i(X509_EXTENSION *a);
 int q_X509_EXTENSION_get_critical(X509_EXTENSION *a);
 void q_BASIC_CONSTRAINTS_free(BASIC_CONSTRAINTS *a);
+void q_AUTHORITY_KEYID_free(AUTHORITY_KEYID *a);
 X509_NAME *q_X509_get_issuer_name(X509 *a);
 X509_NAME *q_X509_get_subject_name(X509 *a);
 int q_X509_verify_cert(X509_STORE_CTX *ctx);

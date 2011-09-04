@@ -543,7 +543,51 @@ QSslKey QSslCertificate::publicKey() const
 }
 
 /*
- * Convert extensions to a variant map. The naming of the keys of the map are
+ * Convert unknown extensions to a QVariant.
+ */
+static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
+{
+    // Get the extension specific method object if available
+    const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
+    if (!meth) {
+        qDebug() << "   This extension has no special support";
+        // TODO: hexdump
+        return QVariant();
+    }
+
+    //qDebug("i2v: %p", meth->i2v);
+    //qDebug("d2i: %p", meth->d2i);
+    //qDebug("i2s: %p", meth->i2s);
+    //qDebug("i2r: %p", meth->i2r);
+    
+    const unsigned char *data = ext->value->data;
+    void *ext_internal = q_X509V3_EXT_d2i(ext);
+
+    // If this extension can be converted
+    if (meth->i2v && ext_internal) {
+        STACK_OF(CONF_VALUE) *val = meth->i2v(meth, ext_internal, 0);
+        
+        for(int j=0; j < q_sk_num((STACK *)val); j++) {
+            CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
+            if (nval->name)
+                qDebug() << "   Name: " << nval->name;
+            if (nval->value)
+                qDebug() << "   Value: " << nval->value;
+        }
+    }
+    else if (meth->i2s && ext_internal) {
+        qDebug() << meth->i2s(meth, ext_internal);
+    }
+    else {
+        // TODO: Hex dump
+        qDebug() << "Unable to convert safely";
+    }
+
+    return QVariant();
+}
+
+/*
+ * Convert extensions to a variant. The naming of the keys of the map are
  * taken from RFC 5280.
  */
 static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
@@ -594,6 +638,34 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
         q_sk_pop_free((STACK*)info, reinterpret_cast<void(*)(void*)>(q_sk_free));
         return result;
     }
+    else if (nid == NID_subject_key_identifier) {
+        void *ext_internal = q_X509V3_EXT_d2i(ext);
+        const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
+
+        return QVariant(meth->i2s(meth, ext_internal));
+    }
+    else if (nid == NID_authority_key_identifier) {
+        AUTHORITY_KEYID *auth_key = reinterpret_cast<AUTHORITY_KEYID *>(q_X509V3_EXT_d2i(ext));
+
+        QVariantMap result;
+
+        // keyid
+        if (auth_key->keyid) {
+            QByteArray keyid(reinterpret_cast<const char *>(auth_key->keyid->data),
+                             auth_key->keyid->length);
+            result[QLatin1String("keyid")] = keyid.toHex();
+        }
+
+        // issuer
+        // TODO: GENERAL_NAMES
+
+        // serial
+        if (auth_key->serial)
+            result[QLatin1String("serial")] = (qlonglong)q_ASN1_INTEGER_get(auth_key->serial);
+
+        q_AUTHORITY_KEYID_free(auth_key);
+        return result;
+    }
 
     return QVariant();
 }
@@ -622,38 +694,7 @@ void QSslCertificate::extensions() const
             continue;
         }
 
-        // Get the extension specific method object if available
-        const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
-        if (!meth) {
-            qDebug() << "   This extension has no special support";
-            continue;
-        }
-        //qDebug("i2v: %p", meth->i2v);
-        //qDebug("d2i: %p", meth->d2i);
-        //qDebug("i2s: %p", meth->i2s);
-        //qDebug("i2r: %p", meth->i2r);
-
-        const unsigned char *data = ext->value->data;
-        void *ext_internal = q_X509V3_EXT_d2i(ext);
-
-        // If this extension can be converted
-        if (meth->i2v && ext_internal) {
-            STACK_OF(CONF_VALUE) *val = meth->i2v(meth, ext_internal, 0);
-
-            for(int j=0; j < q_sk_num((STACK *)val); j++) {
-                CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
-                if (nval->name)
-                    qDebug() << "   Name: " << nval->name;
-                if (nval->value)
-                    qDebug() << "   Value: " << nval->value;
-            }
-        }
-        else if (meth->i2s && ext_internal) {
-            qDebug() << meth->i2s(meth, ext_internal);
-        }
-        else {
-            qDebug() << "Unable to convert safely";
-        }
+        x509UnknownExtensionToValue(ext);
     }
 }
 

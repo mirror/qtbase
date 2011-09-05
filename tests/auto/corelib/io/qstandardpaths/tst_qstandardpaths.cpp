@@ -62,6 +62,7 @@ private slots:
     void testCustomLocations();
     void testLocateAll();
     void testDataLocation();
+    void testFindExecutable();
 
 private:
     void setCustomLocations() {
@@ -158,6 +159,50 @@ void tst_qstandardpaths::testDataLocation()
         const QString app = QStandardPaths::storageLocation(QStandardPaths::DataLocation);
         QCOMPARE(app, base + "/Qt/QtTest");
     }
+}
+
+void tst_qstandardpaths::testFindExecutable()
+{
+    // Search for 'sh' on unix and 'cmd.exe' on Windows
+#ifdef Q_OS_WIN
+    const QString exeName = "cmd.exe";
+#else
+    const QString exeName = "sh";
+#endif
+
+    const QString result = QStandardPaths::findExecutable(exeName);
+    QVERIFY(!result.isEmpty());
+#ifdef Q_OS_WIN
+    QVERIFY(result.endsWith("/cmd.exe"));
+#else
+    QVERIFY(result.endsWith("/bin/sh"));
+#endif
+
+    // full path as argument
+    QCOMPARE(QStandardPaths::findExecutable(result), result);
+
+    // exe no found
+    QVERIFY(QStandardPaths::findExecutable("idontexist").isEmpty());
+    QVERIFY(QStandardPaths::findExecutable("").isEmpty());
+
+    // link to directory
+    const QString target = QDir::tempPath() + QDir::separator() + QLatin1String("link.lnk");
+    QFile::remove(target);
+    QFile appFile(QCoreApplication::applicationDirPath());
+    QVERIFY(appFile.link(target));
+    QVERIFY(QStandardPaths::findExecutable(target).isEmpty());
+    QFile::remove(target);
+
+    // findExecutable with a relative path
+#ifdef Q_OS_UNIX
+    const QString pwd = QDir::currentPath();
+    QDir::setCurrent("/bin");
+    QStringList possibleResults;
+    possibleResults << QString::fromLatin1("/bin/sh") << QString::fromLatin1("/usr/bin/sh");
+    const QString sh = QStandardPaths::findExecutable("./sh");
+    QVERIFY2(possibleResults.contains(sh), qPrintable(sh));
+    QDir::setCurrent(pwd);
+#endif
 }
 
 QTEST_MAIN(tst_qstandardpaths)

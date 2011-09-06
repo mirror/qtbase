@@ -99,6 +99,7 @@ public:
     static QList<QSslCertificate> certificatesFromPem(const QByteArray &pem, int count = -1);
     static QList<QSslCertificate> certificatesFromDer(const QByteArray &der, int count = -1);
     static bool isBlacklisted(const QSslCertificate &certificate);
+    static QSslCertificateExtension convertExtension(X509_EXTENSION *ext);
 
     friend class QSslSocketBackendPrivate;
 

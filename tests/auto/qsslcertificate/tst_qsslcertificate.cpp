@@ -44,6 +44,7 @@
 #include <qsslcertificate.h>
 #include <qsslkey.h>
 #include <qsslsocket.h>
+#include <qsslcertificateextension.h>
 
 #ifdef Q_OS_SYMBIAN
 // In Symbian OS test data is located in applications private dir

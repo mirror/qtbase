@@ -112,6 +112,8 @@
 #include "qsslcertificate_p.h"
 #include "qsslkey.h"
 #include "qsslkey_p.h"
+#include "qsslcertificateextension.h"
+#include "qsslcertificateextension_p.h"
 
 #include <QtCore/qatomic.h>
 #include <QtCore/qdatetime.h>
@@ -572,7 +574,7 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
     //qDebug("i2s: %p", meth->i2s);
     //qDebug("i2r: %p", meth->i2r);
     
-    const unsigned char *data = ext->value->data;
+    //const unsigned char *data = ext->value->data;
     void *ext_internal = q_X509V3_EXT_d2i(ext);
 
     // If this extension can be converted
@@ -603,7 +605,7 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
             return list;
     }
     else if (meth->i2s && ext_internal) {
-        qDebug() << meth->i2s(meth, ext_internal);
+        //qDebug() << meth->i2s(meth, ext_internal);
         QVariant result(meth->i2s(meth, ext_internal));
         return result;
     }
@@ -707,35 +709,51 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
     return QVariant();
 }
 
-void QSslCertificate::extensions() const
+QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION *ext)
 {
+    QSslCertificateExtension result;
+
+    QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
+    // qDebug() << "Extension: " << name;
+    result.d->name = name;
+    
+    bool critical = q_X509_EXTENSION_get_critical(ext);
+    // qDebug() << "Critical" << critical;
+    result.d->critical = critical;
+    
+    // Lets see if we have custom support for this one
+    QVariant extensionValue = x509ExtensionToValue(ext);
+    if (extensionValue.isValid()) {
+        // qDebug() << extensionValue;
+        result.d->value = extensionValue;
+        result.d->supported = true;
+        return result;
+    }
+
+    extensionValue = x509UnknownExtensionToValue(ext);
+    if (extensionValue.isValid()) {
+        //qDebug() << extensionValue;
+        result.d->value = extensionValue;
+        result.d->supported = false;
+        return result;
+    }
+
+    return result;
+}
+
+QList<QSslCertificateExtension> QSslCertificate::extensions() const
+{
+    QList<QSslCertificateExtension> result;
+
     if (!d->x509)
-        return;
+        return result;
 
     int count = q_X509_get_ext_count(d->x509);
-    qDebug() << count << "extensions found";
+    // qDebug() << count << "extensions found";
 
     for (int i=0; i < count; i++) {
         X509_EXTENSION *ext = q_X509_get_ext(d->x509, i);
-
-        QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
-        qDebug() << "Extension: " << name;
-
-        bool critical = q_X509_EXTENSION_get_critical(ext);
-        qDebug() << "Critical" << critical;
-
-        // Lets see if we have custom support for this one
-        QVariant extensionValue = x509ExtensionToValue(ext);
-        if (extensionValue.isValid()) {
-            qDebug() << extensionValue;
-            continue;
-        }
-
-        extensionValue = x509UnknownExtensionToValue(ext);
-        if (extensionValue.isValid()) {
-            qDebug() << extensionValue;
-            continue;
-        }
+        result << QSslCertificatePrivate::convertExtension(ext);
     }
 }
 

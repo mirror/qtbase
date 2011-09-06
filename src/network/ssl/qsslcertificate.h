@@ -64,6 +64,7 @@ class QDateTime;
 class QIODevice;
 class QSslError;
 class QSslKey;
+class QSslCertificateExtension;
 class QStringList;
 template <typename T, typename U> class QMultiMap;
 
@@ -110,7 +111,7 @@ public:
     QDateTime effectiveDate() const;
     QDateTime expiryDate() const;
     QSslKey publicKey() const;
-    void extensions() const;
+    QList<QSslCertificateExtension> extensions() const;
 
     QByteArray toPem() const;
     QByteArray toDer() const;

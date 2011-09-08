@@ -724,8 +724,10 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
 {
     QSslCertificateExtension result;
 
+    QByteArray oid = QSslCertificatePrivate::asn1ObjectId(q_X509_EXTENSION_get_object(ext));
     QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
     // qDebug() << "Extension: " << name;
+    result.d->oid = QString::fromUtf8(oid);
     result.d->name = QString::fromUtf8(name);
 
     bool critical = q_X509_EXTENSION_get_critical(ext);
@@ -988,17 +990,22 @@ QByteArray QSslCertificatePrivate::text_from_X509(X509 *x509)
     return result;
 }
 
+QByteArray QSslCertificatePrivate::asn1ObjectId(ASN1_OBJECT *object)
+{
+    char buf[80];
+    q_i2t_ASN1_OBJECT(buf, sizeof(buf), object);
+
+    return QByteArray(buf);
+}
+
+
 QByteArray QSslCertificatePrivate::asn1ObjectName(ASN1_OBJECT *object)
 {
     int nid = q_OBJ_obj2nid(object);
     if (nid != NID_undef)
         return QByteArray(q_OBJ_nid2sn(nid));
 
-    // This is used for unknown info so we get the OID as text
-    char buf[80];
-    q_i2t_ASN1_OBJECT(buf, sizeof(buf), object);
-
-    return QByteArray(buf);
+    return asn1ObjectId(object);
 }
 
 static QMap<QByteArray, QString> _q_mapFromX509Name(X509_NAME *name)

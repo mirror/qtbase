@@ -23,6 +23,7 @@ public:
 
     QSslCertificateExtension &operator=(const QSslCertificateExtension &other);
 
+    QString oid() const;
     QString name() const;
     QVariant value() const;
     bool isCritical() const;

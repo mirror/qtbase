@@ -14,6 +14,7 @@ public:
     {
     }
 
+    QString oid;
     QString name;
     QVariant value;
     bool critical;

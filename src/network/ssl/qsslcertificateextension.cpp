@@ -23,6 +23,11 @@ QSslCertificateExtension &QSslCertificateExtension::operator=(const QSslCertific
     return *this;
 }
 
+QString QSslCertificateExtension::oid() const
+{
+    return d->oid;
+}
+
 QString QSslCertificateExtension::name() const
 {
     return d->name;

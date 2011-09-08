@@ -589,13 +589,13 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
             CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
             if (nval->name && nval->value) {
                 isMap = true;
-                map[nval->name] = nval->value;
+                map[QString::fromUtf8(nval->name)] = QString::fromUtf8(nval->value);
             }
             else if (nval->name) {
-                list << nval->name;
+                list << QString::fromUtf8(nval->name);
             }
             else if (nval->value) {
-                list << nval->value;
+                list << QString::fromUtf8(nval->value);
             }
         }
 
@@ -606,7 +606,7 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
     }
     else if (meth->i2s && ext_internal) {
         //qDebug() << meth->i2s(meth, ext_internal);
-        QVariant result(meth->i2s(meth, ext_internal));
+        QVariant result(QString::fromUtf8(meth->i2s(meth, ext_internal)));
         return result;
     }
     else if (meth->i2r && ext_internal) {
@@ -670,9 +670,9 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
                     }
 
                     const char *uriStr = reinterpret_cast<const char *>(q_ASN1_STRING_data(name->d.uniformResourceIdentifier));
-                    const QString uri = QString::fromLatin1(uriStr, len);
+                    const QString uri = QString::fromUtf8(uriStr, len);
 
-                    result[QSslCertificatePrivate::asn1ObjectName(ad->method)] = uri;
+                    result[QString::fromUtf8(QSslCertificatePrivate::asn1ObjectName(ad->method))] = uri;
                 }
                 else {
                     qDebug() << "Strange location type" << name->type;
@@ -688,7 +688,7 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
             void *ext_internal = q_X509V3_EXT_d2i(ext);
             const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
 
-            return QVariant(meth->i2s(meth, ext_internal));
+            return QVariant(QString::fromUtf8(meth->i2s(meth, ext_internal)));
         }
         break;
     case NID_authority_key_identifier:
@@ -726,7 +726,7 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
 
     QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
     // qDebug() << "Extension: " << name;
-    result.d->name = name;
+    result.d->name = QString::fromUtf8(name);
 
     bool critical = q_X509_EXTENSION_get_critical(ext);
     // qDebug() << "Critical" << critical;

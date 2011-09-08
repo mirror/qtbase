@@ -585,8 +585,8 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
         QVariantList list;
         bool isMap = false;
 
-        for(int j=0; j < q_sk_num((STACK *)val); j++) {
-            CONF_VALUE *nval = reinterpret_cast<CONF_VALUE *>(q_sk_value((STACK *)val, j));
+        for(int j=0; j < q_SKM_sk_num(CONF_VALUE, val); j++) {
+            CONF_VALUE *nval = q_SKM_sk_value(CONF_VALUE, val, j);
             if (nval->name && nval->value) {
                 isMap = true;
                 map[QString::fromUtf8(nval->name)] = QString::fromUtf8(nval->value);
@@ -658,8 +658,8 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
             AUTHORITY_INFO_ACCESS *info = reinterpret_cast<AUTHORITY_INFO_ACCESS *>(q_X509V3_EXT_d2i(ext));
 
             QVariantMap result;
-            for (int i=0; i < q_sk_num((STACK *)info); i++) {
-                ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
+            for (int i=0; i < q_SKM_sk_num(ACCESS_DESCRIPTION, info); i++) {
+                ACCESS_DESCRIPTION *ad = q_SKM_sk_value(ACCESS_DESCRIPTION, info, i);
 
                 GENERAL_NAME *name = ad->location;
                 if (name->type == GEN_URI) {

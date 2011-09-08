@@ -319,7 +319,7 @@ static QByteArray _q_SubjectInfoToString(QSslCertificate::SubjectInfo info)
 
 /*!
   \fn QString QSslCertificate::issuerInfo(SubjectInfo subject) const
-  
+
   Returns the issuer information for the \a subject from the
   certificate, or an empty string if there is no information for
   \a subject in the certificate.
@@ -431,12 +431,12 @@ QList<QByteArray> QSslCertificate::issuerInfoAttributes() const
   certificate. The alternate subject names typically contain host
   names, optionally with wildcards, that are valid for this
   certificate.
-  
+
   These names are tested against the connected peer's host name, if
   either the subject information for \l CommonName doesn't define a
   valid host name, or the subject info name doesn't match the peer's
   host name.
-  
+
   \sa subjectInfo()
 */
 QMultiMap<QSsl::AlternateNameEntryType, QString> QSslCertificate::alternateSubjectNames() const
@@ -558,7 +558,7 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
             return result;
 
         q_ASN1_STRING_print(bio, reinterpret_cast<ASN1_STRING *>(ext->value));
-        
+
         QVarLengthArray<char, 16384> data;
         int count = q_BIO_read(bio, data.data(), 16384);
         if ( count > 0 ) {
@@ -573,14 +573,14 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
     //qDebug("d2i: %p", meth->d2i);
     //qDebug("i2s: %p", meth->i2s);
     //qDebug("i2r: %p", meth->i2r);
-    
+
     //const unsigned char *data = ext->value->data;
     void *ext_internal = q_X509V3_EXT_d2i(ext);
 
     // If this extension can be converted
     if (meth->i2v && ext_internal) {
         STACK_OF(CONF_VALUE) *val = meth->i2v(meth, ext_internal, 0);
-        
+
         QVariantMap map;
         QVariantList list;
         bool isMap = false;
@@ -632,78 +632,89 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
 
 /*
  * Convert extensions to a variant. The naming of the keys of the map are
- * taken from RFC 5280.
+ * taken from RFC 5280, however we decided the capitalisation in the RFC
+ * was too silly for the real world.
  */
 static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
 {
     ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
     int nid = q_OBJ_obj2nid(obj);
 
-    if (nid == NID_basic_constraints) {
-        BASIC_CONSTRAINTS *basic = reinterpret_cast<BASIC_CONSTRAINTS *>(q_X509V3_EXT_d2i(ext));
+    switch(nid) {
+    case NID_basic_constraints:
+        {
+            BASIC_CONSTRAINTS *basic = reinterpret_cast<BASIC_CONSTRAINTS *>(q_X509V3_EXT_d2i(ext));
 
-        QVariantMap result;
-        result[QLatin1String("cA")] = basic->ca ? true : false;
-        result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
+            QVariantMap result;
+            result[QLatin1String("ca")] = basic->ca ? true : false;
+            result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
 
-        q_BASIC_CONSTRAINTS_free(basic);
-        return result;
-    }
-    else if (nid == NID_info_access) {
-        AUTHORITY_INFO_ACCESS *info = reinterpret_cast<AUTHORITY_INFO_ACCESS *>(q_X509V3_EXT_d2i(ext));
+            q_BASIC_CONSTRAINTS_free(basic);
+            return result;
+        }
+        break;
+    case NID_info_access:
+        {
+            AUTHORITY_INFO_ACCESS *info = reinterpret_cast<AUTHORITY_INFO_ACCESS *>(q_X509V3_EXT_d2i(ext));
 
-        QVariantMap result;
-        for (int i=0; i < q_sk_num((STACK *)info); i++) {
-            ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
+            QVariantMap result;
+            for (int i=0; i < q_sk_num((STACK *)info); i++) {
+                ACCESS_DESCRIPTION *ad = reinterpret_cast<ACCESS_DESCRIPTION *>(q_sk_value((STACK *)info, i));
 
-            GENERAL_NAME *name = ad->location;
-            if (name->type == GEN_URI) {
-                int len = q_ASN1_STRING_length(name->d.uniformResourceIdentifier);
-                if (len < 0 || len >= 8192) {
-                    // broken name
-                    continue;
+                GENERAL_NAME *name = ad->location;
+                if (name->type == GEN_URI) {
+                    int len = q_ASN1_STRING_length(name->d.uniformResourceIdentifier);
+                    if (len < 0 || len >= 8192) {
+                        // broken name
+                        continue;
+                    }
+
+                    const char *uriStr = reinterpret_cast<const char *>(q_ASN1_STRING_data(name->d.uniformResourceIdentifier));
+                    const QString uri = QString::fromLatin1(uriStr, len);
+
+                    result[QSslCertificatePrivate::asn1ObjectName(ad->method)] = uri;
                 }
-
-                const char *uriStr = reinterpret_cast<const char *>(q_ASN1_STRING_data(name->d.uniformResourceIdentifier));
-                const QString uri = QString::fromLatin1(uriStr, len);
-
-                result[QSslCertificatePrivate::asn1ObjectName(ad->method)] = uri;
+                else {
+                    qDebug() << "Strange location type" << name->type;
+                }
             }
-            else {
-                qDebug() << "Strange location type" << name->type;
+
+            q_sk_pop_free((STACK*)info, reinterpret_cast<void(*)(void*)>(q_sk_free));
+            return result;
+        }
+        break;
+    case NID_subject_key_identifier:
+        {
+            void *ext_internal = q_X509V3_EXT_d2i(ext);
+            const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
+
+            return QVariant(meth->i2s(meth, ext_internal));
+        }
+        break;
+    case NID_authority_key_identifier:
+        {
+            AUTHORITY_KEYID *auth_key = reinterpret_cast<AUTHORITY_KEYID *>(q_X509V3_EXT_d2i(ext));
+
+            QVariantMap result;
+
+            // keyid
+            if (auth_key->keyid) {
+                QByteArray keyid(reinterpret_cast<const char *>(auth_key->keyid->data),
+                                 auth_key->keyid->length);
+                result[QLatin1String("keyid")] = keyid.toHex();
             }
+
+            // issuer
+            // TODO: GENERAL_NAMES
+
+            // serial
+            if (auth_key->serial)
+                result[QLatin1String("serial")] = (qlonglong)q_ASN1_INTEGER_get(auth_key->serial);
+
+            q_AUTHORITY_KEYID_free(auth_key);
+            return result;
         }
-
-        q_sk_pop_free((STACK*)info, reinterpret_cast<void(*)(void*)>(q_sk_free));
-        return result;
-    }
-    else if (nid == NID_subject_key_identifier) {
-        void *ext_internal = q_X509V3_EXT_d2i(ext);
-        const X509V3_EXT_METHOD *meth = q_X509V3_EXT_get(ext);
-
-        return QVariant(meth->i2s(meth, ext_internal));
-    }
-    else if (nid == NID_authority_key_identifier) {
-        AUTHORITY_KEYID *auth_key = reinterpret_cast<AUTHORITY_KEYID *>(q_X509V3_EXT_d2i(ext));
-
-        QVariantMap result;
-
-        // keyid
-        if (auth_key->keyid) {
-            QByteArray keyid(reinterpret_cast<const char *>(auth_key->keyid->data),
-                             auth_key->keyid->length);
-            result[QLatin1String("keyid")] = keyid.toHex();
-        }
-
-        // issuer
-        // TODO: GENERAL_NAMES
-
-        // serial
-        if (auth_key->serial)
-            result[QLatin1String("serial")] = (qlonglong)q_ASN1_INTEGER_get(auth_key->serial);
-
-        q_AUTHORITY_KEYID_free(auth_key);
-        return result;
+        break;
     }
 
     return QVariant();
@@ -716,11 +727,11 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
     QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
     // qDebug() << "Extension: " << name;
     result.d->name = name;
-    
+
     bool critical = q_X509_EXTENSION_get_critical(ext);
     // qDebug() << "Critical" << critical;
     result.d->critical = critical;
-    
+
     // Lets see if we have custom support for this one
     QVariant extensionValue = x509ExtensionToValue(ext);
     if (extensionValue.isValid()) {
@@ -755,6 +766,8 @@ QList<QSslCertificateExtension> QSslCertificate::extensions() const
         X509_EXTENSION *ext = q_X509_get_ext(d->x509, i);
         result << QSslCertificatePrivate::convertExtension(ext);
     }
+
+    return result;
 }
 
 /*!
@@ -796,7 +809,7 @@ QByteArray QSslCertificate::toText() const
     pattern matching one or more files, as specified by \a syntax.
 
     Example:
-    
+
     \snippet doc/src/snippets/code/src_network_ssl_qsslcertificate.cpp 0
 
     \sa fromData()

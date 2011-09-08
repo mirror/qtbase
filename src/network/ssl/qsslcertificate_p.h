@@ -57,6 +57,7 @@
 //
 
 #include "qsslsocket_p.h"
+#include "qsslcertificateextension.h"
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmap.h>
 

@@ -331,8 +331,10 @@ void *QThreadPrivate::start(void *arg)
 
     CTrapCleanup *cleanup = CTrapCleanup::New();
 
-    // ### TODO: allow the user to create a custom event dispatcher
-    createEventDispatcher(data);
+    if (data->eventDispatcher) // custom event dispatcher set?
+        data->eventDispatcher->startingUp();
+    else
+        createEventDispatcher(data);
 
     emit thr->started();
     thr->run();

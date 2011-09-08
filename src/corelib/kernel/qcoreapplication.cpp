@@ -2525,6 +2525,31 @@ bool QCoreApplication::hasPendingEvents()
     return false;
 }
 
+/*!
+    Returns a pointer to the event dispatcher object for the main thread. If no
+    event dispatcher exists for the thread, this function returns 0.
+*/
+QAbstractEventDispatcher *QCoreApplication::eventDispatcher()
+{
+    if (QCoreApplicationPrivate::theMainThread)
+        return QCoreApplicationPrivate::theMainThread->eventDispatcher();
+    return 0;
+}
+
+/*!
+    Sets the event dispatcher for the main thread to \a eventDispatcher. This
+    is only possible as long as there is no event dispatcher installed yet. That
+    is, before QCoreApplication has been instantiated. This method takes
+    ownership of the object.
+*/
+void QCoreApplication::setEventDispatcher(QAbstractEventDispatcher *eventDispatcher)
+{
+    QThread *mainThread = QCoreApplicationPrivate::theMainThread;
+    if (!mainThread)
+        mainThread = QThread::currentThread(); // will also setup theMainThread
+    mainThread->setEventDispatcher(eventDispatcher);
+}
+
 /*
     \fn void QCoreApplication::watchUnixSignal(int signal, bool watch)
     \internal

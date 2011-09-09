@@ -724,8 +724,9 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
 {
     QSslCertificateExtension result;
 
-    QByteArray oid = QSslCertificatePrivate::asn1ObjectId(q_X509_EXTENSION_get_object(ext));
-    QByteArray name = QSslCertificatePrivate::asn1ObjectName(q_X509_EXTENSION_get_object(ext));
+    ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
+    QByteArray oid = QSslCertificatePrivate::asn1ObjectId(obj);
+    QByteArray name = QSslCertificatePrivate::asn1ObjectName(obj);
     // qDebug() << "Extension: " << name;
     result.d->oid = QString::fromUtf8(oid);
     result.d->name = QString::fromUtf8(name);
@@ -740,6 +741,7 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
         // qDebug() << extensionValue;
         result.d->value = extensionValue;
         result.d->supported = true;
+
         return result;
     }
 

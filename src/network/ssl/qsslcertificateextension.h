@@ -2,7 +2,7 @@
 #define QSSLCERTIFICATEEXTENSION_H
 
 #include <QtCore/qnamespace.h>
-#include <QtCore/qsharedpointer.h>
+#include <QtCore/qshareddata.h>
 
 QT_BEGIN_HEADER
 
@@ -32,7 +32,7 @@ public:
 
 private:
     friend class QSslCertificatePrivate;
-    QExplicitlySharedDataPointer<QSslCertificateExtensionPrivate> d;
+    QSharedDataPointer<QSslCertificateExtensionPrivate> d;
 };
 
 #endif // QT_NO_OPENSSL

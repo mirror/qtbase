@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSslCertificateExtensionPrivate
+class QSslCertificateExtensionPrivate : public QSharedData
 {
 public:
     inline QSslCertificateExtensionPrivate()
@@ -19,11 +19,6 @@ public:
     QVariant value;
     bool critical;
     bool supported;
-
-    QAtomicInt ref;
-
-private:
-    Q_DISABLE_COPY(QSslCertificateExtensionPrivate)
 };
 
 QT_END_NAMESPACE

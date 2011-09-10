@@ -569,11 +569,6 @@ static QVariant x509UnknownExtensionToValue(X509_EXTENSION *ext)
         return result;
     }
 
-    //qDebug("i2v: %p", meth->i2v);
-    //qDebug("d2i: %p", meth->d2i);
-    //qDebug("i2s: %p", meth->i2s);
-    //qDebug("i2r: %p", meth->i2r);
-
     //const unsigned char *data = ext->value->data;
     void *ext_internal = q_X509V3_EXT_d2i(ext);
 
@@ -676,7 +671,7 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
                     result[QString::fromUtf8(QSslCertificatePrivate::asn1ObjectName(ad->method))] = uri;
                 }
                 else {
-                    qDebug() << "Strange location type" << name->type;
+                    qWarning() << "Strange location type" << name->type;
                 }
             }
 
@@ -728,18 +723,16 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
     ASN1_OBJECT *obj = q_X509_EXTENSION_get_object(ext);
     QByteArray oid = QSslCertificatePrivate::asn1ObjectId(obj);
     QByteArray name = QSslCertificatePrivate::asn1ObjectName(obj);
-    // qDebug() << "Extension: " << name;
+
     result.d->oid = QString::fromUtf8(oid);
     result.d->name = QString::fromUtf8(name);
 
     bool critical = q_X509_EXTENSION_get_critical(ext);
-    // qDebug() << "Critical" << critical;
     result.d->critical = critical;
 
     // Lets see if we have custom support for this one
     QVariant extensionValue = x509ExtensionToValue(ext);
     if (extensionValue.isValid()) {
-        // qDebug() << extensionValue;
         result.d->value = extensionValue;
         result.d->supported = true;
 
@@ -748,7 +741,6 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
 
     extensionValue = x509UnknownExtensionToValue(ext);
     if (extensionValue.isValid()) {
-        //qDebug() << extensionValue;
         result.d->value = extensionValue;
         result.d->supported = false;
         return result;
@@ -757,6 +749,10 @@ QSslCertificateExtension QSslCertificatePrivate::convertExtension(X509_EXTENSION
     return result;
 }
 
+/*!
+    Returns a list containing the X509 extensions of this certificate.
+    \since 5.0
+ */
 QList<QSslCertificateExtension> QSslCertificate::extensions() const
 {
     QList<QSslCertificateExtension> result;
@@ -765,7 +761,6 @@ QList<QSslCertificateExtension> QSslCertificate::extensions() const
         return result;
 
     int count = q_X509_get_ext_count(d->x509);
-    // qDebug() << count << "extensions found";
 
     for (int i=0; i < count; i++) {
         X509_EXTENSION *ext = q_X509_get_ext(d->x509, i);

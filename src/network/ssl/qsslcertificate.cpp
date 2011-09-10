@@ -647,7 +647,8 @@ static QVariant x509ExtensionToValue(X509_EXTENSION *ext)
 
             QVariantMap result;
             result[QLatin1String("ca")] = basic->ca ? true : false;
-            result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
+            if (basic->pathlen)
+                result[QLatin1String("pathLenConstraint")] = (qlonglong)q_ASN1_INTEGER_get(basic->pathlen);
 
             q_BASIC_CONSTRAINTS_free(basic);
             return result;
@@ -995,7 +996,7 @@ QByteArray QSslCertificatePrivate::text_from_X509(X509 *x509)
 QByteArray QSslCertificatePrivate::asn1ObjectId(ASN1_OBJECT *object)
 {
     char buf[80];
-    q_i2t_ASN1_OBJECT(buf, sizeof(buf), object);
+    q_OBJ_obj2txt(buf, sizeof(buf), object, 1); // the 1 says always use the oid not the long name
 
     return QByteArray(buf);
 }

@@ -976,7 +976,83 @@ void tst_QSslCertificate::extensions()
     QVERIFY2(certList.count() > 0, "Please run this test from the source directory");
 
     QSslCertificate cert = certList[0];
-    cert.extensions();
+    QList<QSslCertificateExtension> extensions = cert.extensions();
+    QVERIFY(extensions.count() == 9);
+
+    int unknown_idx = -1;
+    int authority_info_idx = -1;
+    int basic_constraints_idx = -1;
+    int subject_key_idx = -1;
+    int auth_key_idx = -1;
+
+    for (int i=0; i < extensions.length(); ++i) {
+        QSslCertificateExtension ext = extensions[i];
+
+        //qDebug() << i << ":" << ext.name() << ext.oid();
+        if (ext.oid() == QStringLiteral("1.3.6.1.5.5.7.1.12"))
+            unknown_idx = i;
+        if (ext.name() == QStringLiteral("authorityInfoAccess"))
+            authority_info_idx = i;
+        if (ext.name() == QStringLiteral("basicConstraints"))
+            basic_constraints_idx = i;
+        if (ext.name() == QStringLiteral("subjectKeyIdentifier"))
+            subject_key_idx = i;
+        if (ext.name() == QStringLiteral("authorityKeyIdentifier"))
+            auth_key_idx = i;
+    }
+
+    QVERIFY(unknown_idx != -1);
+    QVERIFY(authority_info_idx != -1);
+    QVERIFY(basic_constraints_idx != -1);
+    QVERIFY(subject_key_idx != -1);
+    QVERIFY(auth_key_idx != -1);
+
+    // Unknown
+    QSslCertificateExtension unknown = extensions[unknown_idx];
+    QVERIFY(unknown.oid() == QStringLiteral("1.3.6.1.5.5.7.1.12"));
+    QVERIFY(unknown.name() == QStringLiteral("1.3.6.1.5.5.7.1.12"));
+
+    QByteArray unknownValue = QByteArray::fromHex(
+                        "30602e5e2e5c305a305830562e2e696d6167652f6769663021302e302e2e2e2b2e2e2e2e2e2e" \
+                        "4b6b2e282e2e2e2e2e52382e292e4b2e2e212e2e30262e24687474703a2f2f6c6f676f2e7665" \
+                        "72697369676e2e636f6d2f76736c6f676f312e676966");
+    QCOMPARE(unknown.value().toByteArray(), unknownValue);
+
+    // Authority Info Access
+    QSslCertificateExtension aia = extensions[authority_info_idx];
+    QVERIFY(aia.oid() == QStringLiteral("1.3.6.1.5.5.7.1.1"));
+    QVERIFY(aia.name() == QStringLiteral("authorityInfoAccess"));
+
+    QVariantMap aiaValue = aia.value().toMap();
+    QString ocsp = aiaValue[QStringLiteral("OCSP")].toString();
+    QString caIssuers = aiaValue[QStringLiteral("caIssuers")].toString();
+
+    QVERIFY(ocsp == QStringLiteral("http://EVIntl-ocsp.verisign.com"));
+    QVERIFY(caIssuers == QStringLiteral("http://EVIntl-aia.verisign.com/EVIntl2006.cer"));
+
+    // Basic constraints
+    QSslCertificateExtension basic = extensions[basic_constraints_idx];
+    QVERIFY(basic.oid() == QStringLiteral("2.5.29.19"));
+    QVERIFY(basic.name() == QStringLiteral("basicConstraints"));
+
+    QVariantMap basicValue = basic.value().toMap();
+    QVERIFY(basicValue[QStringLiteral("ca")].toBool() == false);
+
+    // Subject key identifier
+    QSslCertificateExtension subjectKey = extensions[subject_key_idx];
+    QVERIFY(subjectKey.oid() == QStringLiteral("2.5.29.14"));
+    QVERIFY(subjectKey.name() == QStringLiteral("subjectKeyIdentifier"));
+    QVERIFY(subjectKey.value().toString() == QStringLiteral("5F:90:23:CD:24:CA:52:C9:36:29:F0:7E:9D:B1:FE:08:E0:EE:69:F0"));
+
+    // Authority key identifier
+    QSslCertificateExtension authKey = extensions[auth_key_idx];
+    QVERIFY(authKey.oid() == QStringLiteral("2.5.29.35"));
+    QVERIFY(authKey.name() == QStringLiteral("authorityKeyIdentifier"));
+
+    QVariantMap authValue = authKey.value().toMap();
+    QVERIFY(authValue[QStringLiteral("keyid")].toByteArray() == 
+            QByteArray("4e43c81d76ef37537a4ff2586f94f338e2d5bddf"));
+
 }
 
 #endif // QT_NO_OPENSSL

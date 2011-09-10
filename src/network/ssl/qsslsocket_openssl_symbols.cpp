@@ -135,7 +135,7 @@ DEFINEFUNC2(int, i2d_X509, X509 *a, a, unsigned char **b, b, return -1, return)
 DEFINEFUNC(const char *, OBJ_nid2sn, int a, a, return 0, return)
 DEFINEFUNC(const char *, OBJ_nid2ln, int a, a, return 0, return)
 DEFINEFUNC3(int, i2t_ASN1_OBJECT, char *a, a, int b, b, ASN1_OBJECT *c, c, return -1, return)
-
+DEFINEFUNC4(int, OBJ_obj2txt, char *a, a, int b, b, ASN1_OBJECT *c, c, int d, d, return -1, return)
 
 DEFINEFUNC(int, OBJ_obj2nid, const ASN1_OBJECT *a, a, return NID_undef, return)
 #ifdef SSLEAY_MACROS
@@ -704,6 +704,7 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(OBJ_nid2sn)
     RESOLVEFUNC(OBJ_nid2ln)
     RESOLVEFUNC(i2t_ASN1_OBJECT)
+    RESOLVEFUNC(OBJ_obj2txt)
     RESOLVEFUNC(OBJ_obj2nid)
 #ifdef SSLEAY_MACROS // ### verify
     RESOLVEFUNC(PEM_ASN1_read_bio)

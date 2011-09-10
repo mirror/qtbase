@@ -13,6 +13,10 @@
     of extension being accessed.
 
     TODO: document the supported extensions etc.
+    Whilst this class provides access to any type of extension, only
+    some are guaranteed to be returned in a format that will remain
+    unchanged between releases. The isSupported() method returns true
+    for extensions where this is the case.
     
     Further information about the types of extensions certificates can
     contain can be found in RFC 5280.

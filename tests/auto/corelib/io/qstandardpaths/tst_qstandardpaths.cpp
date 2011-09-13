@@ -63,6 +63,8 @@ private slots:
     void testLocateAll();
     void testDataLocation();
     void testFindExecutable();
+    void testRuntimeDirectory();
+    void testCustomRuntimeDirectory();
 
 private:
     void setCustomLocations() {
@@ -202,6 +204,37 @@ void tst_qstandardpaths::testFindExecutable()
     const QString sh = QStandardPaths::findExecutable("./sh");
     QVERIFY2(possibleResults.contains(sh), qPrintable(sh));
     QDir::setCurrent(pwd);
+#endif
+}
+
+void tst_qstandardpaths::testRuntimeDirectory()
+{
+    const QString runtimeDir = QStandardPaths::storageLocation(QStandardPaths::RuntimeLocation);
+    QVERIFY(!runtimeDir.isEmpty());
+
+    // Check that it can automatically fix permissions
+#ifdef Q_OS_UNIX
+    QFile file(runtimeDir);
+    const QFile::Permissions wantedPerms = QFile::ReadUser | QFile::WriteUser | QFile::ExeUser;
+    const QFile::Permissions additionalPerms = QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner;
+    QCOMPARE(file.permissions(), wantedPerms | additionalPerms);
+    QVERIFY(file.setPermissions(wantedPerms | QFile::ExeGroup));
+    const QString runtimeDirAgain = QStandardPaths::storageLocation(QStandardPaths::RuntimeLocation);
+    QCOMPARE(runtimeDirAgain, runtimeDir);
+    QCOMPARE(QFile(runtimeDirAgain).permissions(), wantedPerms | additionalPerms);
+#endif
+}
+
+void tst_qstandardpaths::testCustomRuntimeDirectory()
+{
+#ifdef Q_OS_UNIX
+    qputenv("XDG_RUNTIME_DIR", QFile::encodeName("/tmp"));
+    // It's very unlikely that /tmp is 0600 or that we can chmod it
+    // The call below outputs
+    //   "QStandardPaths: wrong ownership on runtime directory /tmp, 0 instead of $UID"
+    // but we can't reliably expect that it's owned by uid 0, I think.
+    const QString runtimeDir = QStandardPaths::storageLocation(QStandardPaths::RuntimeLocation);
+    QVERIFY2(runtimeDir.isEmpty(), qPrintable(runtimeDir));
 #endif
 }
 

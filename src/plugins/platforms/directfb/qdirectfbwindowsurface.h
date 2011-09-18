@@ -53,7 +53,6 @@ class QDirectFbWindowSurface : public QPlatformBackingStore
 {
 public:
     QDirectFbWindowSurface(QWindow *window);
-    ~QDirectFbWindowSurface();
 
     QPaintDevice *paintDevice();
     void flush(QWindow *window, const QRegion &region, const QPoint &offset);
@@ -66,9 +65,8 @@ public:
 private:
     void lockSurfaceToImage();
 
-    QPixmap *m_pixmap;
+    QScopedPointer<QPixmap> m_pixmap;
     QBlittablePlatformPixmap *m_pmdata;
-
     IDirectFBSurface *m_dfbSurface;
 };
 

@@ -65,17 +65,12 @@ QDirectFbWindowSurface::QDirectFbWindowSurface(QWindow *window)
     QDirectFbBlitter *blitter = new QDirectFbBlitter(window->size(), m_dfbSurface);
     m_pmdata = new QDirectFbBlitterPlatformPixmap;
     m_pmdata->setBlittable(blitter);
-    m_pixmap = new QPixmap(m_pmdata);
-}
-
-QDirectFbWindowSurface::~QDirectFbWindowSurface()
-{
-    delete m_pixmap;
+    m_pixmap.reset(new QPixmap(m_pmdata));
 }
 
 QPaintDevice *QDirectFbWindowSurface::paintDevice()
 {
-    return m_pixmap;
+    return m_pixmap.data();
 }
 
 void QDirectFbWindowSurface::flush(QWindow *, const QRegion &region, const QPoint &offset)

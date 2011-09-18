@@ -61,12 +61,12 @@ QT_BEGIN_NAMESPACE
 
 QDirectFbScreen::QDirectFbScreen(int display)
     : QPlatformScreen()
+    , m_layer(QDirectFbConvenience::dfbDisplayLayer(display))
 {
-    m_layer = QDirectFbConvenience::dfbDisplayLayer(display);
-    m_layer->SetCooperativeLevel(m_layer,DLSCL_SHARED);
+    m_layer->SetCooperativeLevel(m_layer.data(), DLSCL_SHARED);
 
     DFBDisplayLayerConfig config;
-    m_layer->GetConfiguration(m_layer, &config);
+    m_layer->GetConfiguration(m_layer.data(), &config);
 
     m_format = QDirectFbConvenience::imageFormatFromSurfaceFormat(config.pixelformat, config.surface_caps);
     m_geometry = QRect(0,0,config.width,config.height);
@@ -101,10 +101,11 @@ QDirectFbIntegration::QDirectFbIntegration()
         delete[] argv[i];
     delete[] argv;
 
+    // This must happen after DirectFBInit.
+    m_dfb.reset(QDirectFbConvenience::dfbInterface());
 
-
-    QDirectFbScreen *primaryScreen = new QDirectFbScreen(0);
-    screenAdded(primaryScreen);
+    m_primaryScreen.reset(new QDirectFbScreen(0));
+    screenAdded(m_primaryScreen.data());
 
     m_input.reset(new QDirectFbInput());
     m_input->start();

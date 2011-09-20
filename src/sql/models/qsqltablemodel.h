@@ -45,6 +45,7 @@
 #include <QtSql/qsqldatabase.h>
 #include <QtSql/qsqlquerymodel.h>
 
+
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
@@ -105,6 +106,11 @@ public:
     bool setRecord(int row, const QSqlRecord &record);
 
     virtual void revertRow(int row);
+
+    void setDateFormat(int column, const QString &format);
+    void setDateTimeFormat(int column, const QString &format);
+    void removeDateFormat(int column);
+    void removeDateTimeFormat(int column);
 
 public Q_SLOTS:
     bool submit();

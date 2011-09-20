@@ -113,6 +113,9 @@ public:
 
     typedef QMap<int, ModifiedRow> CacheMap;
     CacheMap cache;
+
+    QHash<int, QString> dateFormatCols;
+    QHash<int, QString> dateTimeFormatCols;
 };
 
 QT_END_NAMESPACE

@@ -557,3 +557,21 @@ int main(int argc, char **argv)
     XyzDriver driver;
     XyzResult result(&driver);
 }
+
+void setsometable()
+{
+//! [49]
+    QSqlTableModel *model = new QSqlTableModel;
+    model->setTable("TableName");
+    model->setDateFormat(2, "yyyy-MM-dd");
+//! [49]    
+}
+
+void setsometable2()
+{
+//! [50]
+    QSqlTableModel *model = new QSqlTableModel;
+    model->setTable("TableName");
+    model->setDateTimeFormat(2, "yyyy-MM-dd hh:mm:ss");
+//! [50]    
+}

@@ -52,6 +52,7 @@
 #include "qsqltablemodel_p.h"
 
 #include <qdebug.h>
+#include <QtCore/QDate>
 
 QT_BEGIN_NAMESPACE
 
@@ -438,6 +439,8 @@ QVariant QSqlTableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || (role != Qt::DisplayRole && role != Qt::EditRole))
         return QVariant();
 
+    QVariant value = QSqlQueryModel::data(index, role);
+
     // Problem.. we need to use QSQM::indexInQuery to handle inserted columns
     // but inserted rows we need to handle
     // and indexInQuery is not virtual (grrr) so any values we pass to QSQM need
@@ -465,6 +468,12 @@ QVariant QSqlTableModel::data(const QModelIndex &index, int role) const
         }
         break;
     }
+
+    if (d->dateFormatCols.contains(item.column()) && role == Qt::DisplayRole)
+            return value.toDate().toString(d->dateFormatCols.value(item.column()));
+
+    if (d->dateTimeFormatCols.contains(item.column()) && role == Qt::DisplayRole)
+            return value.toDateTime().toString(d->dateTimeFormatCols.value(item.column()));
 
     // We need to handle row mapping here, but not column mapping
     return QSqlQueryModel::data(index.sibling(item.row(), index.column()), role);
@@ -1362,6 +1371,60 @@ bool QSqlTableModel::setRecord(int row, const QSqlRecord &record)
         return isOk; }
     }
     return false;
+}
+
+/*!
+    Sets column specified by \a column to the date format indicated by \a format
+
+    \snippet doc/src/snippets/sqldatabase/sqldatabase.cpp 49
+
+    \sa setDateTimeFormat(), removeDateFormat()
+*/
+void QSqlTableModel::setDateFormat(int column, const QString &format)
+{
+    Q_D(QSqlTableModel);
+
+    d->dateFormatCols.insert(column,format);
+}
+
+/*!
+    Sets column specified by \a column to the date and time format indicated by \a format
+
+    \snippet doc/src/snippets/sqldatabase/sqldatabase.cpp 50
+
+    \sa setDateFormat(), removeDateTimeFormat()
+*/
+void QSqlTableModel::setDateTimeFormat(int column, const QString &format)
+{
+    Q_D(QSqlTableModel);
+
+    d->dateTimeFormatCols.insert(column, format);
+}
+
+/*!
+    Removes date format previously assigned by setDateFormat() on the column indicated
+    by \a column
+
+    \sa setDateFormat()
+*/
+void QSqlTableModel::removeDateFormat(int column)
+{
+    Q_D(QSqlTableModel);
+
+    d->dateFormatCols.remove(column);
+}
+
+/*!
+    Removes date and time format previously assigned by setDateTimeFormat() on the
+    column indicated by \a column
+
+    \sa setDateTimeFormat()
+*/
+void QSqlTableModel::removeDateTimeFormat(int column)
+{
+    Q_D(QSqlTableModel);
+
+    d->dateTimeFormatCols.remove(column);
 }
 
 QT_END_NAMESPACE

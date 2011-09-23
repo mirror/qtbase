@@ -2864,6 +2864,10 @@ void tst_QObject::blockingQueuedConnection()
         QVERIFY(QMetaObject::invokeMethod(&receiver, "slot1", Qt::BlockingQueuedConnection));
         QVERIFY(receiver.called(1));
 
+        connect(&sender, &SenderObject::signal2, &receiver, &ReceiverObject::slot2, Qt::BlockingQueuedConnection);
+        sender.emitSignal2();
+        QVERIFY(receiver.called(2));
+
         thread.quit();
         QVERIFY(thread.wait());
     }

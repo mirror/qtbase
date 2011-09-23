@@ -510,7 +510,10 @@ QMetaCallEvent::QMetaCallEvent(QObject::QSlotObjectBase *slotO, const QObject *s
     : QEvent(MetaCall), slotObj_(slotO), sender_(sender), signalId_(signalId),
       nargs_(nargs), types_(types), args_(args), semaphore_(semaphore),
       callFunction_(0), method_offset_(0), method_relative_(-1)
-{ }
+{
+    if (slotObj_)
+        slotObj_->ref.ref();
+}
 
 /*! \internal
  */
@@ -538,7 +541,7 @@ void QMetaCallEvent::placeMetaCall(QObject *object)
 {
     if (slotObj_) {
         slotObj_->call(object, args_);
-    } if (callFunction_) {
+    } else if (callFunction_) {
         callFunction_(object, QMetaObject::InvokeMetaMethod, method_relative_, args_);
     } else {
         QMetaObject::metacall(object, QMetaObject::InvokeMetaMethod, method_offset_ + method_relative_, args_);
@@ -3375,12 +3378,10 @@ void QMetaObject::activate(QObject *sender, const QMetaObject *m, int local_sign
                     receiver->metaObject()->className(), receiver);
                 }
                 QSemaphore semaphore;
-                QCoreApplication::postEvent(receiver, new QMetaCallEvent(c->method_offset, c->method_relative,
-                                                                         c->callFunction,
-                                                                         sender, signal_absolute_index,
-                                                                         0, 0,
-                                                                         argv ? argv : empty_argv,
-                                                                         &semaphore));
+                QMetaCallEvent *ev = c->isSlotObject ?
+                    new QMetaCallEvent(c->slotObj, sender, signal_absolute_index, 0, 0, argv ? argv : empty_argv, &semaphore) :
+                    new QMetaCallEvent(c->method_offset, c->method_relative, c->callFunction, sender, signal_absolute_index, 0, 0, argv ? argv : empty_argv, &semaphore);
+                QCoreApplication::postEvent(receiver, ev);
                 semaphore.acquire();
                 locker.relock();
                 continue;

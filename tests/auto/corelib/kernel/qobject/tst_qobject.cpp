@@ -141,6 +141,7 @@ private slots:
     void connectToStaticCxx0x();
     void connectCxx0xTypeMatching();
     void connectConvert();
+    void returnValue();
 protected:
 };
 
@@ -1138,6 +1139,14 @@ void tst_QObject::emitInDefinedOrder()
 }
 
 static int instanceCount = 0;
+
+struct CheckInstanceCount
+{
+    const int saved;
+    CheckInstanceCount() : saved(instanceCount) {}
+    ~CheckInstanceCount() { QCOMPARE(saved, instanceCount); }
+};
+
 
 struct CustomType
 {
@@ -4505,6 +4514,103 @@ void tst_QObject::connectConvert()
     emit obj.stringSignal(s);
     QCOMPARE(obj.var.toString(), s);
     QCOMPARE(var, obj.var);
+}
+
+
+class ReturnValue : public QObject {
+friend class tst_QObject;
+Q_OBJECT
+signals:
+    QVariant returnVariant(int);
+    QString returnString(int);
+    int returnInt(int);
+    void returnVoid(int);
+    CustomType returnCustomType(int);
+public slots:
+    QVariant returnVariantSlot(int i) { return i; }
+    QString returnStringSlot(int i) { return QString::number(i); }
+    int returnIntSlot(int i) { return i; }
+    CustomType returnCustomTypeSlot(int i) { return CustomType(i); }
+public:
+
+    struct VariantFunctor {
+        QVariant operator()(int i) { return i; }
+    };
+    struct CustomTypeFunctor {
+        CustomType operator()(int i) { return CustomType(i); }
+    };
+    struct StringFunctor {
+        QString operator()(int i) { return QString::number(i); }
+    };
+
+};
+
+QString someFunctionReturningString(int i) {
+    return '\'' + QString::number(i) + '\'';
+}
+
+void tst_QObject::returnValue()
+{
+    CheckInstanceCount checker;
+    { // connected to nothing
+        CheckInstanceCount checker;
+        ReturnValue r;
+        QCOMPARE(emit r.returnVariant(45), QVariant());
+        QCOMPARE(emit r.returnString(45), QString());
+//        QCOMPARE(emit r.returnInt(45), int());  //Do not work because int is not initialized
+        emit r.returnVoid(45);
+        QCOMPARE((emit r.returnCustomType(45)).value(), CustomType().value());
+    }
+    { // connected to a slot returning the same type
+        CheckInstanceCount checker;
+        ReturnValue r;
+        QVERIFY(connect(&r, &ReturnValue::returnVariant, &r, &ReturnValue::returnVariantSlot));
+        QCOMPARE(emit r.returnVariant(45), QVariant(45));
+        QVERIFY(connect(&r, &ReturnValue::returnString, &r, &ReturnValue::returnStringSlot));
+        QCOMPARE(emit r.returnString(45), QString::fromLatin1("45"));
+        QVERIFY(connect(&r, &ReturnValue::returnInt, &r, &ReturnValue::returnIntSlot));
+        QCOMPARE(emit r.returnInt(45), int(45));
+        QVERIFY(connect(&r, &ReturnValue::returnCustomType, &r, &ReturnValue::returnCustomTypeSlot));
+        QCOMPARE((emit r.returnCustomType(45)).value(), CustomType(45).value());
+    }
+    { // connected to simple functions or functor
+        CheckInstanceCount checker;
+        ReturnValue r;
+        QVERIFY(connect(&r, &ReturnValue::returnString, someFunctionReturningString));
+        QCOMPARE(emit r.returnString(49), QString::fromLatin1("'49'"));
+
+        ReturnValue::CustomTypeFunctor customTypeFunctor;
+        QVERIFY(connect(&r, &ReturnValue::returnCustomType, customTypeFunctor));
+        QCOMPARE((emit r.returnCustomType(49)).value(), CustomType(49).value());
+
+        ReturnValue::VariantFunctor variantFunctor;
+        QVERIFY(connect(&r, &ReturnValue::returnVariant, variantFunctor));
+        QCOMPARE(emit r.returnVariant(45), QVariant(45));
+
+    }
+    { // connected to a slot with different type
+        CheckInstanceCount checker;
+        ReturnValue r;
+        QVERIFY(connect(&r, &ReturnValue::returnVariant, &r, &ReturnValue::returnStringSlot));
+        QCOMPARE(emit r.returnVariant(48), QVariant(QString::fromLatin1("48")));
+        QVERIFY(connect(&r, &ReturnValue::returnCustomType, &r, &ReturnValue::returnIntSlot));
+        QCOMPARE((emit r.returnCustomType(48)).value(), CustomType(48).value());
+        QVERIFY(connect(&r, &ReturnValue::returnVoid, &r, &ReturnValue::returnCustomTypeSlot));
+        emit r.returnVoid(48);
+    }
+    { // connected to functor with different type
+        CheckInstanceCount checker;
+        ReturnValue r;
+
+        ReturnValue::CustomTypeFunctor customTypeFunctor;
+        QVERIFY(connect(&r, &ReturnValue::returnCustomType, customTypeFunctor));
+        QCOMPARE((emit r.returnCustomType(49)).value(), CustomType(49).value());
+
+        ReturnValue::StringFunctor stringFunctor;
+        QVERIFY(connect(&r, &ReturnValue::returnVariant, stringFunctor));
+        QCOMPARE(emit r.returnVariant(45), QVariant(QString::fromLatin1("45")));
+
+    }
 }
 
 

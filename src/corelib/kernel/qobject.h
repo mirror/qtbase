@@ -87,50 +87,67 @@ namespace QtPrivate {
     template <typename L, int N> struct List_Select { typedef typename List_Select<typename L::Cdr, N - 1>::Value Value; };
     template <typename L> struct List_Select<L,0> { typedef typename L::Car Value; };
 
+    template <typename T>
+    struct ApplyRetrunValue {
+        void *data;
+        ApplyRetrunValue(void *data) : data(data) {}
+    };
+    template<typename T, typename U>
+    void operator,(T value, const ApplyRetrunValue<U> &container) {
+        *reinterpret_cast<U*>(container.data) = value;
+    }
+    template<typename T>
+    void operator,(T, const ApplyRetrunValue<void> &) {}
+
+
     template<typename Func> struct FunctionPointer { enum {ArgumentCount = 1000}; };
     template<class Obj, typename Ret> struct FunctionPointer<Ret (Obj::*) ()>
     {
         typedef Obj Object;
         typedef void Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) ();
         enum {ArgumentCount = 0};
-        template <typename Args>
-        static void call(Function f, Obj *o, void **) { (o->*f)(); }
+        template <typename Args, typename R>
+        static void call(Function f, Obj *o, void **arg) { (o->*f)(), ApplyRetrunValue<R>(arg[0]); }
     };
     template<class Obj, typename Ret, typename Arg1> struct FunctionPointer<Ret (Obj::*) (Arg1)>
     {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, void> Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1);
         enum {ArgumentCount = 1};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
-            (o->*f)((*reinterpret_cast<typename RemoveRef<typename Args::Car>::Type *>(arg[1])));
+            (o->*f)((*reinterpret_cast<typename RemoveRef<typename Args::Car>::Type *>(arg[1]))), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<class Obj, typename Ret, typename Arg1, typename Arg2> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2)>
     {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, void> >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2);
         enum {ArgumentCount = 2};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
             (o->*f)( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3)>
     {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type, void> > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3);
         enum {ArgumentCount = 3};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
             (o->*f)( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3, Arg4)>
@@ -138,14 +155,15 @@ namespace QtPrivate {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
                     List<typename RemoveRef<Arg4>::Type, void> > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4);
         enum {ArgumentCount = 4};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
             (o->*f)( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3, Arg4, Arg5)>
@@ -153,15 +171,16 @@ namespace QtPrivate {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
                    List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, void> > > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4, Arg5);
         enum {ArgumentCount = 5};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
             (o->*f)( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 4>::Value>::Type *>(arg[5]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 4>::Value>::Type *>(arg[5])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
@@ -170,16 +189,17 @@ namespace QtPrivate {
         typedef Obj Object;
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
             List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, List<typename RemoveRef<Arg6>::Type, void> > > > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6);
         enum {ArgumentCount = 6};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, Obj *o, void **arg) {
             (o->*f)( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 4>::Value>::Type *>(arg[5]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 5>::Value>::Type *>(arg[6]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 5>::Value>::Type *>(arg[6])), ApplyRetrunValue<R>(arg[0]);
         }
     };
 
@@ -187,148 +207,155 @@ namespace QtPrivate {
     {
         typedef void Arguments;
         typedef Ret (*Function) ();
+        typedef Ret ReturnType;
         enum {ArgumentCount = 0};
-        template <typename Args>
-        static void call(Function f, void *, void **) { f(); }
+        template <typename Args, typename R>
+        static void call(Function f, void *, void **arg) { f(), ApplyRetrunValue<R>(arg[0]); }
     };
     template<typename Ret, typename Arg1> struct FunctionPointer<Ret (*) (Arg1)>
     {
         typedef List<Arg1, void> Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1);
         enum {ArgumentCount = 1};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg)
-        { f(*reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1])); }
+        { f(*reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1])), ApplyRetrunValue<R>(arg[0]); }
     };
     template<typename Ret, typename Arg1, typename Arg2> struct FunctionPointer<Ret (*) (Arg1, Arg2)>
     {
         typedef List<Arg1, List<Arg2, void> > Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2);
         enum {ArgumentCount = 2};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg) {
             f(*reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
-              *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2])); }
+              *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2])), ApplyRetrunValue<R>(arg[0]); }
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3)>
     {
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type, void> > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3);
         enum {ArgumentCount = 3};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg) {
             f(       *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4)>
     {
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
             List<typename RemoveRef<Arg4>::Type, void> > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4);
         enum {ArgumentCount = 4};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg) {
             f(       *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4, Arg5)>
     {
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
         List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, void > > > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4, Arg5);
         enum {ArgumentCount = 5};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg) {
             f(       *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[5]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[5])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
     {
         typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
             List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, List<typename RemoveRef<Arg6>::Type, void> > > > > >  Arguments;
+        typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6);
         enum {ArgumentCount = 6};
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function f, void *, void **arg) {
             f(       *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[3]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[4]),
                      *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[5]),
-                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[6]));
+                     *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 3>::Value>::Type *>(arg[6])), ApplyRetrunValue<R>(arg[0]);
         }
     };
 
     template<typename F, int N> struct Functor;
     template<typename Function> struct Functor<Function, 0>
     {
-        template <typename Args>
-        static void call(Function &f, void *, void **) { f(); }
+        template <typename Args, typename R>
+        static void call(Function &f, void *, void **arg) { f(), ApplyRetrunValue<R>(arg[0]); }
     };
     template<typename Function> struct Functor<Function, 1>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
-            f(*reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]));
+            f(*reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Function> struct Functor<Function, 2>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
             f( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
-               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]));
+               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Function> struct Functor<Function, 3>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
             f( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
-               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[4]));
+               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[4])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Function> struct Functor<Function, 4>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
             f( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[3]),
-               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[4]));
+               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[4])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Function> struct Functor<Function, 5>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
             f( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[3]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[4]),
-               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[5]));
+               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[5])), ApplyRetrunValue<R>(arg[0]);
         }
     };
     template<typename Function> struct Functor<Function, 6>
     {
-        template <typename Args>
+        template <typename Args, typename R>
         static void call(Function &f, void *, void **arg) {
             f( *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 0>::Value>::Type *>(arg[1]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[2]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[3]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[4]),
                *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 1>::Value>::Type *>(arg[5]),
-               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[6]));
+               *reinterpret_cast<typename RemoveRef<typename List_Select<Args, 2>::Value>::Type *>(arg[6])), ApplyRetrunValue<R>(arg[0]);
         }
     };
 
@@ -520,31 +547,31 @@ private:
         virtual ~QSlotObjectBase();
         virtual void call(QObject *receiver, void **a) = 0;
     };
-    template<typename Func, typename Args> struct QSlotObject : QSlotObjectBase
+    template<typename Func, typename Args, typename R> struct QSlotObject : QSlotObjectBase
     {
         typedef QtPrivate::FunctionPointer<Func> FuncType;
         Func function;
         QSlotObject(Func f) : function(f) {};
         virtual void call(QObject *receiver, void **a) {
-            FuncType::template call<Args>(function, static_cast<typename FuncType::Object *>(receiver), a);
+            FuncType::template call<Args, R>(function, static_cast<typename FuncType::Object *>(receiver), a);
         }
     };
-    template<typename Func, typename Args> struct QStaticSlotObject : QSlotObjectBase
+    template<typename Func, typename Args, typename R> struct QStaticSlotObject : QSlotObjectBase
     {
         typedef QtPrivate::FunctionPointer<Func> FuncType;
         Func function;
-        QStaticSlotObject(Func f) : function(f) {};
+        QStaticSlotObject(Func f) : function(f) {}
         virtual void call(QObject *receiver, void **a) {
-            FuncType::template call<Args>(function, receiver, a);
+            FuncType::template call<Args, R>(function, receiver, a);
         }
     };
-    template<typename Func, int N, typename Args> struct QFunctorSlotObject : QSlotObjectBase
+    template<typename Func, int N, typename Args, typename R> struct QFunctorSlotObject : QSlotObjectBase
     {
         typedef QtPrivate::Functor<Func, N> FuncType;
         Func function;
-        QFunctorSlotObject(const Func &f) : function(f) {};
+        QFunctorSlotObject(const Func &f) : function(f) {}
         virtual void call(QObject *receiver, void **a) {
-            FuncType::template call<Args>(function, receiver, a);
+            FuncType::template call<Args, R>(function, receiver, a);
         }
     };
 
@@ -571,7 +598,9 @@ public:
             types = QtPrivate::ConnectionTypes<typename SignalType::Arguments>::types();
 
         return connectImpl(sender, reinterpret_cast<void **>(&signal),
-                           receiver, new QSlotObject<Func2, typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value >(slot),
+                           receiver, new QSlotObject<Func2,
+                                                     typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value,
+                                                     typename SignalType::ReturnType>(slot),
                             type, types, &SignalType::Object::staticMetaObject,
                             Q_FUNC_INFO);
     }
@@ -606,8 +635,7 @@ public:
     //connect to a function pointer  (not a member)
     template <typename Func1, typename Func2>
     static inline typename QtPrivate::QEnableIf<(int(QtPrivate::FunctionPointer<Func1>::ArgumentCount) >= int(QtPrivate::FunctionPointer<Func2>::ArgumentCount)), Connection>::Type
-            connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal,
-                    Func2 slot)
+            connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal, Func2 slot)
     {
         typedef QtPrivate::FunctionPointer<Func1> SignalType;
         typedef QtPrivate::FunctionPointer<Func2> SlotType;
@@ -616,23 +644,24 @@ public:
         typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments, true>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
         typedef typename QtPrivate::QEnableIf<(int(SignalType::ArgumentCount) >= int(SlotType::ArgumentCount))>::Type EnsureArgumentsCount;
 
-        return connectImpl(sender, reinterpret_cast<void **>(&signal),
-                               sender, new QStaticSlotObject<Func2, typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value>(slot),
-                               Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject,
-                               Q_FUNC_INFO);
+        return connectImpl(sender, reinterpret_cast<void **>(&signal), sender,
+                           new QStaticSlotObject<Func2,
+                                                 typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value,
+                                                 typename SignalType::ReturnType>(slot),
+                           Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject,
+                           Q_FUNC_INFO);
     }
 
     //connect to a functor
     template <typename Func1, typename Func2>
     static inline typename QtPrivate::QEnableIf<QtPrivate::FunctionPointer<Func2>::ArgumentCount == 1000, Connection>::Type
-            connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal,
-                    const Func2 &slot)
+            connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal, Func2 slot)
     {
         typedef QtPrivate::FunctionPointer<Func1> SignalType;
 
 
         return connectImpl(sender, reinterpret_cast<void **>(&signal),
-                           sender, new QFunctorSlotObject<Func2, SignalType::ArgumentCount, typename SignalType::Arguments>(slot),
+                           sender, new QFunctorSlotObject<Func2, SignalType::ArgumentCount, typename SignalType::Arguments, typename SignalType::ReturnType>(slot),
                            Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject,
                            Q_FUNC_INFO);
     }

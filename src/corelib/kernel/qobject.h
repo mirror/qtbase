@@ -517,7 +517,7 @@ private:
     struct QSlotObjectBase {
         QAtomicInt ref;
         QSlotObjectBase() : ref(1) {}
-        virtual ~QSlotObjectBase() {};
+        virtual ~QSlotObjectBase();
         virtual void call(QObject *receiver, void **a) = 0;
     };
     template<typename Func, typename Args> struct QSlotObject : QSlotObjectBase

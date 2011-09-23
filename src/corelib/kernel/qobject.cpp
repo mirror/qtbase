@@ -4214,6 +4214,10 @@ QMetaObject::Connection::~Connection()
         static_cast<QObjectPrivate::Connection *>(d_ptr)->deref();
 }
 
+QObject::QSlotObjectBase::~QSlotObjectBase()
+{
+}
+
 
 QT_END_NAMESPACE
 

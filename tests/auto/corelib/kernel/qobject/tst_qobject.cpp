@@ -913,7 +913,6 @@ public slots:
         connect(sender(), SIGNAL(signal1()), next, SLOT(slot2()));
 
         // modify the sender list in 'this'
-        //connect(next, &QObject::destroyed, this, &QObject::deleteLater);
         connect(next, SIGNAL(destroyed()), this, SLOT(deleteLater()));
         connect(QCoreApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(deleteLater()));
         disconnect(next, SIGNAL(destroyed()), this, SLOT(deleteLater()));
@@ -2020,9 +2019,8 @@ void tst_QObject::sender()
 
         QThread thread;
         receiver->moveToThread(&thread);
-        /*connect(sender, &QObject::destroyed,
-                &thread, &QThread::quit,*/
-        connect(sender, SIGNAL(destroyed()), &thread, SLOT(quit()),
+        connect(sender, SIGNAL(destroyed()),
+                &thread, SLOT(quit()),
                 Qt::DirectConnection);
 
         QCOMPARE(receiver->sender(), (QObject *)0);
@@ -3867,8 +3865,6 @@ void tst_QObject::disconnectByMetaMethod()
             s->metaObject()->indexOfMethod("signal2()"));
     QMetaMethod signal3 = s->metaObject()->method(
             s->metaObject()->indexOfMethod("signal3()"));
-    QMetaMethod signal4 = s->metaObject()->method(
-            s->metaObject()->indexOfMethod("signal4()"));
 
     QMetaMethod slot1 = r1->metaObject()->method(
             r1->metaObject()->indexOfMethod("slot1()"));

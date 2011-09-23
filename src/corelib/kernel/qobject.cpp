@@ -2363,9 +2363,10 @@ QObject::Connection QObject::connect(const QObject *sender, const char *signal,
                       Qt::ConnectionType type)
 {
     {
-        const void *cbdata[] = { sender, signal, receiver, method, &type };
+        void *result = 0;
+        const void *cbdata[] = { sender, signal, receiver, method, &type , &result};
         if (QInternal::activateCallbacks(QInternal::ConnectCallback, (void **) cbdata))
-            return QObject::Connection(0);
+            return QObject::Connection(result);
     }
 
 #ifndef QT_NO_DEBUG
@@ -2547,9 +2548,10 @@ QObject::Connection QObject::connect(const QObject *sender, const QMetaMethod &s
         methodSignature.append((char)(method.methodType() == QMetaMethod::Slot ? QSLOT_CODE
                                     : method.methodType() == QMetaMethod::Signal ? QSIGNAL_CODE : 0  + '0'));
         methodSignature.append(method.signature());
-        const void *cbdata[] = { sender, signalSignature.constData(), receiver, methodSignature.constData(), &type };
+        void *result = 0;
+        const void *cbdata[] = { sender, signalSignature.constData(), receiver, methodSignature.constData(), &type, &result };
         if (QInternal::activateCallbacks(QInternal::ConnectCallback, (void **) cbdata))
-            return QObject::Connection(0);
+            return QObject::Connection(result);
     }
 
 

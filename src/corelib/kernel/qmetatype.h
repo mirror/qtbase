@@ -55,6 +55,8 @@ QT_BEGIN_NAMESPACE
 
 QT_MODULE(Core)
 
+class QDataStream;
+
 class Q_CORE_EXPORT QMetaType {
 public:
     enum Type {

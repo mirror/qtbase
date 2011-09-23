@@ -52,6 +52,7 @@
 #include <QtCore/qcoreevent.h>
 #endif
 #include <QtCore/qscopedpointer.h>
+#include <QtCore/qmetatype.h>
 
 QT_BEGIN_HEADER
 
@@ -74,8 +75,6 @@ class QRegExp;
 #ifndef QT_NO_USERDATA
 class QObjectUserData;
 #endif
-
-#include "qmetatype.h"
 
 namespace QtPrivate {
     template <typename T> struct RemoveRef { typedef T Type; };

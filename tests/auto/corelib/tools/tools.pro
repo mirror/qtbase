@@ -6,6 +6,7 @@ SUBDIRS=\
     qbytearraymatcher \
     qcache \
     qchar \
+    qcircularbuffer \
     qcontiguouscache \
     qcryptographichash \
     qdate \

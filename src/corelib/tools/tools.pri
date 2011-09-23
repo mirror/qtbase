@@ -8,6 +8,7 @@ HEADERS +=  \
         tools/qbytedata_p.h \
         tools/qcache.h \
         tools/qchar.h \
+        tools/qcircularbuffer.h \
         tools/qcontainerfwd.h \
         tools/qcryptographichash.h \
         tools/qdatetime.h \

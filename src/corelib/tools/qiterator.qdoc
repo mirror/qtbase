@@ -178,6 +178,58 @@
     \sa QMutableVectorIterator, QVector::const_iterator
 */
 
+/*!
+    \class QCircularBufferIterator
+    \inmodule QtCore
+    \brief The QCircularBufferIterator class provides a Java-style const iterator for QCircularBuffer.
+
+    QCircularBuffer has both \l{Java-style iterators} and \l{STL-style
+    iterators}. The Java-style iterators are more high-level and
+    easier to use than the STL-style iterators; on the other hand,
+    they are slightly less efficient.
+
+    An alternative to using iterators is to use index positions. Most
+    QCircularBuffer member functions take an index as their first parameter,
+    making it possible to access, insert, and remove items without
+    using iterators.
+
+    QCircularBufferIterator\<T\> allows you to iterate over a
+    QCircularBuffer\<T\>. If you want to modify the circular buffer as you
+    iterate over it, use QMutableCircularBufferIterator\<T\> instead.
+
+    The QCircularBufferIterator constructor takes a QCircularBuffer as argument.
+    After construction, the iterator is located at the very beginning
+    of the circular buffer (before the first item). Here's how to iterate over
+    all the elements sequentially:
+
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 6
+
+    The next() function returns the next item in the circular buffer and
+    advances the iterator. Unlike STL-style iterators, Java-style
+    iterators point \e between items rather than directly \e at
+    items. The first call to next() advances the iterator to the
+    position between the first and second item, and returns the first
+    item; the second call to next() advances the iterator to the
+    position between the second and third item, returning the second
+    item; and so on.
+
+    \img javaiterators1.png
+
+    Here's how to iterate over the elements in reverse order:
+
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 7
+
+    If you want to find all occurrences of a particular value, use
+    findNext() or findPrevious() in a loop.
+
+    Multiple iterators can be used on the same circular buffer. If the circular buffer
+    is modified while a QCircularBufferIterator is active, the QCircularBufferIterator
+    will continue iterating over the original circular buffer, ignoring the
+    modified copy.
+
+    \sa QMutableCircularBufferIterator, QCircularBuffer::const_iterator
+*/
+
 /*! 
     \class QSetIterator
     \inmodule QtCore
@@ -197,7 +249,7 @@
     the first item). Here's how to iterate over all the elements
     sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 6
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 8
 
     The next() function returns the next item in the set and
     advances the iterator. Unlike STL-style iterators, Java-style
@@ -212,7 +264,7 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 7
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 9
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop.
@@ -251,7 +303,7 @@
     of the list (before the first item). Here's how to iterate over
     all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 8
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 10
 
     The next() function returns the next item in the list and
     advances the iterator. Unlike STL-style iterators, Java-style
@@ -266,7 +318,7 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 9
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 11
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop.
@@ -277,7 +329,7 @@
     insert().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 10
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 12
 
     The example traverses a list, replacing negative numbers with
     their absolute values, and eliminating zeroes.
@@ -312,7 +364,7 @@
     beginning of the list (before the first item). Here's how to
     iterate over all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 11
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 13
 
     The next() function returns the next item in the list and
     advances the iterator. Unlike STL-style iterators, Java-style
@@ -327,7 +379,7 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 12
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 14
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop.
@@ -338,7 +390,7 @@
     insert().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 13
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 15
 
     The example traverses a list, replacing negative numbers with
     their absolute values, and eliminating zeroes.
@@ -378,7 +430,7 @@
     beginning of the list (before the first item). Here's how to
     iterate over all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 14
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 16
 
     The next() function returns the next item in the vector and
     advances the iterator. Unlike STL-style iterators, Java-style
@@ -393,7 +445,7 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 15
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 17
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop.
@@ -404,7 +456,7 @@
     insert().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 16
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 18
 
     The example traverses a vector, replacing negative numbers with
     their absolute values, and eliminating zeroes.
@@ -416,6 +468,72 @@
     undefined behavior.
 
     \sa QVectorIterator, QVector::iterator
+*/
+
+/*!
+    \class QMutableCircularBufferIterator
+    \inmodule QtCore
+
+    \brief The QMutableCircularBufferIterator class provides a Java-style non-const iterator for QCircularBuffer.
+
+    QCircularBuffer has both \l{Java-style iterators} and \l{STL-style
+    iterators}. The Java-style iterators are more high-level and
+    easier to use than the STL-style iterators; on the other hand,
+    they are slightly less efficient.
+
+    An alternative to using iterators is to use index positions. Most
+    QCircularBuffer member functions take an index as their first parameter,
+    making it possible to access, insert, and remove items without
+    using iterators.
+
+    QMutableCircularBufferIterator\<T\> allows you to iterate over a
+    QCircularBuffer\<T\> and modify the circular buffer. If you don't want to modify
+    the vector (or have a const QCircularBuffer), use the slightly faster
+    QCircularBufferIterator\<T\> instead.
+
+    The QMutableCircularBufferIterator constructor takes a QCircularBuffer as
+    argument. After construction, the iterator is located at the very
+    beginning of the circular buffer (before the first item). Here's how to
+    iterate over all the elements sequentially:
+
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 19
+
+    The next() function returns the next item in the circular buffer and
+    advances the iterator. Unlike STL-style iterators, Java-style
+    iterators point \e between items rather than directly \e at
+    items. The first call to next() advances the iterator to the
+    position between the first and second item, and returns the first
+    item; the second call to next() advances the iterator to the
+    position between the second and third item, returning the second
+    item; and so on.
+
+    \img javaiterators1.png
+
+    Here's how to iterate over the elements in reverse order:
+
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 20
+
+    If you want to find all occurrences of a particular value, use
+    findNext() or findPrevious() in a loop.
+
+    If you want to remove items as you iterate over the circular buffer, use
+    remove(). If you want to modify the value of an item, use
+    setValue(). If you want to insert a new item in the circular buffer, use
+    insert().
+
+    Example:
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 21
+
+    The example traverses a circular buffer, replacing negative numbers with
+    their absolute values, and eliminating zeroes.
+
+    Only one mutable iterator can be active on a given circular buffer at any
+    time. Furthermore, no changes should be done directly to the
+    circular buffer while the iterator is active (as opposed to through the
+    iterator), since this could invalidate the iterator and lead to
+    undefined behavior.
+
+    \sa QCircularBufferIterator, QCircularBuffer::iterator
 */
 
 /*! 
@@ -440,7 +558,7 @@
     of the set (before the first item). Here's how to iterate over
     all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 17
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 22
 
     The next() function returns the next item in the set and
     advances the iterator. Unlike STL-style iterators, Java-style
@@ -455,7 +573,7 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 18
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 23
 
     If you want to remove items as you iterate over the set, use
     remove().
@@ -492,6 +610,16 @@
 */
 
 /*!
+    \fn QCircularBufferIterator::QCircularBufferIterator(const QCircularBuffer<T> &circ)
+    \fn QMutableCircularBufferIterator::QMutableCircularBufferIterator(QCircularBuffer<T> &circ)
+
+    Constructs an iterator for traversing \a circ. The iterator is
+    set to be at the front of the circular buffer (before the first item).
+
+    \sa operator=()
+*/
+
+/*!
     \fn QSetIterator::QSetIterator(const QSet<T> &set)
     \fn QMutableSetIterator::QMutableSetIterator(QSet<T> &set)
 
@@ -505,6 +633,7 @@
     \fn QMutableListIterator::~QMutableListIterator()
     \fn QMutableLinkedListIterator::~QMutableLinkedListIterator()
     \fn QMutableVectorIterator::~QMutableVectorIterator()
+    \fn QMutableCircularBufferIterator::~QMutableCircularBufferIterator()
     \fn QMutableSetIterator::~QMutableSetIterator()
 
     Destroys the iterator.
@@ -532,6 +661,15 @@
     \sa toFront(), toBack()
 */
 
+/*! \fn QCircularBufferIterator &QCircularBufferIterator::operator=(const QCircularBuffer<T> &circ)
+    \fn QMutableCircularBufferIterator &QMutableCircularBufferIterator::operator=(QCircularBuffer<T> &circ)
+
+    Makes the iterator operate on \a circ. The iterator is set to be
+    at the front of the circular buffer (before the first item).
+
+    \sa toFront(), toBack()
+*/
+
 /*! \fn QSetIterator &QSetIterator::operator=(const QSet<T> &set)
     \fn QMutableSetIterator &QMutableSetIterator::operator=(QSet<T> &set)
 
@@ -544,10 +682,12 @@
 /*! \fn void QListIterator::toFront()
     \fn void QLinkedListIterator::toFront()
     \fn void QVectorIterator::toFront()
+    \fn void QCircularBufferIterator::toFront()
     \fn void QSetIterator::toFront()
     \fn void QMutableListIterator::toFront()
     \fn void QMutableLinkedListIterator::toFront()
     \fn void QMutableVectorIterator::toFront()
+    \fn void QMutableCircularBufferIterator::toFront()
     \fn void QMutableSetIterator::toFront()
 
     Moves the iterator to the front of the container (before the
@@ -559,10 +699,12 @@
 /*! \fn void QListIterator::toBack()
     \fn void QLinkedListIterator::toBack()
     \fn void QVectorIterator::toBack()
+    \fn void QCircularBufferIterator::toBack()
     \fn void QSetIterator::toBack()
     \fn void QMutableListIterator::toBack()
     \fn void QMutableLinkedListIterator::toBack()
     \fn void QMutableVectorIterator::toBack()
+    \fn void QMutableCircularBufferIterator::toBack()
     \fn void QMutableSetIterator::toBack()
 
     Moves the iterator to the back of the container (after the last
@@ -574,10 +716,12 @@
 /*! \fn bool QListIterator::hasNext() const
     \fn bool QLinkedListIterator::hasNext() const
     \fn bool QVectorIterator::hasNext() const
+    \fn bool QCircularBufferIterator::hasNext() const
     \fn bool QSetIterator::hasNext() const
     \fn bool QMutableListIterator::hasNext() const
     \fn bool QMutableLinkedListIterator::hasNext() const
     \fn bool QMutableVectorIterator::hasNext() const
+    \fn bool QMutableCircularBufferIterator::hasNext() const
     \fn bool QMutableSetIterator::hasNext() const
 
     Returns true if there is at least one item ahead of the iterator,
@@ -590,6 +734,7 @@
 /*! \fn const T &QListIterator::next()
     \fn const T &QLinkedListIterator::next()
     \fn const T &QVectorIterator::next()
+    \fn const T &QCircularBufferIterator::next()
     \fn const T &QSetIterator::next()
     \fn const T &QMutableSetIterator::next()
 
@@ -604,6 +749,7 @@
 /*! \fn T &QMutableListIterator::next()
     \fn T &QMutableLinkedListIterator::next()
     \fn T &QMutableVectorIterator::next()
+    \fn T &QMutableCircularBufferIterator::next()
 
     Returns a reference to the next item, and advances the iterator
     by one position.
@@ -617,6 +763,7 @@
 /*! \fn const T &QListIterator::peekNext() const
     \fn const T &QLinkedListIterator::peekNext() const
     \fn const T &QVectorIterator::peekNext() const
+    \fn const T &QCircularBufferIterator::peekNext() const
     \fn const T &QSetIterator::peekNext() const
     \fn const T &QMutableSetIterator::peekNext() const
 
@@ -631,6 +778,7 @@
 /*! \fn T &QMutableListIterator::peekNext() const
     \fn T &QMutableLinkedListIterator::peekNext() const
     \fn T &QMutableVectorIterator::peekNext() const
+    \fn T &QMutableCircularBufferIterator::peekNext() const
 
     Returns a reference to the next item, without moving the iterator.
 
@@ -643,10 +791,12 @@
 /*! \fn bool QListIterator::hasPrevious() const
     \fn bool QLinkedListIterator::hasPrevious() const
     \fn bool QVectorIterator::hasPrevious() const
+    \fn bool QCircularBufferIterator::hasPrevious() const
     \fn bool QSetIterator::hasPrevious() const
     \fn bool QMutableListIterator::hasPrevious() const
     \fn bool QMutableLinkedListIterator::hasPrevious() const
     \fn bool QMutableVectorIterator::hasPrevious() const
+    \fn bool QMutableCircularBufferIterator::hasPrevious() const
     \fn bool QMutableSetIterator::hasPrevious() const
 
     Returns true if there is at least one item behind the iterator,
@@ -659,6 +809,7 @@
 /*! \fn const T &QListIterator::previous()
     \fn const T &QLinkedListIterator::previous()
     \fn const T &QVectorIterator::previous()
+    \fn const T &QCircularBufferIterator::previous()
     \fn const T &QSetIterator::previous()
     \fn const T &QMutableSetIterator::previous()
 
@@ -674,6 +825,7 @@
 /*! \fn T &QMutableListIterator::previous()
     \fn T &QMutableLinkedListIterator::previous()
     \fn T &QMutableVectorIterator::previous()
+    \fn T &QMutableCircularBufferIterator::previous()
 
     Returns a reference to the previous item and moves the iterator
     back by one position.
@@ -687,6 +839,7 @@
 /*! \fn const T &QListIterator::peekPrevious() const
     \fn const T &QLinkedListIterator::peekPrevious() const
     \fn const T &QVectorIterator::peekPrevious() const
+    \fn const T &QCircularBufferIterator::peekPrevious() const
     \fn const T &QSetIterator::peekPrevious() const
     \fn const T &QMutableSetIterator::peekPrevious() const
 
@@ -701,6 +854,7 @@
 /*! \fn T &QMutableListIterator::peekPrevious() const
     \fn T &QMutableLinkedListIterator::peekPrevious() const
     \fn T &QMutableVectorIterator::peekPrevious() const
+    \fn T &QMutableCircularBufferIterator::peekPrevious() const
 
     Returns a reference to the previous item, without moving the iterator.
 
@@ -713,10 +867,12 @@
 /*! \fn bool QListIterator::findNext(const T &value)
     \fn bool QLinkedListIterator::findNext(const T &value)
     \fn bool QVectorIterator::findNext(const T &value)
+    \fn bool QCircularBufferIterator::findNext(const T &value)
     \fn bool QSetIterator::findNext(const T &value)
     \fn bool QMutableListIterator::findNext(const T &value)
     \fn bool QMutableLinkedListIterator::findNext(const T &value)
     \fn bool QMutableVectorIterator::findNext(const T &value)
+    \fn bool QMutableCircularBufferIterator::findNext(const T &value)
     \fn bool QMutableSetIterator::findNext(const T &value)
 
     Searches for \a value starting from the current iterator position
@@ -732,10 +888,12 @@
 /*! \fn bool QListIterator::findPrevious(const T &value)
     \fn bool QLinkedListIterator::findPrevious(const T &value)
     \fn bool QVectorIterator::findPrevious(const T &value)
+    \fn bool QCircularBufferIterator::findPrevious(const T &value)
     \fn bool QSetIterator::findPrevious(const T &value)
     \fn bool QMutableListIterator::findPrevious(const T &value)
     \fn bool QMutableLinkedListIterator::findPrevious(const T &value)
     \fn bool QMutableVectorIterator::findPrevious(const T &value)
+    \fn bool QMutableCircularBufferIterator::findPrevious(const T &value)
     \fn bool QMutableSetIterator::findPrevious(const T &value)
 
     Searches for \a value starting from the current iterator position
@@ -755,7 +913,7 @@
     traversal functions (next(), previous(), findNext(), findPrevious()).
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 19
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 24
 
     \sa insert(), setValue()
 */
@@ -766,7 +924,7 @@
     traversal functions (next(), previous(), findNext(), findPrevious()).
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 20
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 25
 
     \sa insert(), setValue()
 */
@@ -777,7 +935,18 @@
     traversal functions (next(), previous(), findNext(), findPrevious()).
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 21
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 26
+
+    \sa insert(), setValue()
+*/
+
+/*! \fn void QMutableCircularBufferIterator::remove()
+
+    Removes the last item that was jumped over using one of the
+    traversal functions (next(), previous(), findNext(), findPrevious()).
+
+    Example:
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 27
 
     \sa insert(), setValue()
 */
@@ -788,7 +957,7 @@
     traversal functions (next(), previous(), findNext(), findPrevious()).
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 22
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 28
 
     \sa value()
 */
@@ -802,7 +971,7 @@
     findPrevious().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 23
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 29
 
     \sa value(), remove(), insert()
 */
@@ -816,7 +985,7 @@
     findPrevious().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 24
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 30
 
     \sa value(), remove(), insert()
 */
@@ -830,14 +999,29 @@
     findPrevious().
 
     Example:
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 25
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 31
 
+    \sa value(), remove(), insert()
+*/
+
+/*! \fn void QMutableCircularBufferIterator::setValue(const T &value) const
+   
+    Replaces the value of the last item that was jumped over using
+    one of the traversal functions with \a value.
+
+    The traversal functions are next(), previous(), findNext(), and
+    findPrevious().
+
+    Example:
+    \snippet doc/src/snippets/code/doc_src_qiterator.qdoc 32
+   
     \sa value(), remove(), insert()
 */
 
 /*! \fn const T &QMutableListIterator::value() const
     \fn const T &QMutableLinkedListIterator::value() const
     \fn const T &QMutableVectorIterator::value() const
+    \fn const T &QMutableCircularBufferIterator::value() const
     \fn const T &QMutableSetIterator::value() const
 
     Returns the value of the last item that was jumped over using one
@@ -853,6 +1037,7 @@
     \fn T &QMutableListIterator::value()
     \fn T &QMutableLinkedListIterator::value()
     \fn T &QMutableVectorIterator::value()
+    \fn T &QMutableCircularBufferIterator::value()
     \overload
 
     Returns a non-const reference to the value of the last item that
@@ -862,6 +1047,7 @@
 /*! \fn void QMutableListIterator::insert(const T &value)
     \fn void QMutableLinkedListIterator::insert(const T &value)
     \fn void QMutableVectorIterator::insert(const T &value)
+    \fn void QMutableCircularBufferIterator::insert(const T &value)
 
     Inserts \a value at the current iterator position. After the
     call, the iterator is located just after the inserted item.
@@ -889,7 +1075,7 @@
     the map (before the first item). Here's how to iterate over all
     the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 26
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 33
 
     The next() function returns the next item in the map and
     advances the iterator. The key() and value() functions return the
@@ -906,12 +1092,12 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 27
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 34
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop. For example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 28
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 35
 
     Multiple iterators can be used on the same map. If the map is
     modified while a QMapIterator is active, the QMapIterator will
@@ -941,7 +1127,7 @@
     the hash (before the first item). Here's how to iterate over all
     the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 29
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 36
 
     The next() function returns the next item in the hash and
     advances the iterator. The key() and value() functions return the
@@ -958,12 +1144,12 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 30
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 37
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop. For example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 31
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 38
 
     Multiple iterators can be used on the same hash. If the hash is
     modified while a QHashIterator is active, the QHashIterator will
@@ -994,7 +1180,7 @@
     of the map (before the first item). Here's how to iterate over
     all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 32
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 39
 
     The next() function returns the next item in the map and
     advances the iterator. The key() and value() functions return the
@@ -1011,12 +1197,12 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 33
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 40
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop. For example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 34
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 41
 
     If you want to remove items as you iterate over the map, use
     remove(). If you want to modify the value of an item, use
@@ -1024,7 +1210,7 @@
 
     Example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 35
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 42
 
     The example removes all (key, value) pairs where the key and the
     value are the same.
@@ -1059,7 +1245,7 @@
     of the hash (before the first item). Here's how to iterate over
     all the elements sequentially:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 36
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 43
 
     The next() function returns the next item in the hash and
     advances the iterator. The key() and value() functions return the
@@ -1076,12 +1262,12 @@
 
     Here's how to iterate over the elements in reverse order:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 37
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 44
 
     If you want to find all occurrences of a particular value, use
     findNext() or findPrevious() in a loop. For example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 38
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 45
 
     If you want to remove items as you iterate over the hash, use
     remove(). If you want to modify the value of an item, use
@@ -1089,7 +1275,7 @@
 
     Example:
 
-    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 39
+    \snippet doc/src/snippets/code/doc_src_qiterator.cpp 46
 
     The example removes all (key, value) pairs where the key and the
     value are the same.

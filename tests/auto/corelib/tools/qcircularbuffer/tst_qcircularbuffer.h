@@ -7,18 +7,18 @@
 class MyComplexType
 {
 public:
-    MyComplexType( int x = 0 )
-        : m_x( x )
+    MyComplexType( int xx = 0 )
+        : x( xx )
     {}
 
-    int m_x;
+    int x;
 };
 
 class TestCircularBuffer : public QObject
 {
     Q_OBJECT
 public:
-    TestCircularBuffer( QObject* parent = 0 );
+    TestCircularBuffer(QObject *parent = 0);
 
 private slots:
     // Run before any tests

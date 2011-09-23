@@ -87,60 +87,43 @@ i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
 //! [5]
-    
-    
+
+
 //! [6]
-QCircularBuffer<float> circ;
-...
-QCircularBufferIterator<float> i(circ);
-while (i.hasNext())
-    qDebug() << i.next();
-//! [6]
-
-
-//! [7]
-QCircularBufferIterator<float> i(circ);
-i.toBack();
-while (i.hasPrevious())
-    qDebug() << i.previous();
-//! [7]
-
-
-//! [8]
 QSet<QString> set;
 ...
 QSetIterator<QString> i(set);
 while (i.hasNext())
     qDebug() << i.next();
-//! [8]
+//! [6]
 
 
-//! [9]
+//! [7]
 QSetIterator<QString> i(set);
 i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
-//! [9]
+//! [7]
 
 
-//! [10]
+//! [8]
 QList<float> list;
 ...
 QMutableListIterator<float> i(list);
 while (i.hasNext())
     qDebug() << i.next();
-//! [10]
+//! [8]
 
 
-//! [11]
+//! [9]
 QMutableListIterator<float> i(list);
 i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
-//! [11]
+//! [9]
 
 
-//! [12]
+//! [10]
 QMutableListIterator<int> i(list);
 while (i.hasNext()) {
     int val = i.next();
@@ -150,27 +133,27 @@ while (i.hasNext()) {
         i.remove();
     }
 }
-//! [12]
+//! [10]
 
 
-//! [13]
+//! [11]
 QLinkedList<float> list;
 ...
 QMutableLinkedListIterator<float> i(list);
 while (i.hasNext())
     qDebug() << i.next();
-//! [13]
+//! [11]
 
 
-//! [14]
+//! [12]
 QMutableLinkedListIterator<float> i(list);
 i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
-//! [14]
+//! [12]
 
 
-//! [15]
+//! [13]
 QMutableLinkedListIterator<int> i(list);
 while (i.hasNext()) {
     int val = i.next();
@@ -180,27 +163,27 @@ while (i.hasNext()) {
         i.remove();
     }
 }
-//! [15]
+//! [13]
 
 
-//! [16]
+//! [14]
 QVector<float> vector;
 ...
 QMutableVectorIterator<float> i(vector);
 while (i.hasNext())
     qDebug() << i.next();
-//! [16]
+//! [14]
 
 
-//! [17]
+//! [15]
 QMutableVectorIterator<float> i(vector);
 i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
-//! [17]
+//! [15]
 
 
-//! [18]
+//! [16]
 QMutableVectorIterator<int> i(vector);
 while (i.hasNext()) {
     int val = i.next();
@@ -210,142 +193,94 @@ while (i.hasNext()) {
         i.remove();
     }
 }
-//! [18]
-
-//! [19]
-QCircularBuffer<float> circ;
-...
-QMutableCircularBufferIterator<float> i(circ);
-while (i.hasNext())
-    qDebug() << i.next();
-//! [19]
+//! [16]
 
 
-//! [20]
-QMutableCircularBufferIterator<float> i(circ);
-i.toBack();
-while (i.hasPrevious())
-    qDebug() << i.previous();
-//! [20]
-
-
-//! [21]
-QMutableCircularBufferIterator<int> i(circ);
-while (i.hasNext()) {
-    int val = i.next();
-    if (val < 0) {
-        i.setValue(-val);
-    } else if (val == 0) {
-        i.remove();
-    }
-}
-//! [21]
-
-
-//! [22]
+//! [17]
 QSet<float> set;
 ...
 QMutableSetIterator<float> i(set);
 while (i.hasNext())
     qDebug() << i.next();
-//! [22]
+//! [17]
 
 
-//! [23]
+//! [18]
 QMutableSetIterator<float> i(set);
 i.toBack();
 while (i.hasPrevious())
     qDebug() << i.previous();
-//! [23]
+//! [18]
 
 
-//! [24]
+//! [19]
 QMutableListIterator<int> i(list);
 while (i.hasNext()) {
     int val = i.next();
     if (val < -32768 || val > 32767)
 	i.remove();
 }
-//! [24]
+//! [19]
 
 
-//! [25]
+//! [20]
 QMutableLinkedListIterator<int> i(list);
 while (i.hasNext()) {
     int val = i.next();
     if (val < -32768 || val > 32767)
 	i.remove();
 }
-//! [25]
+//! [20]
 
 
-//! [26]
+//! [21]
 QMutableVectorIterator<int> i(vector);
 while (i.hasNext()) {
     int val = i.next();
     if (val < -32768 || val > 32767)
 	i.remove();
 }
-//! [26]
+//! [21]
 
 
-//! [27]
-QMutableCircularBufferIterator<int> i(circ);
-while (i.hasNext()) {
-    int val = i.next();
-    if (val < -32768 || val > 32767)
-        i.remove();
-}
-//! [27]
-
-
-//! [28]
+//! [22]
 QMutableSetIterator<int> i(set);
 while (i.hasNext()) {
     int val = i.next();
     if (val < -32768 || val > 32767)
 	i.remove();
 }
-//! [28]
+//! [22]
 
 
-//! [29]
+//! [23]
 QMutableListIterator<double> i(list);
 while (i.hasNext()) {
     double val = i.next();
     i.setValue(sqrt(val));
 }
-//! [29]
+//! [23]
 
 
-//! [30]
+//! [24]
 QMutableLinkedListIterator<double> i(list);
 while (i.hasNext()) {
     double val = i.next();
     i.setValue(sqrt(val));
 }
-//! [30]
+//! [24]
 
 
-//! [31]
+//! [25]
 QMutableVectorIterator<double> i(list);
 while (i.hasNext()) {
     double val = i.next();
     i.setValue(sqrt(val));
 }
-//! [31]
+//! [25]
 
 
-//! [32]
-QMutableCircularBufferIterator<double> i(circ);
-while (i.hasNext()) {
-    double val = i.next();
-    i.setValue(sqrt(val));
-}
-//! [32]
-
-
-//! [33]
+//! [26]
 QMap<int, QWidget *> map;
 ...
 QMapIterator<int, QWidget *> i(map);
@@ -353,29 +288,29 @@ while (i.hasNext()) {
     i.next();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [33]
+//! [26]
 
 
-//! [34]
+//! [27]
 QMapIterator<int, QWidget *> i(map);
 i.toBack();
 while (i.hasPrevious()) {
     i.previous();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [34]
+//! [27]
 
 
-//! [35]
+//! [28]
 QMapIterator<int, QWidget *> i(map);
 while (i.findNext(widget)) {
     qDebug() << "Found widget " << widget << " under key "
 	     << i.key();
 }
-//! [35]
+//! [28]
 
 
-//! [36]
+//! [29]
 QHash<int, QWidget *> hash;
 ...
 QHashIterator<int, QWidget *> i(hash);
@@ -383,29 +318,29 @@ while (i.hasNext()) {
     i.next();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [36]
+//! [29]
 
 
-//! [37]
+//! [30]
 QHashIterator<int, QWidget *> i(hash);
 i.toBack();
 while (i.hasPrevious()) {
     i.previous();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [37]
+//! [30]
 
 
-//! [38]
+//! [31]
 QHashIterator<int, QWidget *> i(hash);
 while (i.findNext(widget)) {
     qDebug() << "Found widget " << widget << " under key "
 	     << i.key();
 }
-//! [38]
+//! [31]
 
 
-//! [39]
+//! [32]
 QMap<int, QWidget *> map;
 ...
 QMutableMapIterator<int, QWidget *> i(map);
@@ -413,39 +348,39 @@ while (i.hasNext()) {
     i.next();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [39]
+//! [32]
 
 
-//! [40]
+//! [33]
 QMutableMapIterator<int, QWidget *> i(map);
 i.toBack();
 while (i.hasPrevious()) {
     i.previous();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [40]
+//! [33]
 
 
-//! [41]
+//! [34]
 QMutableMapIterator<int, QWidget *> i(map);
 while (i.findNext(widget)) {
     qDebug() << "Found widget " << widget << " under key "
 	     << i.key();
 }
-//! [41]
+//! [34]
 
 
-//! [42]
+//! [35]
 QMutableMapIterator<QString, QString> i(map);
 while (i.hasNext()) {
     i.next();
     if (i.key() == i.value())
         i.remove();
 }
-//! [42]
+//! [35]
 
 
-//! [43]
+//! [36]
 QHash<int, QWidget *> hash;
 ...
 QMutableHashIterator<QString, QWidget *> i(hash);
@@ -453,33 +388,99 @@ while (i.hasNext()) {
     i.next();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [43]
+//! [36]
 
 
-//! [44]
+//! [37]
 QMutableHashIterator<int, QWidget *> i(hash);
 i.toBack();
 while (i.hasPrevious()) {
     i.previous();
     qDebug() << i.key() << ": " << i.value();
 }
-//! [44]
+//! [37]
 
 
-//! [45]
+//! [38]
 QMutableHashIterator<int, QWidget *> i(hash);
 while (i.findNext(widget)) {
     qDebug() << "Found widget " << widget << " under key "
 	     << i.key();
 }
-//! [45]
+//! [38]
 
 
-//! [46]
+//! [39]
 QMutableHashIterator<QString, QString> i(hash);
 while (i.hasNext()) {
     i.next();
     if (i.key() == i.value())
         i.remove();
+}
+//! [39]
+
+
+//! [40]
+QCircularBuffer<float> circ;
+...
+QCircularBufferIterator<float> i(circ);
+while (i.hasNext())
+    qDebug() << i.next();
+//! [40]
+
+
+//! [41]
+QCircularBufferIterator<float> i(circ);
+i.toBack();
+while (i.hasPrevious())
+    qDebug() << i.previous();
+//! [41]
+
+
+//! [42]
+QCircularBuffer<float> circ;
+...
+QMutableCircularBufferIterator<float> i(circ);
+while (i.hasNext())
+    qDebug() << i.next();
+//! [42]
+
+
+//! [43]
+QMutableCircularBufferIterator<float> i(circ);
+i.toBack();
+while (i.hasPrevious())
+    qDebug() << i.previous();
+//! [43]
+
+
+//! [44]
+QMutableCircularBufferIterator<int> i(circ);
+while (i.hasNext()) {
+    int val = i.next();
+    if (val < 0) {
+        i.setValue(-val);
+    } else if (val == 0) {
+        i.remove();
+    }
+}
+//! [44]
+
+
+//! [45]
+QMutableCircularBufferIterator<int> i(circ);
+while (i.hasNext()) {
+    int val = i.next();
+    if (val < -32768 || val > 32767)
+        i.remove();
+}
+//! [45]
+
+
+//! [46]
+QMutableCircularBufferIterator<double> i(circ);
+while (i.hasNext()) {
+    double val = i.next();
+    i.setValue(sqrt(val));
 }
 //! [46]

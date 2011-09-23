@@ -469,21 +469,18 @@ public:
     Connection(const Connection &other);
     Connection &operator=(const Connection &other);
 #ifdef qdoc
-    operator bool();
+    operator bool() const;
 #else
     typedef void *Connection::*RestrictedBool;
-    operator RestrictedBool() { return d_ptr ? &Connection::d_ptr : 0;  }
+    operator RestrictedBool() const { return d_ptr ? &Connection::d_ptr : 0; }
 #endif
-    
+
 #ifdef Q_COMPILER_RVALUE_REFS
     inline Connection(Connection &&o) : d_ptr(o.d_ptr) { o.d_ptr = 0; }
     inline Connection &operator=(Connection &&other)
     { qSwap(d_ptr, other.d_ptr); return *this; }
 #endif
 };
-
-
-
 
 typedef const QMetaObject& (*QMetaObjectAccessor)();
 

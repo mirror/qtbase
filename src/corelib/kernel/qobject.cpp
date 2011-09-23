@@ -4053,14 +4053,14 @@ void qDeleteInEventHandler(QObject *o)
 }
 
 QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, const QObject *receiver, QObject::QSlotObjectBase *slotObj, Qt::ConnectionType type,
-                          const int* types, const QMetaObject* mo1, const char* debug)
+                          const int* types, const QMetaObject* mo1)
 {
     int mac = -1;
     int signal_index = -1;
     void *args[] = { &signal_index, signal, &mac };
     mo1->static_metacall(QMetaObject::IndexOfMethod, 0, args);
     if (signal_index < 0) {
-        qWarning("%s: signal not found", debug);
+        qWarning("QObject::connect: signal not found in %s", mo1->className());
         return QObject::Connection(0);
     }
     int signalOffset, methodOffset;

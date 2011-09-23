@@ -569,7 +569,7 @@ private:
     };
 
     static Connection connectImpl(const QObject *sender, void **signal, const QObject *receiver, QSlotObjectBase *slot,
-                            Qt::ConnectionType type, const int *types, const QMetaObject *mo1, const char *debug);
+                            Qt::ConnectionType type, const int *types, const QMetaObject *mo1);
 
 public:
     //Connect a signal to a pointer to qobject member function,  dirrect connection to the pointer
@@ -594,8 +594,7 @@ public:
                            receiver, new QSlotObject<Func2,
                                                      typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value,
                                                      typename SignalType::ReturnType>(slot),
-                            type, types, &SignalType::Object::staticMetaObject,
-                            Q_FUNC_INFO);
+                            type, types, &SignalType::Object::staticMetaObject);
     }
 
     //connect to a function pointer  (not a member)
@@ -614,8 +613,7 @@ public:
                            new QStaticSlotObject<Func2,
                                                  typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value,
                                                  typename SignalType::ReturnType>(slot),
-                           Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject,
-                           Q_FUNC_INFO);
+                           Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject);
     }
 
     //connect to a functor
@@ -628,8 +626,7 @@ public:
 
         return connectImpl(sender, reinterpret_cast<void **>(&signal),
                            sender, new QFunctorSlotObject<Func2, SignalType::ArgumentCount, typename SignalType::Arguments, typename SignalType::ReturnType>(slot),
-                           Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject,
-                           Q_FUNC_INFO);
+                           Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject);
     }
 
 

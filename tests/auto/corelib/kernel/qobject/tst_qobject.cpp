@@ -4143,20 +4143,6 @@ void tst_QObject::pointerConnect()
     delete s;
     delete r1;
     delete r2;
-
-#ifdef QT_QOBJECT_DEFAULT_ARGUMENT
-    {
-        DefaultArguments o;
-        QVERIFY( connect(&o, &DefaultArguments::theOriginalSignal, &o, &DefaultArguments::theSecondSignal) );
-        QVERIFY( connect(&o, &DefaultArguments::theSecondSignal, &o, &DefaultArguments::theSlot) );
-        QVERIFY( o.result.isEmpty() );
-        o.emitTheSecondSignal();
-        QCOMPARE(o.result, QString("secondDefault"));
-        o.result = "Not called";
-        o.emitTheOriginalSignal();
-        QCOMPARE(o.result, QString("secondDefault"));
-    }
-#endif
 }
 
 void tst_QObject::emitInDefinedOrderPointer()

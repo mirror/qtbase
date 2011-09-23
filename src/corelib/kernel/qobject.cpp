@@ -4052,44 +4052,6 @@ void qDeleteInEventHandler(QObject *o)
     delete o;
 }
 
-QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, const QObject *receiver, void** slot,
-                          int signalArgsCount, Qt::ConnectionType type, const int *types,
-                          const QMetaObject *mo1, const QMetaObject *mo2, const char *debug)
-{
-    int mac = -1;
-    int signal_index = -1;
-    void *args[] = { &signal_index, signal, &mac };
-    mo1->static_metacall(QMetaObject::IndexOfMethod, 0, args);
-    int method_index = -1;
-    args[0] = &method_index;
-    args[1] = slot;
-    mac = signalArgsCount;
-    mo2->static_metacall(QMetaObject::IndexOfMethod, 0, args);
-    if (signal_index < 0) {
-        qWarning("%s: signal not found", debug);
-        return QObject::Connection(0);
-    }
-    if (method_index < 0) {
-        qWarning("%s: slot not found or invalid parametter", debug);
-        return QObject::Connection(0);
-    }
-    int *types2 = 0;
-    if (types) {
-        types2 = new int[signalArgsCount + 1];
-        int i = 0;
-        while (i < signalArgsCount && types[i]) {
-            types2[i] = types[i];
-            i++;
-        }
-        types2[i] = 0;
-    }
-    int signalOffset, methodOffset;
-    computeOffsets(mo1, &signalOffset, &methodOffset);
-    signal_index += signalOffset;
-    return Connection(QMetaObjectPrivate::connect(
-        sender, signal_index, receiver, method_index, mo2, type, types2));
-}
-
 QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, const QObject *receiver, QObject::QSlotObjectBase *slotObj, Qt::ConnectionType type,
                           const int* types, const QMetaObject* mo1, const char* debug)
 {

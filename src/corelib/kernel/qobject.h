@@ -367,14 +367,11 @@ namespace QtPrivate {
         enum { value = sizeof(test(A1())) == sizeof(int) };
     };
 
-    template <typename List1, typename List2, bool AllowConversion> struct CheckCompatibleArguments{};
-    template <bool AllowConversion> struct CheckCompatibleArguments<void, void, AllowConversion> { typedef bool IncompatibleSignalSlotArguments; };
-    template <typename List1, bool AllowConversion> struct CheckCompatibleArguments<List1, void, AllowConversion> { typedef bool IncompatibleSignalSlotArguments; };
-    template <typename List2, bool AllowConversion> struct CheckCompatibleArguments<void, List2, AllowConversion> { typedef bool IncompatibleSignalSlotArguments; }; //default Arguments?
-    template <typename Arg1, typename Tail1, typename Tail2, bool AllowConversion> struct CheckCompatibleArguments<List<Arg1, Tail1>, List<Arg1, Tail2>, AllowConversion>
-    : CheckCompatibleArguments<Tail1, Tail2, AllowConversion> { };
-    template <typename Arg1, typename Arg2, typename Tail1, typename Tail2, bool AllowConversion> struct CheckCompatibleArguments<List<Arg1, Tail1>, List<Arg2, Tail2>, AllowConversion>
-    : CheckCompatibleArgumentsHelper<CheckCompatibleArguments<Tail1, Tail2, AllowConversion>, AllowConversion && AreCompatiblmeArgument<Arg1, Arg2>::value > {};
+    template <typename List1, typename List2> struct CheckCompatibleArguments{};
+    template <> struct CheckCompatibleArguments<void, void> { typedef bool IncompatibleSignalSlotArguments; };
+    template <typename List1> struct CheckCompatibleArguments<List1, void> { typedef bool IncompatibleSignalSlotArguments; };
+    template <typename Arg1, typename Arg2, typename Tail1, typename Tail2> struct CheckCompatibleArguments<List<Arg1, Tail1>, List<Arg2, Tail2> >
+    : CheckCompatibleArgumentsHelper<CheckCompatibleArguments<Tail1, Tail2>, AreCompatiblmeArgument<Arg1, Arg2>::value > {};
 
 
     template <typename ArgList> struct TypesAreDeclaredMetaType { enum { Value = false }; };
@@ -537,10 +534,6 @@ public:
                         const char *member, Qt::ConnectionType type = Qt::AutoConnection) const;
 
 private:
-    static Connection connectImpl(const QObject *sender, void **signal, const QObject *receiver, void **slot,
-                            int signalArgsCount, Qt::ConnectionType type, const int *types,
-                            const QMetaObject *mo1, const QMetaObject *mo2, const char *debug);
-
     struct QSlotObjectBase {
         QAtomicInt ref;
         QSlotObjectBase() : ref(1) {}
@@ -581,16 +574,16 @@ private:
 public:
     //Connect a signal to a pointer to qobject member function,  dirrect connection to the pointer
     template <typename Func1, typename Func2>
-    static inline typename QtPrivate::QEnableIf<(int(QtPrivate::FunctionPointer<Func1>::ArgumentCount) >= int(QtPrivate::FunctionPointer<Func2>::ArgumentCount)), Connection>::Type
-        connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal,
-                const typename QtPrivate::FunctionPointer<Func2>::Object *receiver, Func2 slot, Qt::ConnectionType type = Qt::AutoConnection)
+    static inline Connection connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal,
+                                     const typename QtPrivate::FunctionPointer<Func2>::Object *receiver, Func2 slot,
+                                     Qt::ConnectionType type = Qt::AutoConnection)
     {
         typedef QtPrivate::FunctionPointer<Func1> SignalType;
         typedef QtPrivate::FunctionPointer<Func2> SlotType;
         reinterpret_cast<typename SignalType::Object *>(0)->qt_check_for_QOBJECT_macro(*reinterpret_cast<typename SignalType::Object *>(0));
 
         //compilation error if the arguments does not match.
-        typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments, true>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
+        typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
 
 
         const int *types = 0;
@@ -605,33 +598,6 @@ public:
                             Q_FUNC_INFO);
     }
 
-#ifdef QT_QOBJECT_DEFAULT_ARGUMENT  //TODO: remove that?
-    //connect a signal to a slot. No dirrect connection (for default argument
-    template <typename Func1, typename Func2>
-    static inline typename QtPrivate::QEnableIf<(int(QtPrivate::FunctionPointer<Func1>::ArgumentCount) < int(QtPrivate::FunctionPointer<Func2>::ArgumentCount)), Connection>::Type
-        connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal,
-                const typename QtPrivate::FunctionPointer<Func2>::Object *receiver, Func2 slot, Qt::ConnectionType type = Qt::AutoConnection)
-    {
-        typedef QtPrivate::FunctionPointer<Func1> SignalType;
-        typedef QtPrivate::FunctionPointer<Func2> SlotType;
-
-        reinterpret_cast<typename SignalType::Object *>(0)->qt_check_for_QOBJECT_macro(*reinterpret_cast<typename SignalType::Object *>(0));
-        reinterpret_cast<typename SlotType::Object *>(0)->qt_check_for_QOBJECT_macro(*reinterpret_cast<typename SlotType::Object *>(0));
-
-        //compilation error if the arguments does not match.
-        typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments, false>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
-
-        const int *types = 0;
-        if (type == Qt::QueuedConnection || type == Qt::BlockingQueuedConnection)
-            types = QtPrivate::ConnectionTypes<typename SignalType::Arguments>::types();
-
-        return connectImpl(sender, reinterpret_cast<void **>(&signal),  receiver, reinterpret_cast<void **>(&slot),
-                        SignalType::ArgumentCount, type, types,
-                        &SignalType::Object::staticMetaObject, &SlotType::Object::staticMetaObject,
-                        Q_FUNC_INFO);
-    }
-#endif
-
     //connect to a function pointer  (not a member)
     template <typename Func1, typename Func2>
     static inline typename QtPrivate::QEnableIf<(int(QtPrivate::FunctionPointer<Func1>::ArgumentCount) >= int(QtPrivate::FunctionPointer<Func2>::ArgumentCount)), Connection>::Type
@@ -641,7 +607,7 @@ public:
         typedef QtPrivate::FunctionPointer<Func2> SlotType;
 
         //compilation error if the arguments does not match.
-        typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments, true>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
+        typedef typename QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments>::IncompatibleSignalSlotArguments EnsureCompatibleArguments;
         typedef typename QtPrivate::QEnableIf<(int(SignalType::ArgumentCount) >= int(SlotType::ArgumentCount))>::Type EnsureArgumentsCount;
 
         return connectImpl(sender, reinterpret_cast<void **>(&signal), sender,

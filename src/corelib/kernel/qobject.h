@@ -79,7 +79,9 @@ class QObjectUserData;
 namespace QtPrivate {
     template <typename T> struct RemoveRef { typedef T Type; };
     template <typename T> struct RemoveRef<const T&> { typedef T Type; };
-    template <typename T> struct RemoveRef<T&> { typedef T Type; };   //shall we do this?
+    template <typename T> struct RemoveRef<T&> { typedef T Type; };
+    template <typename T> struct RemoveConstRef { typedef T Type; };
+    template <typename T> struct RemoveConstRef<const T&> { typedef T Type; };
 
     template <typename Head, typename Tail> struct List { typedef Head Car; typedef Tail Cdr; };
     template <typename L, int N> struct List_Left { typedef List<typename L::Car, typename List_Left<typename L::Cdr, N - 1>::Value > Value; };
@@ -114,7 +116,7 @@ namespace QtPrivate {
     template<class Obj, typename Ret, typename Arg1> struct FunctionPointer<Ret (Obj::*) (Arg1)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, void> Arguments;
+        typedef List<Arg1, void> Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1);
         enum {ArgumentCount = 1};
@@ -126,7 +128,7 @@ namespace QtPrivate {
     template<class Obj, typename Ret, typename Arg1, typename Arg2> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, void> >  Arguments;
+        typedef List<Arg1, List<Arg2, void> >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2);
         enum {ArgumentCount = 2};
@@ -139,7 +141,7 @@ namespace QtPrivate {
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type, void> > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, void> > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3);
         enum {ArgumentCount = 3};
@@ -153,8 +155,7 @@ namespace QtPrivate {
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3, Arg4)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-                    List<typename RemoveRef<Arg4>::Type, void> > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, List<Arg4, void> > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4);
         enum {ArgumentCount = 4};
@@ -169,8 +170,7 @@ namespace QtPrivate {
     template<class Obj, typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3, Arg4, Arg5)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-                   List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, void> > > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, List<Arg4, List<Arg5, void> > > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4, Arg5);
         enum {ArgumentCount = 5};
@@ -187,8 +187,7 @@ namespace QtPrivate {
     struct FunctionPointer<Ret (Obj::*) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
     {
         typedef Obj Object;
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-            List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, List<typename RemoveRef<Arg6>::Type, void> > > > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, List<Arg4, List<Arg5, List<Arg6, void> > > > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (Obj::*Function) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6);
         enum {ArgumentCount = 6};
@@ -235,7 +234,7 @@ namespace QtPrivate {
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3)>
     {
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type, void> > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, void> > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3);
         enum {ArgumentCount = 3};
@@ -248,8 +247,7 @@ namespace QtPrivate {
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4)>
     {
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-            List<typename RemoveRef<Arg4>::Type, void> > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, List<Arg4, void> > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4);
         enum {ArgumentCount = 4};
@@ -263,8 +261,8 @@ namespace QtPrivate {
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4, Arg5)>
     {
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-        List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, void > > > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3,
+        List<Arg4, List<Arg5, void > > > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4, Arg5);
         enum {ArgumentCount = 5};
@@ -279,8 +277,7 @@ namespace QtPrivate {
     };
     template<typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6> struct FunctionPointer<Ret (*) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)>
     {
-        typedef List<typename RemoveRef<Arg1>::Type, List<typename RemoveRef<Arg2>::Type, List<typename RemoveRef<Arg3>::Type,
-            List<typename RemoveRef<Arg4>::Type, List<typename RemoveRef<Arg5>::Type, List<typename RemoveRef<Arg6>::Type, void> > > > > >  Arguments;
+        typedef List<Arg1, List<Arg2, List<Arg3, List<Arg4, List<Arg5, List<Arg6, void> > > > > >  Arguments;
         typedef Ret ReturnType;
         typedef Ret (*Function) (Arg1, Arg2, Arg3, Arg4, Arg5, Arg6);
         enum {ArgumentCount = 6};
@@ -362,16 +359,20 @@ namespace QtPrivate {
     template<typename T, bool B> struct CheckCompatibleArgumentsHelper {};
     template<typename T> struct CheckCompatibleArgumentsHelper<T, true> : T {};
     template<typename A1, typename A2> struct AreCompatiblmeArgument {
-        static int test(const A2&);
+        static int test(A2);
         static char test(...);
-        enum { value = sizeof(test(A1())) == sizeof(int) };
+        A1 dummy;
+        enum { value = sizeof(test(dummy)) == sizeof(int) };
     };
+    template<typename A1, typename A2> struct AreCompatiblmeArgument<A1, A2&> { enum { value = false }; };
+    template<typename A> struct AreCompatiblmeArgument<A&, A&> { enum { value = true }; };
 
     template <typename List1, typename List2> struct CheckCompatibleArguments{};
     template <> struct CheckCompatibleArguments<void, void> { typedef bool IncompatibleSignalSlotArguments; };
     template <typename List1> struct CheckCompatibleArguments<List1, void> { typedef bool IncompatibleSignalSlotArguments; };
     template <typename Arg1, typename Arg2, typename Tail1, typename Tail2> struct CheckCompatibleArguments<List<Arg1, Tail1>, List<Arg2, Tail2> >
-    : CheckCompatibleArgumentsHelper<CheckCompatibleArguments<Tail1, Tail2>, AreCompatiblmeArgument<Arg1, Arg2>::value > {};
+        : CheckCompatibleArgumentsHelper<CheckCompatibleArguments<Tail1, Tail2>, AreCompatiblmeArgument<
+            typename RemoveConstRef<Arg1>::Type, typename RemoveConstRef<Arg2>::Type>::value > {};
 
 
     template <typename ArgList> struct TypesAreDeclaredMetaType { enum { Value = false }; };

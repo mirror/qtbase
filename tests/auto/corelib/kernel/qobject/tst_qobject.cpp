@@ -142,6 +142,7 @@ private slots:
     void connectCxx0xTypeMatching();
     void connectConvert();
     void returnValue();
+    void connectToReference();
 protected:
 };
 
@@ -4599,7 +4600,82 @@ void tst_QObject::returnValue()
     }
 }
 
+class ConnectToReferenceObject : public QObject {
+    Q_OBJECT
+    friend class tst_QObject;
+signals:
+    void boolRef(bool &, bool);
+    void stringRef(QString &, const QString &);
+    void boolPtr(bool *, bool);
+    void stringPtr(QString *, const QString &);
+public slots:
+    void boolRefSlot(bool &b1, bool b2) {  b1 = b2; }
+    void stringRefSlot(QString &s1, const QString &s2) {  s1 = s2; }
+    void boolPtrSlot(bool *b1, bool b2) {  *b1 = b2; }
+    void stringPtrSlot(QString *s1, const QString &s2) {  *s1 = s2; }
 
+    void stringSlot1(QString s) { last = s; }
+    void stringSlot2(const QString &s) { last = s; }
+    void stringSlot3(QString &s) { last = s; }
+public:
+    QString last;
+
+    template <typename T> void plop(T) {}
+
+};
+
+void tst_QObject::connectToReference()
+{
+    ConnectToReferenceObject o;
+    bool b1 = true;
+    QString s1 = QString::fromLatin1("str1");
+    const QString s2 = QString::fromLatin1("str2");
+    const QString s3 = QString::fromLatin1("str3");
+    o.boolRef(b1, false);
+    o.stringRef(s1, s2);
+    QCOMPARE(b1, true);
+    QCOMPARE(s1, QString::fromLatin1("str1"));
+    o.boolPtr(&b1, false);
+    o.stringPtr(&s1, s2);
+    QCOMPARE(b1, true);
+    QCOMPARE(s1, QString::fromLatin1("str1"));
+
+    QVERIFY(connect(&o, &ConnectToReferenceObject::boolRef, &o, &ConnectToReferenceObject::boolRefSlot));
+    QVERIFY(connect(&o, &ConnectToReferenceObject::stringRef, &o, &ConnectToReferenceObject::stringRefSlot));
+    QVERIFY(connect(&o, &ConnectToReferenceObject::boolPtr, &o, &ConnectToReferenceObject::boolPtrSlot));
+    QVERIFY(connect(&o, &ConnectToReferenceObject::stringPtr, &o, &ConnectToReferenceObject::stringPtrSlot));
+    o.boolRef(b1, false);
+    o.stringRef(s1, s2);
+    QCOMPARE(b1, false);
+    QCOMPARE(s1, QString::fromLatin1("str2"));
+
+    o.boolPtr(&b1, true);
+    o.stringPtr(&s1, s3);
+    QCOMPARE(b1, true);
+    QCOMPARE(s1, QString::fromLatin1("str3"));
+
+    {
+        ConnectToReferenceObject o2;
+        QVERIFY(connect(&o2, &ConnectToReferenceObject::stringRef, &o2, &ConnectToReferenceObject::stringSlot1));
+        o2.stringRef(s1, s2);
+        QCOMPARE(s1, s3);
+        QCOMPARE(o2.last, s3);
+    }
+    {
+        ConnectToReferenceObject o2;
+        QVERIFY(connect(&o2, &ConnectToReferenceObject::stringRef, &o2, &ConnectToReferenceObject::stringSlot2));
+        o2.stringRef(s1, s2);
+        QCOMPARE(s1, s3);
+        QCOMPARE(o2.last, s3);
+    }
+    {
+        ConnectToReferenceObject o2;
+        QVERIFY(connect(&o2, &ConnectToReferenceObject::stringRef, &o2, &ConnectToReferenceObject::stringSlot3));
+        o2.stringRef(s1, s2);
+        QCOMPARE(s1, s3);
+        QCOMPARE(o2.last, s3);
+    }
+}
 
 QTEST_MAIN(tst_QObject)
 #include "tst_qobject.moc"

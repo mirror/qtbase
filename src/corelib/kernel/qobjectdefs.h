@@ -463,7 +463,7 @@ class QMetaObject::Connection {
     void *d_ptr; //QObjectPrivate::Connection*
     explicit Connection(void *data) : d_ptr(data) {  }
     friend class QObject;
-    friend class QMetaObject;
+    friend struct QMetaObject;
 public:
     ~Connection();
     Connection(const Connection &other);

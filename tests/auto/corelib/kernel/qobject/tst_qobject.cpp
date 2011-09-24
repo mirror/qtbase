@@ -4544,7 +4544,7 @@ void tst_QObject::returnValue()
         ReturnValue r;
         QCOMPARE(emit r.returnVariant(45), QVariant());
         QCOMPARE(emit r.returnString(45), QString());
-//        QCOMPARE(emit r.returnInt(45), int());  //Do not work because int is not initialized
+        QCOMPARE(emit r.returnInt(45), int());
         emit r.returnVoid(45);
         QCOMPARE((emit r.returnCustomType(45)).value(), CustomType().value());
     }

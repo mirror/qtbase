@@ -361,8 +361,8 @@ namespace QtPrivate {
     template<typename A1, typename A2> struct AreCompatiblmeArgument {
         static int test(A2);
         static char test(...);
-        A1 dummy;
-        enum { value = sizeof(test(dummy)) == sizeof(int) };
+        static A2 dummy();
+        enum { value = sizeof(test(dummy())) == sizeof(int) };
     };
     template<typename A1, typename A2> struct AreCompatiblmeArgument<A1, A2&> { enum { value = false }; };
     template<typename A> struct AreCompatiblmeArgument<A&, A&> { enum { value = true }; };

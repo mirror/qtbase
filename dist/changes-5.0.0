@@ -28,6 +28,9 @@ information about a particular change.
   preprocessor #define has also been removed. The build-key is obsolete
   and is no longer necessary.
 
+- Qt::escape() is deprecated (but can be enabled via
+  QT_DISABLE_DEPRECATED_BEFORE), use QString::toHtmlEscaped() instead.
+
 ****************************************************************************
 *                           General                                        *
 ****************************************************************************

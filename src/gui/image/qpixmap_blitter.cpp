@@ -99,6 +99,7 @@ void QBlittablePlatformPixmap::resize(int width, int height)
     w = width;
     h = height;
     is_null = (w <= 0 || h <= 0);
+    setSerialNumber(++global_ser_no);
 }
 
 int QBlittablePlatformPixmap::metric(QPaintDevice::PaintDeviceMetric metric) const

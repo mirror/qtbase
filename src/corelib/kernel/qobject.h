@@ -89,6 +89,7 @@ namespace QtPrivate {
     template <typename L, int N> struct List_Select { typedef typename List_Select<typename L::Cdr, N - 1>::Value Value; };
     template <typename L> struct List_Select<L,0> { typedef typename L::Car Value; };
 
+    //trick to set the return value of a slot that works even if the signal or the slot returns void
     template <typename T>
     struct ApplyRetrunValue {
         void *data;
@@ -101,7 +102,7 @@ namespace QtPrivate {
     template<typename T>
     void operator,(T, const ApplyRetrunValue<void> &) {}
 
-
+    //FunctionPointer traints
     template<typename Func> struct FunctionPointer { enum {ArgumentCount = 1000}; };
     template<class Obj, typename Ret> struct FunctionPointer<Ret (Obj::*) ()>
     {
@@ -356,6 +357,7 @@ namespace QtPrivate {
         }
     };
 
+    // Logic that check if the arguments of the slot matches the argument of the signal.
     template<typename T, bool B> struct CheckCompatibleArgumentsHelper {};
     template<typename T> struct CheckCompatibleArgumentsHelper<T, true> : T {};
     template<typename A1, typename A2> struct AreCompatiblmeArgument {
@@ -375,6 +377,7 @@ namespace QtPrivate {
             typename RemoveConstRef<Arg1>::Type, typename RemoveConstRef<Arg2>::Type>::value > {};
 
 
+    //Generate the array of metatype id, for the queued connection
     template <typename ArgList> struct TypesAreDeclaredMetaType { enum { Value = false }; };
     template <> struct TypesAreDeclaredMetaType<void> { enum { Value = true }; };
     template <typename Arg, typename Tail> struct TypesAreDeclaredMetaType<List<Arg, Tail> > { enum { Value = QMetaTypeId2<Arg>::Defined && TypesAreDeclaredMetaType<Tail>::Value }; };

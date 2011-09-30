@@ -129,7 +129,9 @@ public:
         ushort method_relative;
         ushort connectionType : 3; // 0 == auto, 1 == direct, 2 == queued, 4 == blocking
         ushort isSlotObject : 1;
-        Connection() : nextConnectionList(0), ref_(2) {}
+        Connection() : nextConnectionList(0), ref_(2) {
+            //ref_ is 2 for the use in the internal lists, and for the use in QMetaObject::Connection
+        }
         ~Connection();
         int method() const { return method_offset + method_relative; }
         void ref() { ref_.ref(); }

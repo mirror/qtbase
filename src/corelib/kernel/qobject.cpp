@@ -2993,6 +2993,8 @@ QMetaObject::Connection QMetaObject::connect(const QObject *sender, int signal_i
    Same as the QMetaObject::connect, but \a signal_index must be the result of QObjectPrivate::signalIndex
 
     method_index is relative to the rmeta metaobject, if rmeta is null, then it is absolute index
+
+    the QObjectPrivate::Connection* has a refcount of 2, sot must be passed to a QMetaObject::Connection
  */
 QObjectPrivate::Connection *QMetaObjectPrivate::connect(const QObject *sender, int signal_index,
                                  const QObject *receiver, int method_index,
@@ -4103,7 +4105,7 @@ QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, c
         type = static_cast<Qt::ConnectionType>(type & (Qt::UniqueConnection - 1));
     }
 
-    QObjectPrivate::Connection *c = new QObjectPrivate::Connection;
+    QScopedPointer<QObjectPrivate::Connection> c(new QObjectPrivate::Connection);
     c->sender = s;
     c->receiver = r;
     c->slotObj = slotObj;
@@ -4111,16 +4113,11 @@ QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, c
     c->isSlotObject = true;
     c->argumentTypes = types2;
 
-    QT_TRY {
-        QObjectPrivate::get(s)->addConnection(signal_index, c);
-    } QT_CATCH(...) {
-        delete c;
-        QT_RETHROW;
-    }
+    QObjectPrivate::get(s)->addConnection(signal_index, c.data());
 
     c->prev = &(QObjectPrivate::get(r)->senders);
     c->next = *c->prev;
-    *c->prev = c;
+    *c->prev = c.data();
     if (c->next)
         c->next->prev = &c->next;
 
@@ -4131,7 +4128,7 @@ QObject::Connection QObject::connectImpl(const QObject* sender, void** signal, c
         sender_d->connectedSignals[signal_index >> 5] |= (1 << (signal_index & 0x1f));
     }
 
-    return Connection(c);
+    return Connection(c.take());
 }
 
 void QObject::disconnect(const Connection &connection)

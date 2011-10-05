@@ -148,6 +148,8 @@ private slots:
 
     void taskQTBUG_5008_textFromValueAndValidate();
 
+    void setThousandSeparator();
+
 public slots:
     void valueChangedHelper(const QString &);
     void valueChangedHelper(int);
@@ -1047,4 +1049,13 @@ void tst_QSpinBox::taskQTBUG_5008_textFromValueAndValidate()
 
 
 QTEST_MAIN(tst_QSpinBox)
+
+void tst_QSpinBox::setThousandSeparator()
+{
+    QSpinBox sBox;
+    sBox.setThousandSeparatorVisible(true);
+    QCOMPARE(sBox.isThousandSeparatorVisible(), true);
+    sBox.setThousandSeparatorVisible(false);
+    QCOMPARE(sBox.isThousandSeparatorVisible(), false);
+}
 #include "tst_qspinbox.moc"

@@ -150,6 +150,7 @@ public:
     QRect hoverRect;
     QAbstractSpinBox::ButtonSymbols buttonSymbols;
     QSpinBoxValidator *validator;
+    bool thousandSeparator;
 };
 
 class QSpinBoxValidator : public QValidator

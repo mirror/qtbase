@@ -66,6 +66,8 @@ private slots:
     // task-specific tests below me:
     void task183108_clear();
     void task228728_cssselector();
+    //! test thousand separator functions
+    void tst_thousandseparator();
 };
 
 tst_QAbstractSpinBox::tst_QAbstractSpinBox()
@@ -156,6 +158,13 @@ void tst_QAbstractSpinBox::task228728_cssselector()
     //so while the stylesheet want to access property, it should not crash
     qApp->setStyleSheet("[alignement=\"1\"], [text=\"foo\"] { color:black; }" );
     QSpinBox box;
+}
+
+void tst_QAbstractSpinBox::tst_thousandseparator()
+{
+    QAbstractSpinBox sBox;
+    sBox.setThousandSeparatorVisible(true);
+    QCOMPARE(sBox.isThousandSeparatorVisible(), true);
 }
 
 

@@ -207,6 +207,7 @@ QSpinBox::QSpinBox(QWidget *parent)
 {
     Q_D(QSpinBox);
     d->init();
+    decimalsForThousandSeparator = 0;
 }
 
 #ifdef QT3_SUPPORT
@@ -604,6 +605,7 @@ QDoubleSpinBox::QDoubleSpinBox(QWidget *parent)
 {
     Q_D(QDoubleSpinBox);
     d->init();
+    decimalsForThousandSeparator = 0;
 }
 
 /*!
@@ -854,6 +856,7 @@ void QDoubleSpinBox::setDecimals(int decimals)
 {
     Q_D(QDoubleSpinBox);
     d->decimals = qBound(0, decimals, DBL_MAX_10_EXP + DBL_DIG);
+    decimalsForThousandSeparator = d->decimals;
 
     setRange(d->actualMin, d->actualMax); // make sure values are rounded
     setValue(value());

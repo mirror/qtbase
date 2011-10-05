@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 
+#include <cmath>
 #include <qplatformdefs.h>
 #include <private/qabstractspinbox_p.h>
 #include <private/qdatetime_p.h>
@@ -1731,16 +1732,22 @@ void QAbstractSpinBoxPrivate::updateEdit()
     Q_Q(QAbstractSpinBox);
     if (type == QVariant::Invalid)
         return;
-    const QString newText = specialValue() ? specialValueText : prefix + textFromValue(value) + suffix;
-    if (newText == edit->displayText() || cleared)
+    if (cleared)
         return;
-
     const bool empty = edit->text().isEmpty();
     int cursor = edit->cursorPosition();
     int selsize = edit->selectedText().size();
     const bool sb = edit->blockSignals(true);
-    edit->setText(newText);
-
+    //! thousand separator {
+    QLocale loc;
+    QString qText;
+    if (thousandSeparator)
+    {
+        qText = loc.toString(value.toDouble(), 'f', q->decimalsForThousandSeparator);
+    }
+    qText = specialValue() ? specialValueText : prefix + qText + suffix;
+    edit->setText(qText);
+    //! thousand separator }
     if (!specialValue()) {
         cursor = qBound(prefix.size(), cursor, edit->displayText().size() - suffix.size());
 
@@ -2113,7 +2120,29 @@ QVariant QAbstractSpinBoxPrivate::variantBound(const QVariant &min,
         return min;
     }
 }
+/*!
+    Sets thousand separator to the number provided by \a QLocale::groupSeparator()
 
+    \sa isThousandSeparatorVisible()
+*/
+void QAbstractSpinBox::setThousandSeparatorVisible(bool visible)
+{
+    Q_D(QAbstractSpinBox);
+
+    d->thousandSeparator = visible;
+    d->updateEdit();
+}
+/*!
+    Checks if thousand separator is set by function \a setThousandSeparatorVisible()
+
+    \sa setThousandSeparatorVisible()
+*/
+bool QAbstractSpinBox::isThousandSeparatorVisible()
+{
+    Q_D(QAbstractSpinBox);
+
+    return d->thousandSeparator;
+}
 
 QT_END_NAMESPACE
 

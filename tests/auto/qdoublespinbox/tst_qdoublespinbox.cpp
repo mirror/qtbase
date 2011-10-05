@@ -151,6 +151,8 @@ private slots:
     void taskQTBUG_6670_selectAllWithPrefix();
     void taskQTBUG_6496_fiddlingWithPrecision();
 
+    void setThousandSeparatorVisible();
+
 public slots:
     void valueChangedHelper(const QString &);
     void valueChangedHelper(double);
@@ -1110,4 +1112,13 @@ void tst_QDoubleSpinBox::taskQTBUG_6496_fiddlingWithPrecision()
 }
 
 QTEST_MAIN(tst_QDoubleSpinBox)
+
+void tst_QDoubleSpinBox::setThousandSeparatorVisible()
+{
+    QDoubleSpinBox dsb;
+    dsb.setThousandSeparatorVisible(true);
+    QCOMPARE(dsb.isThousandSeparatorVisible(), true);
+    dsb.setThousandSeparatorVisible(false);
+    QCOMPARE(dsb.isThousandSeparatorVisible(), false);
+}
 #include "tst_qdoublespinbox.moc"

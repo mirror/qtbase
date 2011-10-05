@@ -122,12 +122,17 @@ public:
     void interpretText();
     bool event(QEvent *event);
 
+    void setThousandSeparatorVisible(bool visible = true);
+    bool isThousandSeparatorVisible();
+
     QVariant inputMethodQuery(Qt::InputMethodQuery) const;
 
     virtual QValidator::State validate(QString &input, int &pos) const;
     virtual void fixup(QString &input) const;
 
     virtual void stepBy(int steps);
+
+    int decimalsForThousandSeparator;
 public Q_SLOTS:
     void stepUp();
     void stepDown();

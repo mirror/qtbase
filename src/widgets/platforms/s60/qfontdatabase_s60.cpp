@@ -195,7 +195,7 @@ static inline bool qt_symbian_fontNameHasAppFontMarker(const QString &fontName)
         return false;
     // Testing if the the id is base32 data
     for (int i = fontName.length() - idLength; i < fontName.length(); ++i) {
-        const QChar &c = fontName.at(i);
+        const QChar c = fontName.at(i);
         if (!(c >= QLatin1Char('0') && c <= QLatin1Char('9')
               || c >= QLatin1Char('a') && c <= QLatin1Char('v')))
             return false;

@@ -85,7 +85,7 @@ protected:
     void generatePkgFile(const QString &iconFile,
                          bool epocBuild,
                          const SymbianLocalizationList &symbianLocalizationList);
-    bool containsStartWithItem(const QChar &c, const QStringList& src);
+    bool containsStartWithItem(QChar c, const QStringList& src);
 
     void writeRegRssFile(QMap<QString, QStringList> &useritems);
     void writeRegRssList(QTextStream &t, QStringList &userList,

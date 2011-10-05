@@ -112,7 +112,7 @@ void SymbianCommonGenerator::init()
     }
 }
 
-bool SymbianCommonGenerator::containsStartWithItem(const QChar &c, const QStringList& src)
+bool SymbianCommonGenerator::containsStartWithItem(QChar c, const QStringList& src)
 {
     bool result = false;
     foreach(QString str, src) {

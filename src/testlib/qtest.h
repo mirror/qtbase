@@ -107,7 +107,7 @@ template<> inline char *toString(const QDateTime &dateTime)
         : qstrdup("Invalid QDateTime");
 }
 
-template<> inline char *toString(const QChar &c)
+template<> inline char *toString(QChar c)
 {
     return qstrdup(QString::fromLatin1("QChar: '%1' (0x%2)").arg(c).arg(QString::number(static_cast<int>(c.unicode()), 16)).toLatin1().constData());
 }

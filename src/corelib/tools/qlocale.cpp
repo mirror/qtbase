@@ -2822,7 +2822,7 @@ bool QLocalePrivate::numberToCLocale(const QString &num,
         return false;
 
     while (idx < l) {
-        const QChar &in = uc[idx];
+        const QChar in = uc[idx];
 
         char out = digitToCLocale(in);
         if (out == 0) {

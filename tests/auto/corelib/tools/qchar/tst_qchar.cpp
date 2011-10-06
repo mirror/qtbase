@@ -80,6 +80,7 @@ private slots:
     void isLetterOrNumber_data();
     void isLetterOrNumber();
     void isPrint();
+    void isSpace();
     void isUpper();
     void isLower();
     void isSpace_data();
@@ -303,6 +304,24 @@ void tst_QChar::isPrint()
 {
     QVERIFY(QChar('A').isPrint());
     QVERIFY(!QChar(0x1aff).isPrint()); // General_Gategory =Cn
+}
+
+void tst_QChar::isSpace()
+{
+    QVERIFY(!QChar(QChar::Null).isSpace());
+    QVERIFY(QChar(0x09).isSpace());
+    QVERIFY(QChar(0x0a).isSpace());
+    QVERIFY(QChar(0x0b).isSpace());
+    QVERIFY(QChar(0x0c).isSpace());
+    QVERIFY(QChar(0x0d).isSpace());
+    QVERIFY(QChar(0x20).isSpace());
+    QVERIFY(!QChar(QLatin1Char('0')).isSpace());
+    QVERIFY(!QChar(QLatin1Char('a')).isSpace());
+    QVERIFY(QChar(0x85).isSpace());
+    QVERIFY(QChar(QChar::Nbsp).isSpace());
+    QVERIFY(QChar(QChar::ParagraphSeparator).isSpace());
+    QVERIFY(QChar(QChar::LineSeparator).isSpace());
+    QVERIFY(QChar(0x1680).isSpace());
 }
 
 void tst_QChar::isUpper()

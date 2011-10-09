@@ -285,12 +285,22 @@ init_context:
         return false;
     }
 
-    // Enable all bug workarounds.
+    // Enable bug workarounds.
+    long options;
     if (configuration.protocol == QSsl::TlsV1SslV3 || configuration.protocol == QSsl::SecureProtocols) {
-        q_SSL_CTX_set_options(ctx, SSL_OP_ALL|SSL_OP_NO_SSLv2);
+        options = SSL_OP_ALL|SSL_OP_NO_SSLv2;
     } else {
-        q_SSL_CTX_set_options(ctx, SSL_OP_ALL);
+        options = SSL_OP_ALL;
     }
+
+    if (configuration.sslOptions & QSsl::SslOptionDisableEmptyFragments)
+        options |= SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
+    if (configuration.sslOptions & QSsl::SslOptionDisableTickets)
+        options |= SSL_OP_NO_TICKET;
+    if (configuration.sslOptions & QSsl::SslOptionDisableCompression)
+        options |= SSL_OP_NO_COMPRESSION;
+
+    q_SSL_CTX_set_options(ctx, options);
 
     // Initialize ciphers
     QByteArray cipherString;

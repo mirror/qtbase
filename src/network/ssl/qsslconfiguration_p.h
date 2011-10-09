@@ -98,6 +98,8 @@ public:
     QSslSocket::PeerVerifyMode peerVerifyMode;
     int peerVerifyDepth;
 
+    uint sslOptions;
+
     // in qsslsocket.cpp:
     static QSslConfiguration defaultConfiguration();
     static void setDefaultConfiguration(const QSslConfiguration &configuration);

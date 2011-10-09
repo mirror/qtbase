@@ -81,6 +81,12 @@ namespace QSsl {
         SecureProtocols,
         UnknownProtocol = -1
     };
+
+    enum SslOption {
+        SslOptionDisableEmptyFragments = 0x01,
+        SslOptionDisableTickets = 0x02,
+        SslOptionDisableCompression = 0x04
+    };
 }
 
 QT_END_NAMESPACE

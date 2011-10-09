@@ -517,9 +517,9 @@ void QSslConfiguration::setSslOption(QSsl::SslOption option, bool on)
     }
 }
 
-bool QSslConfiguration::sslOption(QSsl::SslOption option) const
+bool QSslConfiguration::testSslOption(QSsl::SslOption option) const
 {
-    return (d->sslOptions & option) ? true : false;
+    return d->sslOptions & option;
 }
 
 /*!

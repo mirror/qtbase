@@ -287,11 +287,10 @@ init_context:
 
     // Enable bug workarounds.
     long options;
-    if (configuration.protocol == QSsl::TlsV1SslV3 || configuration.protocol == QSsl::SecureProtocols) {
+    if (configuration.protocol == QSsl::TlsV1SslV3 || configuration.protocol == QSsl::SecureProtocols)
         options = SSL_OP_ALL|SSL_OP_NO_SSLv2;
-    } else {
+    else
         options = SSL_OP_ALL;
-    }
 
     // This option is disabled by default, so we need to be able to clear it
     if (configuration.sslOptions & QSsl::SslOptionDisableEmptyFragments)

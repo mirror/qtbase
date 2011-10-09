@@ -297,7 +297,7 @@ init_context:
     if (configuration.sslOptions & QSsl::SslOptionDisableEmptyFragments)
         options |= SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
     else
-        options &= (0xffffffff ^ SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+        options &= ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
 
     if (configuration.sslOptions & QSsl::SslOptionDisableTickets)
         options |= SSL_OP_NO_TICKET;

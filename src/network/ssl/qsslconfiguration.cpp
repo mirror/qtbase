@@ -513,7 +513,7 @@ void QSslConfiguration::setSslOption(QSsl::SslOption option, bool on)
     if (on)
         d->sslOptions = d->sslOptions|option;
     else {
-        d->sslOptions = (d->sslOptions|option) ^ option;
+        d->sslOptions &= ~option;
     }
 }
 

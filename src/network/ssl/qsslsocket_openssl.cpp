@@ -293,8 +293,12 @@ init_context:
         options = SSL_OP_ALL;
     }
 
+    // This option is disabled by default, so we need to be able to clear it
     if (configuration.sslOptions & QSsl::SslOptionDisableEmptyFragments)
         options |= SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
+    else
+        options &= (0xffffffff ^ SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
+
     if (configuration.sslOptions & QSsl::SslOptionDisableTickets)
         options |= SSL_OP_NO_TICKET;
     if (configuration.sslOptions & QSsl::SslOptionDisableCompression)

@@ -2676,6 +2676,38 @@ void QTableWidget::dropEvent(QDropEvent *event) {
 
     QTableView::dropEvent(event);
 }
+/*!
+    Sets value in \a data into the cell specified by \a row and \a col.
+
+    \sa data()
+*/
+void QTableWidget::setData(int row, int col, const QVariant &data)
+{
+    if (columnCount() - 1 < col) {
+        qWarning() << "QTableWidget::setData: column index out of range" << col;
+        return;
+    }
+
+    if (rowCount() - 1 < row) {
+        qWarning() << "QTableWidget::setData: row index out of range" << row;
+        return;
+    }
+
+    setItem(row,col, new QTableWidgetItem);
+    item(row, col)->setData(Qt::EditRole, data);
+}
+/*!
+    Returns value from the cell specified by \a row and \a col.
+
+    \sa setData()
+*/
+QVariant QTableWidget::data(int row, int col)
+{
+    if (item(row, col) != NULL)
+        return item(row, col)->data(Qt::DisplayRole);
+    else
+        return QVariant();
+}
 #endif
 
 QT_END_NAMESPACE

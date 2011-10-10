@@ -104,7 +104,7 @@ private slots:
     void task231094();
     void task219380_removeLastRow();
     void task262056_sortDuplicate();
-
+    void setData();
 private:
     QTableWidget *testWidget;
 };
@@ -1498,4 +1498,14 @@ void tst_QTableWidget::task262056_sortDuplicate()
 
 
 QTEST_MAIN(tst_QTableWidget)
+
+void tst_QTableWidget::setData()
+{
+    QTableWidget *tWidget = new QTableWidget;
+    tWidget->insertColumn(1);
+    tWidget->insertRow(1);
+
+    tWidget->setData(0,0, "Test Value");
+    QCOMPARE(tWidget->data(0,0).toString(),"Test Value");
+}
 #include "tst_qtablewidget.moc"

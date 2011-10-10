@@ -290,6 +290,9 @@ public:
     const QTableWidgetItem *itemPrototype() const;
     void setItemPrototype(const QTableWidgetItem *item);
 
+    void setData(int row, int col, const QVariant &data);
+    QVariant data(int row, int col);
+
 public Q_SLOTS:
     void scrollToItem(const QTableWidgetItem *item, QAbstractItemView::ScrollHint hint = EnsureVisible);
     void insertRow(int row);

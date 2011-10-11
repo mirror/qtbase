@@ -85,7 +85,8 @@ namespace QSsl {
     enum SslOption {
         SslOptionDisableEmptyFragments = 0x01,
         SslOptionDisableTickets = 0x02,
-        SslOptionDisableCompression = 0x04
+        SslOptionDisableCompression = 0x04,
+        SslOptionDisableServerNameIndication = 0x08
     };
 }
 

@@ -82,8 +82,7 @@ public:
     QSslConfigurationPrivate()
         : protocol(QSsl::SecureProtocols),
           peerVerifyMode(QSslSocket::AutoVerifyPeer),
-          peerVerifyDepth(0),
-          sslOptions(0)
+          peerVerifyDepth(0)
     { }
 
     QSslCertificate peerCertificate;
@@ -99,7 +98,7 @@ public:
     QSslSocket::PeerVerifyMode peerVerifyMode;
     int peerVerifyDepth;
 
-    uint sslOptions;
+    QSsl::SslOptions sslOptions;
 
     // in qsslsocket.cpp:
     static QSslConfiguration defaultConfiguration();

@@ -138,6 +138,9 @@ QT_BEGIN_NAMESPACE
     extension. When enabled, this allows the data being passed over SSL to
     be compressed, however some servers are not compatible with this
     extension.
+    \value SslOptionDisableServerNameIndication Disables the SSL server
+    name indication extension. When enabled, this tells the server the virtual
+    host being accessed allowing it to respond with the correct certificate.
 */
 
 

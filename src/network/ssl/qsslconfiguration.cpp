@@ -508,6 +508,11 @@ void QSslConfiguration::setCaCertificates(const QList<QSslCertificate> &certific
     d->caCertificates = certificates;
 }
 
+/*!
+  Enables or disables an SSL compatibility option.
+
+  \sa testSSlOption()
+*/
 void QSslConfiguration::setSslOption(QSsl::SslOption option, bool on)
 {
     if (on)
@@ -516,6 +521,11 @@ void QSslConfiguration::setSslOption(QSsl::SslOption option, bool on)
         d->sslOptions &= ~option;
 }
 
+/*!
+  Returns true if the specified SSL compatibility option is enabled.
+
+  \sa testSSlOption()
+*/
 bool QSslConfiguration::testSslOption(QSsl::SslOption option) const
 {
     return d->sslOptions & option;

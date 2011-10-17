@@ -516,7 +516,7 @@ void QSslConfiguration::setCaCertificates(const QList<QSslCertificate> &certific
 void QSslConfiguration::setSslOption(QSsl::SslOption option, bool on)
 {
     if (on)
-        d->sslOptions = d->sslOptions|option;
+        d->sslOptions |= option;
     else
         d->sslOptions &= ~option;
 }

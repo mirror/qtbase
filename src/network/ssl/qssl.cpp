@@ -129,7 +129,7 @@ QT_BEGIN_NAMESPACE
 
     \value SslOptionDisableEmptyFragments Disables the insertion of empty
     fragments into the data when using block ciphers. When enabled, this
-    prevents some attacks (such as the recent BEAST attack) however it is
+    prevents some attacks (such as the BEAST attack), however it is
     incompatible with some servers.
     \value SslOptionDisableTickets Disables the SSL session ticket
     extension. This can cause slower connection setup, however some servers
@@ -141,6 +141,9 @@ QT_BEGIN_NAMESPACE
     \value SslOptionDisableServerNameIndication Disables the SSL server
     name indication extension. When enabled, this tells the server the virtual
     host being accessed allowing it to respond with the correct certificate.
+
+    By default, SslOptionDisableEmptyFragments is turned on since this causes
+    problems with a large number of servers, but the other options are disabled.
 */
 
 

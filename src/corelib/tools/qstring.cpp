@@ -4078,6 +4078,7 @@ QString QString::simplified() const
             if (from == fromEnd)
                 goto done;
         } while (!ch.isSpace());
+
     }
   done:
     *to++ = ch;
@@ -4899,29 +4900,33 @@ QString QString::toLower() const
     const ushort *p = d->data();
     if (!p)
         return *this;
-    if (!d->size)
-        return *this;
 
-    const ushort *e = d->data() + d->size;
+    const ushort *e = p + d->size;
+    // this avoids out of bounds check in the loop
+    while (e != p && QChar::isHighSurrogate(*(e - 1)))
+        --e;
 
-    // this avoids one out of bounds check in the loop
-    if (QChar(*p).isLowSurrogate())
-        ++p;
-
+    const QUnicodeTables::Properties *prop;
     while (p != e) {
-        uint c = *p;
-        if (QChar(c).isLowSurrogate() && QChar(*(p - 1)).isHighSurrogate())
-            c = QChar::surrogateToUcs4(*(p - 1), c);
-        const QUnicodeTables::Properties *prop = qGetProp(c);
+        if (QChar::isHighSurrogate(*p) && QChar::isLowSurrogate(p[1])) {
+            ushort high = *p++;
+            prop = qGetProp(QChar::surrogateToUcs4(high, *p));
+        } else {
+            prop = qGetProp(*p);
+        }
         if (prop->lowerCaseDiff || prop->lowerCaseSpecial) {
+            if (QChar::isLowSurrogate(*p))
+                --p; // safe; diff is 0 for surrogates
             QString s(d->size, Qt::Uninitialized);
             memcpy(s.d->data(), d->data(), (p - d->data())*sizeof(ushort));
             ushort *pp = s.d->data() + (p - d->data());
-            while (p < e) {
-                uint c = *p;
-                if (QChar(c).isLowSurrogate() && QChar(*(p - 1)).isHighSurrogate())
-                    c = QChar::surrogateToUcs4(*(p - 1), c);
-                prop = qGetProp(c);
+            while (p != e) {
+                if (QChar::isHighSurrogate(*p) && QChar::isLowSurrogate(p[1])) {
+                    *pp = *p++;
+                    prop = qGetProp(QChar::surrogateToUcs4(*pp++, *p));
+                } else {
+                    prop = qGetProp(*p);
+                }
                 if (prop->lowerCaseSpecial) {
                     int pos = pp - s.d->data();
                     s.resize(s.d->size + SPECIAL_CASE_MAX_LEN);
@@ -4934,6 +4939,11 @@ QString QString::toLower() const
                 }
                 ++p;
             }
+
+            // this restores high surrogate parts eaten above, if any
+            while (e != d->data() + d->size)
+                *pp++ = *e++;
+
             s.truncate(pp - s.d->data());
             return s;
         }
@@ -4987,35 +4997,38 @@ QString QString::toCaseFolded() const
 
     \sa toLower(), QLocale::toLower()
 */
-
 QString QString::toUpper() const
 {
     const ushort *p = d->data();
     if (!p)
         return *this;
-    if (!d->size)
-        return *this;
 
-    const ushort *e = d->data() + d->size;
+    const ushort *e = p + d->size;
+    // this avoids out of bounds check in the loop
+    while (e != p && QChar::isHighSurrogate(*(e - 1)))
+        --e;
 
-    // this avoids one out of bounds check in the loop
-    if (QChar(*p).isLowSurrogate())
-        ++p;
-
+    const QUnicodeTables::Properties *prop;
     while (p != e) {
-        uint c = *p;
-        if (QChar(c).isLowSurrogate() && QChar(*(p - 1)).isHighSurrogate())
-            c = QChar::surrogateToUcs4(*(p - 1), c);
-        const QUnicodeTables::Properties *prop = qGetProp(c);
+        if (QChar::isHighSurrogate(*p) && QChar::isLowSurrogate(p[1])) {
+            ushort high = *p++;
+            prop = qGetProp(QChar::surrogateToUcs4(high, *p));
+        } else {
+            prop = qGetProp(*p);
+        }
         if (prop->upperCaseDiff || prop->upperCaseSpecial) {
+            if (QChar::isLowSurrogate(*p))
+                --p; // safe; diff is 0 for surrogates
             QString s(d->size, Qt::Uninitialized);
             memcpy(s.d->data(), d->data(), (p - d->data())*sizeof(ushort));
             ushort *pp = s.d->data() + (p - d->data());
-            while (p < e) {
-                uint c = *p;
-                if (QChar(c).isLowSurrogate() && QChar(*(p - 1)).isHighSurrogate())
-                    c = QChar::surrogateToUcs4(*(p - 1), c);
-                prop = qGetProp(c);
+            while (p != e) {
+                if (QChar::isHighSurrogate(*p) && QChar::isLowSurrogate(p[1])) {
+                    *pp = *p++;
+                    prop = qGetProp(QChar::surrogateToUcs4(*pp++, *p));
+                } else {
+                    prop = qGetProp(*p);
+                }
                 if (prop->upperCaseSpecial) {
                     int pos = pp - s.d->data();
                     s.resize(s.d->size + SPECIAL_CASE_MAX_LEN);
@@ -5028,6 +5041,11 @@ QString QString::toUpper() const
                 }
                 ++p;
             }
+
+            // this restores high surrogate parts eaten above, if any
+            while (e != d->data() + d->size)
+                *pp++ = *e++;
+
             s.truncate(pp - s.d->data());
             return s;
         }

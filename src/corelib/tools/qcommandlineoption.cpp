@@ -77,6 +77,8 @@ public:
     different ways of defining the same option with multiple aliases possible.
     It is also used to describe how the option is used - it may be a flag (e.g. -v)
     or take an argument (e.g. -o file).
+
+    \sa QCommandLineParser
 */
 
 /*!

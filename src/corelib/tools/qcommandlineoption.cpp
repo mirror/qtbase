@@ -86,10 +86,6 @@ public:
 
     The mode used for this option to interpret the meaning of its usage.
 
-    \value Count The option does not have any values, but the number,
-    it occures, matters. Typical example for this is when the verbosity is
-    increased by using the "-v" option few times.
-
     \value NoValue The option does not have any values assigned, thus it is more
     like a boolean behavior. If the user specifies --foobar, it turns the
     related things to that options on.
@@ -174,10 +170,6 @@ void QCommandLineOption::setNames(const QStringList& names)
 /*!
     Return the mode used for this option. The default is
     QCommandLineOption::NoValue
-
-    Setting \a optionMode to QCommandLineOption::Count defines that the occurence
-    of the option is counted. One typical example for this is when the verbosity is
-    increased by using the "-v" option few times.
 
     Setting \a optionMode to QCommandLineOption::NoValue defines that the option
     does not have any values assigned, thus it behaves as a boolean flag. Once

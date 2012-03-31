@@ -55,7 +55,6 @@ class Q_CORE_EXPORT QCommandLineOption
 {
     public:
     enum OptionType {
-        Count,
         NoValue,
         OneValue,
         MultipleValues

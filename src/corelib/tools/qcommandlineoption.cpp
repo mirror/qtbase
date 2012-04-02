@@ -91,7 +91,11 @@ public:
     related things to that options on.
 
     \value OneValue The option has exactly one value accepted, so even if it
-    occurs few times, the last specified value is accepted.
+    occurs few times, the last specified value is accepted. The usage of this
+    type is encouraged instead of the "-v -v -v" style in which case the final
+    result is decided upon number of occurences. It is possible to achieve the
+    same functionality with "-v 3" for instance. It is cleaner and results less
+    complexity after all.
 
     \value MultipleValues The option can be passed with multiple values and each
     one will be collected from the command line into a list.
@@ -177,7 +181,11 @@ void QCommandLineOption::setNames(const QStringList& names)
 
     Setting \a optionMode to QCommandLineOption::OneValue defines that the option
     accepts only and precisely one argument meaning that if there are more
-    parameters assigned, the last occurence is taken.
+    parameters assigned, the last occurence is taken. The usage of this
+    type is encouraged instead of the "-v -v -v" style in which case the final
+    result is decided upon number of occurences. It is possible to achieve the
+    same functionality with "-v 3" for instance. It is cleaner and results less
+    complexity after all.
 
     Setting \a optionMode to QCommandLineOption::MultipleValues defines that the option
     can be invoked with more than one argument on the command line, and they are

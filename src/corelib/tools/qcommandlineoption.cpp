@@ -149,7 +149,9 @@ QCommandLineOption::operator=(const QCommandLineOption &other)
 
 bool QCommandLineOption::operator==(const QCommandLineOption &other) const
 {
-    return (d->nameSet == other.names() && d->optionType == other.optionType());
+    return (d->nameSet == other.names() && d->optionType == other.optionType()
+            && d->isRequired == other.required() && d->optionType == other.optionType()
+            && d->description == other.description() && d->defaultValues == other.defaultValues());
 }
 
 /*!

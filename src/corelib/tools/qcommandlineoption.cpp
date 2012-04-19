@@ -152,6 +152,11 @@ bool QCommandLineOption::operator==(const QCommandLineOption &other) const
     return (d->nameSet == other.names() && d->optionType == other.optionType());
 }
 
+/*!
+    Return the names set for this option.
+
+    \sa setNames()
+ */
 QStringList QCommandLineOption::names() const
 {
     return d->nameSet;
@@ -208,7 +213,6 @@ void QCommandLineOption::setOptionType(OptionType optionType)
     Return the mode used for this option. The default is
     QCommandLineOption::NoValue
 
-    \param optionType the mode used for this option.
     \sa setOptionType()
  */
 QCommandLineOption::OptionType QCommandLineOption::optionType() const
@@ -232,6 +236,16 @@ void QCommandLineOption::setRequired(bool required)
 }
 
 /*!
+    Return if the option is required. The default value is false.
+
+    \sa setRequired()
+ */
+bool QCommandLineOption::required() const
+{
+    return d->isRequired;
+}
+
+/*!
     Set the description used for this option.
 
     The description is used for instance while prompting some help output to the
@@ -245,6 +259,16 @@ void QCommandLineOption::setDescription(const QString& description)
 }
 
 /*!
+    Return the description set for this option.
+
+    \sa setDescription()
+ */
+QString QCommandLineOption::description() const
+{
+    return d->description;
+}
+
+/*!
    Set the default values used for this option.
 
    The default values are used, if the user of the application does not specify
@@ -255,5 +279,15 @@ void QCommandLineOption::setDescription(const QString& description)
 void QCommandLineOption::setDefaultValues(const QStringList& defaultValues)
 {
     d->defaultValues = defaultValues;
+}
+
+/*!
+    Return the default values set for this option.
+
+    \sa setDefaultValues()
+ */
+QStringList QCommandLineOption::defaultValues() const
+{
+    return d->defaultValues;
 }
 

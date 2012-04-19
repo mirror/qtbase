@@ -71,18 +71,20 @@ class Q_CORE_EXPORT QCommandLineOption
 
     bool operator==(const QCommandLineOption &other) const;
 
-    QStringList names() const;
-
     void setNames(const QStringList& names);
+    QStringList names() const;
 
     void setOptionType(OptionType optionType);
     OptionType optionType() const;
 
     void setRequired(bool required);
+    bool required() const;
 
     void setDescription(const QString& description);
+    QString description() const;
 
     void setDefaultValues(const QStringList& defaultValues);
+    QStringList defaultValues() const;
 
     private:
         QCommandLineOptionPrivate* d;

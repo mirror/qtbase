@@ -147,6 +147,11 @@ QCommandLineOption::operator=(const QCommandLineOption &other)
     return *this;
 }
 
+bool QCommandLineOption::operator==(const QCommandLineOption &other) const
+{
+    return (d->nameSet == other.names() && d->optionType == other.optionType());
+}
+
 QStringList QCommandLineOption::names() const
 {
     return d->nameSet;

@@ -69,6 +69,8 @@ class Q_CORE_EXPORT QCommandLineOption
 
     ~QCommandLineOption();
 
+    bool operator==(const QCommandLineOption &other) const;
+
     QStringList names() const;
 
     void setNames(const QStringList& names);

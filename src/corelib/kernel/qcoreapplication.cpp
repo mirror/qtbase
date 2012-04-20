@@ -2051,8 +2051,8 @@ void QCoreApplication::setCommandLineOptions(const QList<QCommandLineOption> &co
 }
 
 /*!
-  Prepends \a commandLineOption to the beginning of the command line option
-  list, ensuring that it is searched for the command line options first.
+  Appends \a commandLineOption to the beginning of the command line option
+  list, ensuring that it is searched for the builtin command line options first.
   If \a commandLineOption names are empty or already in the command line option
   list, the path list is not changed.
 
@@ -2071,7 +2071,7 @@ void QCoreApplication::addCommandLineOption(const QCommandLineOption &commandLin
     commandLineOptions();
 
     if (!coreappdata()->app_commandlineoptions->contains(commandLineOption)) {
-        coreappdata()->app_commandlineoptions->prepend(commandLineOption);
+        coreappdata()->app_commandlineoptions->append(commandLineOption);
         locker.unlock();
     }
 }

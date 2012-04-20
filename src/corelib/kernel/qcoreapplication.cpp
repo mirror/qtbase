@@ -2010,17 +2010,11 @@ Q_GLOBAL_STATIC_WITH_ARGS(QMutex, commandLineOptionMutex, (QMutex::Recursive))
 
 /*!
     Returns a list of command line options that the application will search when
-    parsing the passed arguments
+    parsing the arguments passed
 
     Qt provides default command line options and they cannot be overriden. The
-    builtin options override any command line options specified explicitely.
-
-    This list will include the installation directory for plugins if
-    it exists (the default installation directory for plugins is \c
-    INSTALL/plugins, where \c INSTALL is the directory where Qt was
-    installed).  The directory of the application executable (NOT the
-    working directory) is always added, as well as the colon separated
-    entries of the QT_PLUGIN_PATH environment variable.
+    builtin options override any command line options specified explicitely, if
+    there are duplicates.
 
     If you want to iterate over the list, you can use the \l foreach
     pseudo-keyword:
@@ -2034,34 +2028,6 @@ QList<QCommandLineOption> QCoreApplication::commandLineOptions()
     QMutexLocker locker(commandLineOptionMutex());
     if (!coreappdata()->app_commandlineoptions) {
         QList<QCommandLineOption> *app_commandlineoptions = coreappdata()->app_commandlineoptions = new QList<QCommandLineOption>();
-        // QString installPathPlugins =  QLibraryInfo::location(QLibraryInfo::PluginsPath);
-        // if (QFile::exists(installPathPlugins)) {
-            // // Make sure we convert from backslashes to slashes.
-            // installPathPlugins = QDir(installPathPlugins).canonicalPath();
-            // if (!app_libpaths->contains(installPathPlugins))
-                // app_libpaths->append(installPathPlugins);
-        // }
-
-        // // If QCoreApplication is not yet instantiated,
-        // // make sure we add the application path when we construct the QCoreApplication
-        // if (self) self->d_func()->appendApplicationPathToLibraryPaths();
-
-        // const QByteArray libPathEnv = qgetenv("QT_PLUGIN_PATH");
-        // if (!libPathEnv.isEmpty()) {
-// #if defined(Q_OS_WIN)
-            // QLatin1Char pathSep(';');
-// #else
-            // QLatin1Char pathSep(':');
-// #endif
-            // QStringList paths = QString::fromLatin1(libPathEnv).split(pathSep, QString::SkipEmptyParts);
-            // for (QStringList::const_iterator it = paths.constBegin(); it != paths.constEnd(); ++it) {
-                // QString canonicalPath = QDir(*it).canonicalPath();
-                // if (!canonicalPath.isEmpty()
-                    // && !app_libpaths->contains(canonicalPath)) {
-                    // app_libpaths->append(canonicalPath);
-                // }
-            // }
-        // }
     }
     return *(coreappdata()->app_commandlineoptions);
 }
@@ -2082,12 +2048,11 @@ void QCoreApplication::setCommandLineOptions(const QList<QCommandLineOption> &co
         coreappdata()->app_commandlineoptions = new QList<QCommandLineOption>();
     *(coreappdata()->app_commandlineoptions) = commandLineOptions;
     locker.unlock();
-    // QFactoryLoader::refreshAll();
 }
 
 /*!
   Prepends \a commandLineOption to the beginning of the command line option
-  list, ensuring that it is searched for those command line options first.
+  list, ensuring that it is searched for the command line options first.
   If \a commandLineOption names are empty or already in the command line option
   list, the path list is not changed.
 
@@ -2108,7 +2073,6 @@ void QCoreApplication::addCommandLineOption(const QCommandLineOption &commandLin
     if (!coreappdata()->app_commandlineoptions->contains(commandLineOption)) {
         coreappdata()->app_commandlineoptions->prepend(commandLineOption);
         locker.unlock();
-        // QFactoryLoader::refreshAll();
     }
 }
 
@@ -2129,7 +2093,6 @@ void QCoreApplication::removeCommandLineOption(const QCommandLineOption &command
     commandLineOptions();
 
     coreappdata()->app_commandlineoptions->removeAll(commandLineOption);
-    // QFactoryLoader::refreshAll();
 }
 
 #ifndef QT_NO_LIBRARY

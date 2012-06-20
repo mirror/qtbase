@@ -100,7 +100,7 @@ bool QCommandLineOptionValue::operator==(const QCommandLineOptionValue &other) c
 /*!
     Returns the option value as a bool if the option value has type() Bool.
 
-    Returns true if the variant has type() \l Bool; otherwise returns false.
+    Returns true if the option value has type() \l Bool; otherwise returns false.
 
     \sa toString(), toStringList()
 */

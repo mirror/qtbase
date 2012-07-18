@@ -46,7 +46,6 @@
 #include "qcoreevent.h"
 #include "qeventloop.h"
 #include "qcorecmdlineargs_p.h"
-#include <qcommandlineoption.h>
 #include <qdatastream.h>
 #include <qdebug.h>
 #include <qdir.h>
@@ -249,13 +248,11 @@ Qt::HANDLE qt_application_thread_id = 0;
 
 struct QCoreApplicationData {
     QCoreApplicationData() {
-        app_commandlineoptions = 0;
 #ifndef QT_NO_LIBRARY
         app_libpaths = 0;
 #endif
     }
     ~QCoreApplicationData() {
-        delete app_commandlineoptions;
 #ifndef QT_NO_LIBRARY
         delete app_libpaths;
 #endif
@@ -269,8 +266,6 @@ struct QCoreApplicationData {
     }
     QString orgName, orgDomain, application;
     QString applicationVersion;
-
-    QList<QCommandLineOption> *app_commandlineoptions;
 
 #ifndef QT_NO_LIBRARY
     QStringList *app_libpaths;
@@ -2004,95 +1999,6 @@ void QCoreApplication::setApplicationVersion(const QString &version)
 QString QCoreApplication::applicationVersion()
 {
     return coreappdata()->applicationVersion;
-}
-
-Q_GLOBAL_STATIC_WITH_ARGS(QMutex, commandLineOptionMutex, (QMutex::Recursive))
-
-/*!
-    Returns a list of command line options that the application will search when
-    parsing the arguments passed
-
-    Qt provides default command line options and they cannot be overriden. The
-    builtin options override any command line options specified explicitely, if
-    there are duplicates.
-
-    If you want to iterate over the list, you can use the \l foreach
-    pseudo-keyword:
-
-    \snippet doc/src/snippets/code/src_corelib_kernel_qcoreapplication.cpp 2
-
-    \sa setCommandLineOptions(), addCommandLineOption(), removeCommandLineOption(), QCommandLineOption
-*/
-QList<QCommandLineOption> QCoreApplication::commandLineOptions()
-{
-    QMutexLocker locker(commandLineOptionMutex());
-    if (!coreappdata()->app_commandlineoptions) {
-        QList<QCommandLineOption> *app_commandlineoptions = coreappdata()->app_commandlineoptions = new QList<QCommandLineOption>();
-    }
-    return *(coreappdata()->app_commandlineoptions);
-}
-
-/*!
-
-    Sets the list of command line options to search when parsing the builtin and
-    \a commandLineOptions. All existing command lineoptions will be deleted and
-    the command line option list will consist of the command line options given
-    in \a commandLineOptions.
-
-    \sa commandLineOptions(), addCommandLineOption(), removeCommandLineOption(), QCommandLineOption
- */
-void QCoreApplication::setCommandLineOptions(const QList<QCommandLineOption> &commandLineOptions)
-{
-    QMutexLocker locker(commandLineOptionMutex());
-    if (!coreappdata()->app_commandlineoptions)
-        coreappdata()->app_commandlineoptions = new QList<QCommandLineOption>();
-    *(coreappdata()->app_commandlineoptions) = commandLineOptions;
-    locker.unlock();
-}
-
-/*!
-  Appends \a commandLineOption to the beginning of the command line option
-  list, ensuring that it is searched for the builtin command line options first.
-  If \a commandLineOption names are empty or already in the command line option
-  list, the path list is not changed.
-
-  The default command line option list consists of certain builtin options.
-
-  \sa removeCommandLineOption(), commandLineOptions(), setCommandLineOptions()
- */
-void QCoreApplication::addCommandLineOption(const QCommandLineOption &commandLineOption)
-{
-    if (commandLineOption.names().isEmpty())
-        return;
-
-    QMutexLocker locker(commandLineOptionMutex());
-
-    // make sure that command line options is initialized
-    commandLineOptions();
-
-    if (!coreappdata()->app_commandlineoptions->contains(commandLineOption)) {
-        coreappdata()->app_commandlineoptions->append(commandLineOption);
-        locker.unlock();
-    }
-}
-
-/*!
-    Removes \a commandLineOption from the command line option list. If \a commandLineOption
-    names are empty or not in the command line option list, the list is not changed.
-
-    \sa addCommandLineOption(), commandLineOptions(), setCommandLineOptions()
-*/
-void QCoreApplication::removeCommandLineOption(const QCommandLineOption &commandLineOption)
-{
-    if (commandLineOption.names().isEmpty())
-        return;
-
-    QMutexLocker locker(commandLineOptionMutex());
-
-    // make sure that command line options is initialized
-    commandLineOptions();
-
-    coreappdata()->app_commandlineoptions->removeAll(commandLineOption);
 }
 
 #ifndef QT_NO_LIBRARY

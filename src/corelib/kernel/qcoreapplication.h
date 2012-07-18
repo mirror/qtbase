@@ -56,7 +56,6 @@ QT_BEGIN_NAMESPACE
 
 
 class QCoreApplicationPrivate;
-class QCommandLineOption;
 class QTextCodec;
 class QTranslator;
 class QPostEventList;
@@ -126,11 +125,6 @@ public:
     static QString applicationDirPath();
     static QString applicationFilePath();
     static qint64 applicationPid();
-
-    static void setCommandLineOptions(const QList<QCommandLineOption>&);
-    static QList<QCommandLineOption> commandLineOptions();
-    static void addCommandLineOption(const QCommandLineOption &);
-    static void removeCommandLineOption(const QCommandLineOption &);
 
 #ifndef QT_NO_LIBRARY
     static void setLibraryPaths(const QStringList &);

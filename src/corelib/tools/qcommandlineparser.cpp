@@ -91,54 +91,72 @@ public:
 /*!
     \since 5.1
     \class QCommandLineParser
-    \brief The QCommandLineParser class provides a means for parsing the options
-    of the command line interface.
 
-    This parser finds options and their values on the command line.  The parser
-    allows for long and short names, aliases (more than one name for the same
-    option) and option arguments.
+    \brief The QCommandLineParser class provides a means for handling the
+    options on the command line interface.
 
-    It can parse the options passed to the program or an arbitrary list of
-    options. It can subsequently return argument values it found, or a list
-    of arguments that were left over.  The parser can also optionally remove
-    unrecognised options from the leftover list.
+    This parser finds the options and their values on the command line. The
+    parser handles short names, long names, aliases (more than one name for the
+    same option), and option values.
 
-    Options on the command line are recognised as starting with a dash character.
-    The option "-" (single dash) is a special case, and is not treated as an option.
-    By default, the parser will stop parsing once the option "--" (double dash)
-    is encountered, although this behaviour can be changed.
+    The class can parse the builtin and custom options passed to the class. It
+    can subsequently return the option value(s) found, or a list of values
+    without assigned option names (i.e. remaining values).
 
-    Short options are single letters.  The option "f" would be specified by
-    passing "-f" on the command line.  Short options can be be bundled - any
-    short option that does not take an argument can be immediately followed
-    by another short option.  For example, if "f" has no argument, it can be
-    bundled with option "b" like this: "-fb".
+    Options on the command line are recognised as starting with a single or
+    double dash character(s). The option "-" (single dash) is a special case,
+    and not treated as an option. By default, the parser will stop parsing once
+    the option "--" (double dash) is encountered, although this behaviour can be
+    changed.
 
-    Long options are more than one letter long.  The long option "foo" would
-    be passed as "--foo".  Long options can not be bundled together.
+    Short options are single letters. The option "v" would be specified by
+    passing "-v" on the command line. Short options cannot be bundled due to the
+    existing limitations, namely: certain tools have already been using the
+    -longname pattern. Therefore, the bundled short options could essentially
+    clash with a long option name.
 
-    Short options that take an argument will use the remaining characters in
-    the same argument.  For example, if "b" takes an argument, passing "-fbabc"
-    will treat "abc" as b's argument.  If there are no more characters, the
-    next argument is used - even if it starts with a dash.
+    Long options are more than one letter long. The long option "foobar" would
+    be passed as "--foobar" or "-foobar". Long options can not obviously be
+    bundled together either.
 
-    Long options are similar, but require an assignment operator to mark the
-    end of the long name, such as shown here: "--bar=value".  If there is no
-    assignment operator, the next argument is used - even if it starts with a
-    dash.
+    Short options, taking an argument, cannot use the remaining characters in
+    the same argument. For example, if "v" takes an argument, passing "-vfoobar"
+    cannot treat "foobar" as v's argument since "vfoobar" could clash with the
+    equally named long option. One way to put the values is to have assignment
+    operator to mark the end of the short name, as shown here: "-v=value".
+    If there is no assignment operator, the next argument is used.
+
+    Long options are similar as they also require an assignment operator to
+    mark the end of the long name, such as shown here: "--foobar=value". If
+    there is no assignment operator, the next argument is used - even if it
+    starts with a dash.
+
+    Using an option value is encouraged by the class instead of counting the
+    option occurences on the command line when the number of option occurences
+    would otherwise define the exact operation. For example, the class does not
+    handle the option "-vvvv" passed, as expected. It considers this as a long
+    option name "vvvv". The preferred usage is "-v=4" or "-v 4" in those cases.
+    It is somewhat a simpler form, and does not potentially clash with the
+    equally named long option names.
 
     The parser does not support optional arguments - if an option is set to
-    require an argument, one must be present.  If such an option is placed
-    last and has no argument, the option will be treated as if it had not been
+    require an argument, one must be present. If such an option is placed last
+    and has no argument, the option will be treated as if it had not been
     specified.
 
     The parser does not automatically support negating or disabling long options
-    by using the format "--disable-foo" or "--no-foo".  However, a caller could
-    make an option with "no-foo" as one of its names, and handle the case
-    explicitly themselves.
+    by using the format "--disable-foobar" or "--no-foobar". Although, a caller
+    could make an option with "no-foobar" as one of its names, and handle the
+    case explicitly themselves.
 
-    All values of option arguments are string only.  It is up to the caller to
-    convert to other types.
+    The value of the options can be a string, string list or just the fact
+    whether or not the option is set. There are convenience methods established
+    in this class for getting the value(s). It is not necessary for the caller
+    to convert to other types manually.
+
+    The parsing happens behind the scenes, thus it is not necessary for the
+    caller to call that explicitely. Once the values are requested, the parsing
+    takes place internally on demand.
 */
 
 /*!

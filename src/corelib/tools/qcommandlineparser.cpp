@@ -173,6 +173,18 @@ QCommandLineParser::QCommandLineParser()
 }
 
 /*!
+    \internal
+
+    Destroys the command line parser object.
+
+    The command line parser should never be deleted explicitely.
+    QCoreApplication handles the deletion when the application terminates.
+*/
+QCommandLineParser::~QCommandLineParser()
+{
+}
+
+/*!
     Add an option to look for while parsing.
 
     If the option contains no names or any name that is in use by a

@@ -55,8 +55,6 @@ class QCommandLineParserPrivate;
 class QCommandLineParser
 {
 public:
-    ~QCommandLineParser();
-
     bool addOption(const QCommandLineOption& commandLineOption);
 
     bool setHelpOption(bool isHelpOption);
@@ -76,6 +74,8 @@ public:
 
 private:
     QCommandLineParser();
+    ~QCommandLineParser();
+
     QCommandLineParser(const QCommandLineParser& other);
     QCommandLineParser& operator=(const QCommandLineParser& other);
 

@@ -73,11 +73,10 @@ public:
     QStringList unknownOptionNames() const;
 
 private:
+    Q_DISABLE_COPY(QCommandLineParser)
+
     QCommandLineParser();
     ~QCommandLineParser();
-
-    QCommandLineParser(const QCommandLineParser& other);
-    QCommandLineParser& operator=(const QCommandLineParser& other);
 
     QCommandLineParserPrivate* const d;
 };

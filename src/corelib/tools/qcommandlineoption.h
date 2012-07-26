@@ -90,4 +90,8 @@ class Q_CORE_EXPORT QCommandLineOption
         QCommandLineOptionPrivate* d;
 };
 
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
 #endif // QCOMMANDLINEOPTION_H

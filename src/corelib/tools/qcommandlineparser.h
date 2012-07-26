@@ -81,4 +81,8 @@ private:
     QCommandLineParserPrivate* const d;
 };
 
+QT_END_NAMESPACE
+
+QT_END_HEADER
+
 #endif // QCOMMANDLINEPARSER_H

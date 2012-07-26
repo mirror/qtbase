@@ -538,3 +538,5 @@ QStringList QCommandLineParser::unknownOptionNames() const
 {
     return d->unknownOptionNames;
 }
+
+QT_END_NAMESPACE

@@ -293,3 +293,4 @@ QStringList QCommandLineOption::defaultValues() const
     return d->defaultValues;
 }
 
+QT_END_NAMESPACE

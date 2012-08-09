@@ -61,6 +61,7 @@ class QTranslator;
 class QPostEventList;
 class QStringList;
 class QAbstractEventDispatcher;
+class QCommandLineParser;
 
 #define qApp QCoreApplication::instance()
 
@@ -165,6 +166,10 @@ public:
 
     static bool isQuitLockEnabled();
     static void setQuitLockEnabled(bool enabled);
+
+#ifndef QT_NO_COMMANDLINEPARSER
+    static QCommandLineParser *commandLineParser();
+#endif
 
 public Q_SLOTS:
     static void quit();

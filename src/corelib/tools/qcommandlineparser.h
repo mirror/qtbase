@@ -72,6 +72,9 @@ public:
 
     QStringList unknownOptionNames() const;
 
+protected:
+    friend class QCoreApplication;
+
 private:
     Q_DISABLE_COPY(QCommandLineParser)
 

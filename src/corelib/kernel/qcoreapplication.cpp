@@ -62,6 +62,7 @@
 #include <qelapsedtimer.h>
 #include <qlibraryinfo.h>
 #include <qvarlengtharray.h>
+#include <qcommandlineparser.h>
 #include <private/qfactoryloader_p.h>
 #include <private/qfunctions_p.h>
 #include <private/qlocale_p.h>
@@ -231,6 +232,10 @@ bool QCoreApplicationPrivate::is_app_running = false;
 bool QCoreApplicationPrivate::is_app_closing = false;
 // initialized in qcoreapplication and in qtextstream autotest when setlocale is called.
 static bool qt_locale_initialized = false;
+
+#ifndef QT_NO_COMMANDLINEPARSER
+    static QCommandLineParser *qt_commandlineparser;
+#endif
 
 Q_CORE_EXPORT uint qGlobalPostedEventsCount()
 {
@@ -492,6 +497,11 @@ void QCoreApplicationPrivate::initLocale()
     argv() function, you must convert them from the local string encoding
     using QString::fromLocal8Bit().
 
+    For more advanced command line option handling, the QCommandLineParser
+    singleton can be invoked after accessing the instance with the
+    commandLineParser() method. The QCoreApplication object takes care of the
+    construction and deconstruction of the command line parser object.
+
     \section1 Locale Settings
 
     On Unix/Linux Qt is configured to use the system locale settings by
@@ -640,6 +650,11 @@ QCoreApplication::~QCoreApplication()
     delete coreappdata()->app_libpaths;
     coreappdata()->app_libpaths = 0;
 #endif
+
+#ifndef QT_NO_COMMANDLINEPARSER
+    delete qt_commandlineparser;
+    qt_commandlineparser = 0;
+#endif
 }
 
 
@@ -698,6 +713,23 @@ void QCoreApplication::setQuitLockEnabled(bool enabled)
 {
     quitLockRefEnabled = enabled;
 }
+
+#ifndef QT_NO_COMMANDLINEPARSER
+/*!
+    Returns the object for interacting with the command line parser.
+*/
+QCommandLineParser* QCoreApplication::commandLineParser()
+{
+    if (qt_commandlineparser == 0) {
+        if (!qApp) {
+            qWarning("QCoreApplication: Must construct a QCoreApplication before accessing a QCommandLineParser");
+            return 0;
+        }
+        qt_commandlineparser = new QCommandLineParser();
+    }
+    return qt_commandlineparser;
+}
+#endif
 
 /*!
   \internal

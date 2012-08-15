@@ -59,9 +59,6 @@ public:
 
     bool setHelpOption(bool isHelpOption);
 
-    bool parse();
-    bool parse(const QStringList & arguments);
-
     QString argument( const QString & name ) const;
 
     QStringList arguments(const QString& name) const;
@@ -80,6 +77,9 @@ private:
 
     QCommandLineParser();
     ~QCommandLineParser();
+
+    bool parse();
+    bool parse(const QStringList & arguments);
 
     QCommandLineParserPrivate* const d;
 };

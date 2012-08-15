@@ -231,6 +231,8 @@ bool QCommandLineParser::setHelpOption(bool isHelpOption)
 }
 
 /*!
+    \internal
+
     Parse the command line arguments.
 
     The command line is obtained from the current \c QCoreApplication
@@ -264,6 +266,8 @@ bool QCommandLineParser::parse()
 }
 
 /*!
+    \internal
+
     Parse the given arguments for options.
 
     Any results from a previous parse operation are removed.  If

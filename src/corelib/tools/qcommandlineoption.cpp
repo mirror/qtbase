@@ -101,7 +101,7 @@ public:
     one will be collected from the command line into a list.
 
 
-    \sa setOptionType()
+    \sa optionType(), setOptionType()
 */
 
 /*!
@@ -165,13 +165,13 @@ QStringList QCommandLineOption::names() const
 }
 
 /*!
-    Set the names used for this option.
+    Set the list of names used for this option to \a names
 
     The name can be either short or long. Any name in the list that is one
     character in length is a short name. Option names starting with dash
     character, have zero length or duplicates are ignored.
 
-    \param names a list of names used for this option.
+    \sa names()
  */
 void QCommandLineOption::setNames(const QStringList& names)
 {
@@ -184,10 +184,9 @@ void QCommandLineOption::setNames(const QStringList& names)
 }
 
 /*!
-    Return the mode used for this option. The default is
-    QCommandLineOption::NoValue
+    Set the option type used for this option to \a optionType
 
-    Setting \a optionMode to QCommandLineOption::NoValue defines that the option
+    Setting \a optionType to QCommandLineOption::NoValue defines that the option
     does not have any values assigned, thus it behaves as a boolean flag. Once
     --foobar is specified on the command line, that turns the feature on.
 
@@ -203,7 +202,6 @@ void QCommandLineOption::setNames(const QStringList& names)
     can be invoked with more than one argument on the command line, and they are
     sequentially appended into a list to get them all contained.
 
-    \param optionType the mode used for this option.
     \sa optionType()
  */
 void QCommandLineOption::setOptionType(OptionType optionType)
@@ -223,14 +221,14 @@ QCommandLineOption::OptionType QCommandLineOption::optionType() const
 }
 
 /*!
-    Set whether or not this option is required
+    Set whether or not this option is required to \a required
 
     If this is set to true as required, the option needs to be set explicitely
     without having a default value. Otherwise if it is set to false, this option
     becomes option and the user is not obligated to define it while running the
     application.
 
-    \param required whether this option is required or optional..
+    \sa required()
  */
 void QCommandLineOption::setRequired(bool required)
 {
@@ -248,12 +246,12 @@ bool QCommandLineOption::required() const
 }
 
 /*!
-    Set the description used for this option.
+    Set the description used for this option to \a description
 
     The description is used for instance while prompting some help output to the
     user of the application.
 
-    \param description the description used for this option.
+    \sa description()
  */
 void QCommandLineOption::setDescription(const QString& description)
 {
@@ -271,12 +269,12 @@ QString QCommandLineOption::description() const
 }
 
 /*!
-   Set the default values used for this option.
+   Set the list of default values used for this option to \a defaultValues
 
    The default values are used, if the user of the application does not specify
    them explicitely via the command line or other user interface.
 
-   \param defaultValues the the list of the default values used for this option.
+   \sa defaultValues()
  */
 void QCommandLineOption::setDefaultValues(const QStringList& defaultValues)
 {

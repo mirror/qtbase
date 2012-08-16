@@ -96,8 +96,8 @@ public:
     options on the command line interface.
 
     This parser finds the options and their values on the command line. The
-    parser handles short names, long names, aliases (more than one name for the
-    same option), and option values.
+    parser handles short names, long names, more than one name for the same
+    option, and option values.
 
     The class can parse the builtin and custom options passed to the class. It
     can subsequently return the option value(s) found, or a list of values
@@ -157,10 +157,17 @@ public:
     The parsing happens behind the scenes, thus it is not necessary for the
     caller to call that explicitely. Once the values are requested, the parsing
     takes place internally on demand.
+
+    \sa QCommandLineOption, QCoreApplication
 */
 
 /*!
-    Constructs a command line parser object with the given arguments.
+    \internal
+
+    Constructs a command line parser object.
+
+    The command line parser should never be constructed explicitely.
+    QCoreApplication handles the construction when the application launches.
 */
 QCommandLineParser::QCommandLineParser()
     : d(new QCommandLineParserPrivate)
@@ -177,25 +184,24 @@ QCommandLineParser::QCommandLineParser()
 
     Destroys the command line parser object.
 
-    The command line parser should never be deleted explicitely.
-    QCoreApplication handles the deletion when the application terminates.
+    The command line parser should never be destructed explicitely.
+    QCoreApplication handles the destruction when the application terminates.
 */
 QCommandLineParser::~QCommandLineParser()
 {
 }
 
 /*!
-    Add an option to look for while parsing.
+    Add the option \a option to look for while parsing.
 
-    If the option contains no names or any name that is in use by a
-    previously added option, adding it will fail.  Adding the option may
-    also fail if memory cannot be allocated.
+    Returns true if the option adding was successful; otherwise returns false.
 
-    There is currently a limit of 65535 options.  Subsequent additions will
-    fail.
-
-    \param option the option to add.
-    \return whether the option could be added.
+    The option adding fails, if there is no name attached to the option, or
+    there is a name attached that clashes with an option name added before.
+    There is also currently a maximum limit of 65535 options. Subsequent
+    additions fails.
+    
+    Adding the option may also fail if memory cannot be allocated.
  */
 bool QCommandLineParser::addOption(const QCommandLineOption& option)
 {
@@ -235,16 +241,14 @@ bool QCommandLineParser::setHelpOption(bool isHelpOption)
 
     Parse the command line arguments.
 
+    Returns true if the command line parsing was successful; otherwise returns
+    false.
+
     The command line is obtained from the current \c QCoreApplication
-    instance - it will fail if this is not available.  The first argument
+    instance - it will fail if this is not available. The first argument
     in the list is the program name and is skipped.
 
-    This method calls <tt>parse( const QStringList & )</tt>.
-
-    \return whether the parsing succeeded.
-    \sa parse( const QStringList & )
-    \sa QCoreApplication::instance()
-    \sa QCoreApplication::arguments()
+    \sa parse(const QStringList&), QCoreApplication::arguments(), QCoreApplication::commandLineParser()
  */
 bool QCommandLineParser::parse()
 {
@@ -268,25 +272,25 @@ bool QCommandLineParser::parse()
 /*!
     \internal
 
-    Parse the given arguments for options.
+    Parse the list of arguments \a arguments.
 
-    Any results from a previous parse operation are removed.  If
+    Returns true if the command line parsing was successful; otherwise returns
+    false.
+
+    Any results from a previous parse operation are removed. If
     \c m_bStopParsingAtDoubleDash is \c true the parser will not look for
     further options once it encounters the option "--"; this does not
     include when "--" follows an option that requires an argument.
 
     Options that were successfully recognised, and their arguments, are
-    removed from the input list.  If \c m_bRemoveUnknownLongNames is
+    removed from the input list. If \c m_bRemoveUnknownLongNames is
     \c true, unrecognised options are removed and placed into a list of
-    unknown option names.  Anything left over is placed into a list of
+    unknown option names. Anything left over is placed into a list of
     leftover arguments.
 
     A long option that does not take an argument will still be recognised
-    if encountered in the form "--foo=value".  In this case, the argument
+    if encountered in the form "--foo=value". In this case, the argument
     value will be ignored.
-
-    \param arguments the list of arguments to parse.
-    \return whether the parsing succeeded.
  */
 bool QCommandLineParser::parse(const QStringList & arguments)
 {
@@ -422,20 +426,18 @@ bool QCommandLineParser::parse(const QStringList & arguments)
 
 
 /*!
-    Get the argument for a given option.
+    Return the option value found for the given option name \a optionName, or
+    null string if not found.
 
     The name provided can be any long or short name of any option that was
-    added with \c addOption().  All of an option's aliases are treated as
-    being equivalent.  If the name is not recognised or that option was not
-    present, a null string is returned.
+    added with \c addOption(). All the option names are treated as being
+    equivalent. If the name is not recognised or that option was not present, a
+    null string is returned.
 
     For options found by the parser, an empty string is returned if the
     option does not take an argument, otherwise the last argument found for
     that option is returned.
 
-    \param name the name of the option to look for.
-    \return a null string if not found, or a string representing the last
-    value found for the option.
     \sa arguments()
  */
 
@@ -454,21 +456,20 @@ QString QCommandLineParser::argument(const QString& optionName) const
 
 
 /*!
-    Get a list of arguments for a given option.
+    Return a list of option values found for the given option name \a
+    optionName, or null string if not found.
 
     The name provided can be any long or short name of any option that was
-    added with \c addOption().  All of an option's aliases are treated as
-    being equivalent.  If the name is not recognised or that option was not
-    present, a null string is returned.
+    added with \c addOption(). All the options names are treated as being
+    equivalent. If the name is not recognised or that option was not present, a
+    null string is returned.
 
     For options found by the parser, the list will contain an entry for
-    each time the option was encountered by the parser.  These entries
+    each time the option was encountered by the parser. These entries
     will always be an empty string for options that do not take an argument.
     Options that do take an argument will have the list populated with the
     argument values in the order they were found.
 
-    \param name the name of the option to look for.
-    \return a list of the arguments found for the option.
     \sa argument()
  */
 
@@ -486,13 +487,10 @@ QStringList QCommandLineParser::arguments(const QString& optionName) const
 
 
 /*!
-    Get a list of left over arguments.
+    Return a list of remaining arguments.
 
     These are all of the arguments that were not recognised as part of an
-    option.  If \c m_bRemoveUnknownLongNames is \c true, unrecognised
-    options will also have been removed.  Options with
-
-    \return a list of left over arguments.
+    option.
  */
 
 QStringList QCommandLineParser::remainingArguments() const
@@ -501,10 +499,10 @@ QStringList QCommandLineParser::remainingArguments() const
 }
 
 /*!
-    Get a list of option names that were found.
+    Return a list of option names that were found.
 
     This returns a list of all the recognised option names found by the
-    parser, in the order in which they were found.  For any long options
+    parser, in the order in which they were found. For any long options
     that were in the form "--foo=value", the value part will have been
     dropped.
 
@@ -514,8 +512,6 @@ QStringList QCommandLineParser::remainingArguments() const
 
     Any entry in the list can be used with \c getArgument() or with
     \c getArgumentList() to get any relevant arguments.
-
-    \return a list of option names found by the parser.
  */
 
 QStringList QCommandLineParser::optionNames() const
@@ -524,17 +520,16 @@ QStringList QCommandLineParser::optionNames() const
 }
 
 /*!
-    Get a list of unknown option names.
+    Return a list of unknown option names.
 
     This list will include both long an short name options that were not
-    recognised.  For any long options that were in the form "--foo=value",
+    recognised. For any long options that were in the form "--foo=value",
     the value part will have been dropped and only the long name is added.
 
     The names in this list do not include the preceding dash characters.
     Names may appear more than once in this list if they were encountered
     more than once by the parser.
 
-    \return a list of unknown option names.
     \sa optionNames()
  */
 

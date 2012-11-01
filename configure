@@ -2485,6 +2485,7 @@ fi
 case `basename "$XPLATFORM"` in win32-g++*) XPLATFORM_MINGW=yes;; esac
 case "$XPLATFORM" in *-maemo*) XPLATFORM_MAEMO=yes;; esac
 case "$XPLATFORM" in *qnx-*|*blackberry-*) XPLATFORM_QNX=yes;; esac
+case "$XPLATFORM" in *ios*) XPLATFORM_IOS=yes;; esac
 
 if [ -d "$PLATFORM" ]; then
   QMAKESPEC="$PLATFORM"
@@ -2598,6 +2599,11 @@ if [ -n "$CFG_SDK" ]; then
     MAC_SDK_FLAG="-sdk $CFG_SDK"
 else
     MAC_SDK_FLAG=
+fi
+
+# iOS builds should be static to be able to submit to the App Store
+if [ "$XPLATFORM_IOS" = "yes" ]; then
+    CFG_SHARED="no"
 fi
 
 QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`

@@ -169,7 +169,7 @@
 #     define Q_OS_MAC32
 #  endif
 #  include <TargetConditionals.h>
-#  if defined(TARGET_OS_IPHONE)
+#  if TARGET_OS_IPHONE
 #     define Q_OS_IOS
 #  endif
 #endif

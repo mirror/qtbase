@@ -3992,10 +3992,11 @@ fi
 
 # detect neon support
 if [ "$CFG_ARCH" = "arm" ] && [ "${CFG_NEON}" = "auto" ]; then
-    if compileTest unix/neon "neon"; then
-	CFG_NEON=yes
+    # The iOS toolchain has trouble building the pixman NEON draw-helpers
+    if [ "$XPLATFORM_IOS" != "yes" ] && compileTest unix/neon "neon"; then
+        CFG_NEON=yes
     else
-	CFG_NEON=no
+        CFG_NEON=no
     fi
 elif [ "$CFG_ARCH" != "arm" ]; then
     CFG_NEON=no

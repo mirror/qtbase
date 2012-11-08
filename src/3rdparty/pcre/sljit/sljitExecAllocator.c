@@ -83,7 +83,12 @@
 
 static SLJIT_INLINE void* alloc_chunk(sljit_uw size)
 {
-	return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    // ### FIXME: PAGE_EXECUTE_READWRITE is not allowed on WinRT
+    // Also not figured yet, which define can be used for Desktop App identification
+    // Hence a big FIXME here to find a solution before merging back to mainline,
+    // but have it in for now to continue with compilation of QtCore on WinRT
+    return 0;
+    //return VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 }
 
 static SLJIT_INLINE void free_chunk(void* chunk, sljit_uw size)

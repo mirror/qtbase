@@ -625,11 +625,15 @@ void QLibraryPrivate::updatePluginState()
 #endif
             if (!pHnd) {
 #ifdef Q_OS_WIN
+#ifndef Q_OS_WINRT
                 DWORD dwFlags = (retryLoadLibrary) ? 0: DONT_RESOLVE_DLL_REFERENCES;
                 //avoid 'Bad Image' message box
                 UINT oldmode = SetErrorMode(SEM_FAILCRITICALERRORS|SEM_NOOPENFILEERRORBOX);
                 hTempModule = ::LoadLibraryEx((wchar_t*)QDir::toNativeSeparators(fileName).utf16(), 0, dwFlags);
                 SetErrorMode(oldmode);
+#else
+                hTempModule = LoadPackagedLibrary((wchar_t*)QDir::toNativeSeparators(fileName).utf16(), 0);
+#endif
 #else
                 temporary_load =  load_sys();
 #endif

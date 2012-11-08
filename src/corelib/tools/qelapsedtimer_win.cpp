@@ -53,6 +53,7 @@ static quint64 counterFrequency = 0;
 static void resolveLibs()
 {
     static bool done = false;
+#ifndef Q_OS_WINRT
     if (done)
         return;
 
@@ -75,7 +76,7 @@ static void resolveLibs()
     } else {
         counterFrequency = frequency.QuadPart;
     }
-
+#endif
     done = true;
 }
 
@@ -113,11 +114,15 @@ static quint64 getTickCount()
 
     static quint32 highdword = 0;
     static quint32 lastval = 0;
+#ifndef Q_OS_WINRT
     quint32 val = GetTickCount();
     if (val < lastval)
         ++highdword;
     lastval = val;
     return val | (quint64(highdword) << 32);
+#else
+    return GetTickCount64();
+#endif
 }
 
 int qt_msectime()

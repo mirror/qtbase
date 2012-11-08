@@ -143,8 +143,30 @@ QSystemLocalePrivate::QSystemLocalePrivate()
     : substitutionType(SUnknown)
 {
     langEnvVar = qgetenv("LANG");
+#ifndef Q_OS_WINRT
     lcid = GetUserDefaultLCID();
+#else
+    lcid = -1;
+#endif
 }
+
+#if defined Q_OS_WINRT
+int GetLocaleInfo(LCID locale, LCTYPE type, LPTSTR cdata, int ccdata)
+{
+    if (locale == -1)
+        return GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, type, cdata, ccdata);
+    SetLastError(ERROR_INVALID_PARAMETER);
+    return 0;
+}
+
+int GetCurrencyFormat(LCID locale, DWORD flags, LPCTSTR value, const CURRENCYFMT *format=0, LPTSTR currencystr = 0, int ccCurrency = 0)
+{
+    if (locale == -1)
+        return GetCurrencyFormatEx(LOCALE_NAME_USER_DEFAULT, flags, value, format, currencystr, ccCurrency);
+    SetLastError(ERROR_INVALID_PARAMETER);
+    return 0;
+}
+#endif
 
 QString QSystemLocalePrivate::getLocaleInfo(LCTYPE type, int maxlen)
 {
@@ -335,7 +357,11 @@ QVariant QSystemLocalePrivate::toString(const QDate &date, QLocale::FormatType t
 
     DWORD flags = (type == QLocale::LongFormat ? DATE_LONGDATE : DATE_SHORTDATE);
     wchar_t buf[255];
+#ifndef Q_OS_WINRT
     if (GetDateFormat(lcid, flags, &st, NULL, buf, 255)) {
+#else
+    if (GetDateFormatEx(LOCALE_NAME_USER_DEFAULT, flags, &st, NULL, buf, 255, 0)) {
+#endif
         QString format = QString::fromWCharArray(buf);
         if (substitution() == SAlways)
             substituteDigits(format);
@@ -356,7 +382,11 @@ QVariant QSystemLocalePrivate::toString(const QTime &time, QLocale::FormatType)
     DWORD flags = 0;
 
     wchar_t buf[255];
+#ifndef Q_OS_WINRT
     if (GetTimeFormat(lcid, flags, &st, NULL, buf, 255)) {
+#else
+    if (GetTimeFormatEx(LOCALE_NAME_USER_DEFAULT, flags, &st, NULL, buf, 255)) {
+#endif
         QString format = QString::fromWCharArray(buf);
         if (substitution() == SAlways)
             substituteDigits(format);
@@ -563,8 +593,12 @@ QVariant QSystemLocalePrivate::uiLanguages()
         }
     }
 
+#ifndef Q_OS_WINRT
     // old Windows before Vista
     return QStringList(QString::fromLatin1(winLangCodeToIsoName(GetUserDefaultUILanguage())));
+#else
+    return QStringList();
+#endif
 }
 
 QVariant QSystemLocalePrivate::nativeLanguageName()
@@ -584,7 +618,9 @@ QVariant QSystemLocalePrivate::nativeCountryName()
 
 void QSystemLocalePrivate::update()
 {
+#ifndef Q_OS_WINRT
     lcid = GetUserDefaultLCID();
+#endif
     substitutionType = SUnknown;
     zero = QChar();
 }
@@ -965,6 +1001,8 @@ static QByteArray getWinLocaleName(LCID id)
 
 #if defined(Q_OS_WINCE)
     result = winLangCodeToIsoName(id != LOCALE_USER_DEFAULT ? id : GetUserDefaultLCID());
+#elif defined(Q_OS_WINRT)
+    return QString::fromWCharArray(LOCALE_NAME_USER_DEFAULT).toLocal8Bit();
 #else
     if (id == LOCALE_USER_DEFAULT)
         id = GetUserDefaultLCID();

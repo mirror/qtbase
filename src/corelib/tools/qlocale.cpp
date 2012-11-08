@@ -1307,7 +1307,8 @@ static QString timeZone()
     if (res == TIME_ZONE_ID_UNKNOWN)
         return QString();
     return QString::fromWCharArray(info.StandardName);
-#elif defined(Q_OS_WIN)
+#elif defined(Q_OS_WIN) && !defined(Q_OS_WINRT)
+    // ### TODO: WinRT what to do here? Does not exist
     _tzset();
 # if defined(_MSC_VER) && _MSC_VER >= 1400
     size_t returnSize = 0;
@@ -1321,7 +1322,9 @@ static QString timeZone()
 #elif defined(Q_OS_VXWORKS)
     return QString();
 #else
+#ifndef Q_OS_WINRT
     tzset();
+#endif
     return QString::fromLocal8Bit(tzname[1]);
 #endif
 }

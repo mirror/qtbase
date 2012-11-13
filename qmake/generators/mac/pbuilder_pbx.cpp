@@ -1238,15 +1238,20 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
             for (QMap<QString, QString>::Iterator set_it = settings.begin(); set_it != settings.end(); ++set_it)
                 t << "\t\t\t\t" << writeSettings(set_it.key(), set_it.value()) << ";\n";
             if (buildConfigGroups.at(i) == QLatin1String("PROJECT")) {
-#if 0
-                // FIXME: Set CC and possibly LDPLUSPLUS depending on clang or LLVM, and also set GCC_VERSION
+                if (!project->isEmpty("QMAKE_XCODE_GCC_VERSION"))
+                    t << "\t\t\t\t" << writeSettings("GCC_VERSION", project->first("QMAKE_XCODE_GCC_VERSION"), SettingsNoQuote) << ";" << "\n";
                 ProString program = project->first("QMAKE_CC");
                 if (!program.isEmpty())
                     t << "\t\t\t\t" << writeSettings("CC", fixForOutput(findProgram(program))) << ";" << "\n";
                 program = project->first("QMAKE_CXX");
-                if (!program.isEmpty())
+                // Xcode will automatically take care of using CC with the right -x option,
+                // and will actually break if we pass CPLUSPLUS, by adding an additional set of "++"
+                if (!program.isEmpty() && !program.contains("clang++"))
                     t << "\t\t\t\t" << writeSettings("CPLUSPLUS", fixForOutput(findProgram(program))) << ";" << "\n";
-#endif
+                program = project->first("QMAKE_LINK");
+                if (!program.isEmpty())
+                    t << "\t\t\t\t" << writeSettings("LDPLUSPLUS", fixForOutput(findProgram(program))) << ";" << "\n";
+
                 if (!project->isEmpty("PRECOMPILED_HEADER")) {
                     t << "\t\t\t\t" << writeSettings("GCC_PRECOMPILE_PREFIX_HEADER", "YES") << ";" << "\n"
                       << "\t\t\t\t" << writeSettings("GCC_PREFIX_HEADER", escapeFilePath(project->first("PRECOMPILED_HEADER"))) << ";" << "\n";

@@ -1,5 +1,6 @@
 TARGET = qios
 
+PLUGIN_TYPE = platforms
 load(qt_plugin)
 DESTDIR = $$QT.gui.plugins/platforms
 
@@ -24,6 +25,3 @@ HEADERS = qiosintegration.h \
     qioscontext.h
 
 #HEADERS = qiossoftwareinputhandler.h
-
-target.path += $$[QT_INSTALL_PLUGINS]/platforms
-INSTALLS += target

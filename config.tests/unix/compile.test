@@ -32,11 +32,6 @@ while [ "$#" -gt 0 ]; do
         MAC_ARCH_LFLAGS="$MAC_ARCH_LFLAGS -arch $2"
         shift
         ;;
-    -sdk)
-        LFLAGS="$LFLAGS -Wl,-syslibroot,$2"
-        CXXFLAGS="$CXXFLAGS -isysroot $2"
-        shift
-        ;;
     -F*|-m*|-x*)
         LFLAGS="$LFLAGS $PARAM"
         CXXFLAGS="$CXXFLAGS $PARAM"
@@ -72,7 +67,7 @@ test -r Makefile && $MAKE distclean >/dev/null 2>&1
 # Make sure output from possible previous tests is gone
 rm -f "$EXE" "${EXE}.exe"
 
-set -- "$OUTDIR/bin/qmake" -nocache -spec "$QMKSPEC" "CONFIG+=$QMAKE_CONFIG" "CONFIG-=debug_and_release" "LIBS*=$LFLAGS" "LIBS+=$MAC_ARCH_LFLAGS" "INCLUDEPATH*=$INCLUDEPATH" "QMAKE_CXXFLAGS*=$CXXFLAGS" "QMAKE_CXXFLAGS+=$MAC_ARCH_CXXFLAGS" "QT_BUILD_TREE=$OUTDIR" "$SRCDIR/$TEST/$EXE.pro" -o "$OUTDIR/$TEST/Makefile"
+set -- "$OUTDIR/bin/qmake" -nocache -spec "$QMKSPEC" "CONFIG+=$QMAKE_CONFIG" "CONFIG-=debug_and_release" "LIBS*=$LFLAGS" "LIBS+=$MAC_ARCH_LFLAGS" "INCLUDEPATH*=$INCLUDEPATH" "QMAKE_CXXFLAGS*=$CXXFLAGS" "QMAKE_CXXFLAGS+=$MAC_ARCH_CXXFLAGS" "QT_BUILD_TREE=$OUTDIR" $MAC_SDK_FLAG "$SRCDIR/$TEST/$EXE.pro" -o "$OUTDIR/$TEST/Makefile"
 if [ "$VERBOSE" = "yes" ]; then
     OUTDIR=$OUTDIR "$@"
     $MAKE

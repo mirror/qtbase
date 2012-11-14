@@ -2609,10 +2609,11 @@ fi
 
 # pass on $CFG_SDK to the arch/configure tests.
 if [ -n "$CFG_SDK" ]; then
-    MAC_SDK_FLAG="-sdk $CFG_SDK"
+    MAC_SDK_FLAG="QMAKE_MAC_SDK=$CFG_SDK"
 else
     MAC_SDK_FLAG=
 fi
+export MAC_SDK_FLAG # used by config.tests/unix/{compile.test,arch.test}
 
 # iOS builds should be static to be able to submit to the App Store
 if [ "$XPLATFORM_IOS" = "yes" ]; then
@@ -3300,8 +3301,7 @@ Qt/Mac only:
                          link tools against those frameworks.
     -no-framework ...... Do not build Qt as a series of frameworks.
 
-    -sdk <sdk> ......... Build Qt using Apple provided SDK <sdk>. This option requires gcc 4.
-                         To use a different SDK with gcc 3.3, set the SDKROOT environment variable.
+    -sdk <sdk> ......... Build Qt using Apple provided SDK <sdk>.
 
     -harfbuzz .......... Use HarfBuzz to do text layout instead of Core Text when possible.
  *  -no-harfbuzz ....... Disable HarfBuzz on Mac. It can still be enabled by setting
@@ -3691,7 +3691,7 @@ EOF
 #-------------------------------------------------------------------------------
 # Verify makespec
 #-------------------------------------------------------------------------------
-QMAKE_OUTPUT=`$outpath/bin/qmake -E -nocache -spec "$XQMAKESPEC" "CONFIG=" /dev/null 2>&1 >/dev/null`
+QMAKE_OUTPUT=`$outpath/bin/qmake -E -nocache -spec "$XQMAKESPEC" $MAC_SDK_FLAG "CONFIG=sdk" /dev/null 2>&1 >/dev/null`
 if [ $? != "0" ]; then
     echo "Failed to process makespec for platform '$XPLATFORM'"
     if [ "$OPT_VERBOSE" = "yes" ]; then
@@ -3790,7 +3790,7 @@ compileTest()
     path=config.tests/$1
     name=$2
     shift 2
-    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS $MAC_SDK_FLAG "$@"
+    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS "$@"
 }
 
 #-------------------------------------------------------------------------------
@@ -3799,7 +3799,7 @@ compileTest()
 
 # Use config.tests/arch/arch.pro to have the compiler tell us what the target architecture is
 OUTFILE=$outpath/arch.result
-"$unixtests/arch.test" "$XQMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG" $MAC_SDK_FLAG
+"$unixtests/arch.test" "$XQMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG"
 if [ $? -eq 0 ]; then
     eval `cat "$OUTFILE"`
 else
@@ -3812,7 +3812,7 @@ rm -f "$OUTFILE" 2>/dev/null
 
 if [ "$QMAKESPEC" != "$XQMAKESPEC" ]; then
     # Do the same test again, using the host compiler
-    SYSROOT_FLAG= "$unixtests/arch.test" "$QMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG_HOST" $MAC_SDK_FLAG
+    SYSROOT_FLAG= MAC_SDK_FLAG= "$unixtests/arch.test" "$QMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG_HOST"
     if [ $? -eq 0 ]; then
         eval `cat "$OUTFILE"`
     else

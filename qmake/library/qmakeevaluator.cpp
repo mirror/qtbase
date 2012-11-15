@@ -1147,10 +1147,6 @@ bool QMakeEvaluator::loadSpecInternal()
 #endif
     valuesRef(ProKey("QMAKESPEC")) << ProString(m_qmakespec);
     m_qmakespecName = IoUtils::fileName(m_qmakespec).toString();
-    if (evaluateFile(spec, QMakeHandler::EvalConfigFile, LoadProOnly) != ReturnTrue) {
-        evalError(fL1S("Could not read qmake configuration file %1.").arg(spec));
-        return false;
-    }
     if (evaluateFeatureFile(QLatin1String("spec_post.prf")) != ReturnTrue)
         return false;
     // The MinGW and x-build specs may change the separator; $$shell_{path,quote}() need it

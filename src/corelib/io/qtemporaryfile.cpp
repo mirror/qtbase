@@ -60,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) && !defined(Q_OS_WINRT)
 typedef ushort Char;
 
 static inline Char Latin1Char(char ch)
@@ -151,7 +151,7 @@ static bool createFileFromTemplate(NativeFileHandle &file,
 
     for (;;) {
         // Atomically create file and obtain handle
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) && !defined(Q_OS_WINRT)
         file = CreateFile((const wchar_t *)path.constData(),
                 GENERIC_READ | GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_NEW,
@@ -258,7 +258,7 @@ bool QTemporaryFileEngine::isReallyOpen()
     Q_D(QFSFileEngine);
 
     if (!((0 == d->fh) && (-1 == d->fd)
-#if defined Q_OS_WIN
+#if defined(Q_OS_WIN) && !defined(Q_OS_WINRT)
                 && (INVALID_HANDLE_VALUE == d->fileHandle)
 #endif
             ))
@@ -347,7 +347,7 @@ bool QTemporaryFileEngine::open(QIODevice::OpenMode openMode)
     Q_ASSERT(phLength >= 6);
 
     QSystemError error;
-#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN) && !defined(Q_OS_WINRT)
     NativeFileHandle &file = d->fileHandle;
 #else // POSIX
     NativeFileHandle &file = d->fd;
@@ -360,7 +360,7 @@ bool QTemporaryFileEngine::open(QIODevice::OpenMode openMode)
 
     d->fileEntry = QFileSystemEntry(filename, QFileSystemEntry::FromNativePath());
 
-#if !defined(Q_OS_WIN)
+#if !defined(Q_OS_WIN) || defined(Q_OS_WINRT)
     d->closeFileHandle = true;
 #endif
 

@@ -86,11 +86,69 @@ extern "C" int main(int, char **);
 #ifdef Q_OS_WINCE
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPWSTR /*wCmdParam*/, int cmdShow)
 #else
+# ifdef Q_OS_WINRT
+#include <roapi.h>
+#include <wrl.h>
+#include <Windows.ApplicationModel.core.h>
+class AppxContainer : public Microsoft::WRL::RuntimeClass<ABI::Windows::ApplicationModel::Core::IFrameworkView>
+{
+public:
+    AppxContainer(int c, char **v) : argc(c), argv(v) { }
+
+    // IFrameworkView Methods
+    HRESULT __stdcall Initialize(ABI::Windows::ApplicationModel::Core::ICoreApplicationView *) { return S_OK; }
+    HRESULT __stdcall SetWindow(ABI::Windows::UI::Core::ICoreWindow *) { return S_OK; }
+    HRESULT __stdcall Load(HSTRING) { return S_OK; }
+    HRESULT __stdcall Run() {
+        main(argc, argv);
+        return S_OK;
+    }
+    HRESULT __stdcall Uninitialize() { return S_OK; }
+private:
+    int argc;
+    char **argv;
+};
+
+class AppxViewSource : public Microsoft::WRL::RuntimeClass<ABI::Windows::ApplicationModel::Core::IFrameworkViewSource>
+{
+public:
+    AppxViewSource(int c, char **v) : argc(c), argv(v) { }
+    HRESULT __stdcall CreateView(ABI::Windows::ApplicationModel::Core::IFrameworkView **frameworkView) {
+        return (*frameworkView = Microsoft::WRL::Make<AppxContainer>(argc, argv).Detach()) ? S_OK : E_OUTOFMEMORY;
+    }
+private:
+    int argc;
+    char **argv;
+};
+
+[Platform::MTAThread]
+# endif
 extern "C"
 int APIENTRY WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR /*cmdParamarg*/, int cmdShow)
 #endif
 {
+#if defined(Q_OS_WINRT)
+    if (FAILED(RoInitialize(RO_INIT_MULTITHREADED)))
+        return 1;
+
+    ABI::Windows::ApplicationModel::Core::ICoreApplication *appFactory;
+    HSTRING appFactoryName;
+    WindowsCreateStringReference(RuntimeClass_Windows_ApplicationModel_Core_CoreApplication,
+                                 ARRAYSIZE(RuntimeClass_Windows_ApplicationModel_Core_CoreApplication),
+                                 nullptr, &appFactoryName);
+    if (FAILED(RoGetActivationFactory(appFactoryName,
+                                      __uuidof(ABI::Windows::ApplicationModel::Core::ICoreApplication),
+                                      reinterpret_cast<void**>(&appFactory))))
+        return 2;
+
+    // ### TODO: get actual command line... normally WinRT apps don't have params, so a default platform must be provided.
+    // Environment variables can't be used either, because getenv/putenv are not available.
+    // See qconfig.h, QT_QPA_DEFAULT_PLATFORM_NAME. This doesn't solve the platformpluginpath issue, though.
+    // This assumes that a "winrt" platform plugin is in the application package.
+    QByteArray cmdParam = " -platform winrt -platformpluginpath .";
+#else // Q_OS_WINRT
     QByteArray cmdParam = QString::fromWCharArray(GetCommandLine()).toLocal8Bit();
+#endif
 
 #if defined(Q_OS_WINCE)
     wchar_t appName[MAX_PATH];
@@ -128,7 +186,12 @@ int APIENTRY WinMain(HINSTANCE instance, HINSTANCE prevInstance, LPSTR /*cmdPara
     }
 #endif // Q_OS_WINCE
 
+#if defined(Q_OS_WINRT)
+    AppxViewSource viewSource(argc, argv.data());
+    int result = appFactory->Run(&viewSource);
+#else
     int result = main(argc, argv.data());
+#endif
 #if defined(Q_OS_WINCE)
     CloseHandle(mutex);
 #endif

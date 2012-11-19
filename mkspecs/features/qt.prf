@@ -41,12 +41,14 @@ for(QT_CURRENT_VERIFY, $$list($$QT_PLUGIN_VERIFY)) {
        # Check if the plugin is known to Qt. We can use this to determine
        # the plugin path. Unknown plugins must rely on the default link path.
        QT_PLUGINPATH = $$eval(QT_PLUGIN.$${QTPLUG}.TYPE)
+       QT_PLUGIN_NAME = $$eval(QT_PLUGIN.$${QTPLUG}.name)
+       isEmpty(QT_PLUGIN_NAME): QT_PLUGIN_NAME = $$QTPLUG
 
         # Generate the plugin linker line
         target_qt:isEqual(TARGET, QTPLUG) {
             warning($$TARGET cannot have a QTPLUGIN of $$QTPLUG)
         } else {
-            QT_LINKAGE = -l$${QTPLUG}$$qtPlatformTargetSuffix()
+            QT_LINKAGE = -l$${QT_PLUGIN_NAME}$$qtPlatformTargetSuffix()
         }
 
         # Only link against plugin in static builds
@@ -58,8 +60,8 @@ for(QT_CURRENT_VERIFY, $$list($$QT_PLUGIN_VERIFY)) {
         }
         isEqual(QT_CURRENT_VERIFY, DEPLOYMENT_PLUGIN):shared:wince*: {
             QT_ITEM =
-            CONFIG(debug, debug|release): QT_ITEM = $${QTPLUG}d4.dll
-            else: QT_ITEM = $${QTPLUG}4.dll
+            CONFIG(debug, debug|release): QT_ITEM = $${QT_PLUGIN_NAME}d4.dll
+            else: QT_ITEM = $${QT_PLUGIN_NAME}4.dll
 
             eval(qt_additional_plugin_$${QTPLUG}.files = $$[QT_INSTALL_PLUGINS/get]/$${QT_PLUGINPATH}/$${QT_ITEM})
             eval(qt_additional_plugin_$${QTPLUG}.path = $${QT_PLUGINPATH})

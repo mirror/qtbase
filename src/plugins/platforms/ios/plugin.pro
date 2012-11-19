@@ -1,4 +1,5 @@
 TARGET = qios
+MODULE = ios
 
 PLUGIN_TYPE = platforms
 load(qt_plugin)

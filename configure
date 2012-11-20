@@ -1291,6 +1291,7 @@ while [ "$#" -gt 0 ]; do
     sdk)
         if [ "$BUILD_ON_MAC" = "yes" ]; then
             CFG_SDK="$VAL"
+            DeviceVar set QMAKE_MAC_SDK "$VAL"
         else
             UNKNOWN_OPT=yes
         fi
@@ -2607,14 +2608,6 @@ if [ "$CFG_FORCEDEBUGINFO" = "yes" ]; then
     QT_CONFIG="$QT_CONFIG force_debug_info"
 fi
 
-# pass on $CFG_SDK to the arch/configure tests.
-if [ -n "$CFG_SDK" ]; then
-    MAC_SDK_FLAG="QMAKE_MAC_SDK=$CFG_SDK"
-else
-    MAC_SDK_FLAG=
-fi
-export MAC_SDK_FLAG # used by config.tests/unix/{compile.test,arch.test}
-
 # iOS builds should be static to be able to submit to the App Store
 if [ "$XPLATFORM_IOS" = "yes" ]; then
     CFG_SHARED="no"
@@ -3689,20 +3682,6 @@ Prefix=..
 EOF
 
 #-------------------------------------------------------------------------------
-# Verify makespec
-#-------------------------------------------------------------------------------
-QMAKE_OUTPUT=`$outpath/bin/qmake -E -nocache -spec "$XQMAKESPEC" $MAC_SDK_FLAG "CONFIG=sdk" /dev/null 2>&1 >/dev/null`
-if [ $? != "0" ]; then
-    echo "Failed to process makespec for platform '$XPLATFORM'"
-    if [ "$OPT_VERBOSE" = "yes" ]; then
-        echo "$QMAKE_OUTPUT"
-    else
-        echo "Turn on verbose messaging (-v) to see the final report."
-    fi
-    exit 101
-fi
-
-#-------------------------------------------------------------------------------
 # write out device config before we run the test.
 #-------------------------------------------------------------------------------
 DEVICE_VARS_OUTFILE="$outpath/mkspecs/qdevice.pri"
@@ -3711,6 +3690,20 @@ if cmp -s "$DEVICE_VARS_FILE" "$DEVICE_VARS_OUTFILE"; then
 else
     mv -f $DEVICE_VARS_FILE "$DEVICE_VARS_OUTFILE"
     DEVICE_VARS_FILE="$DEVICE_VARS_OUTFILE"
+fi
+
+#-------------------------------------------------------------------------------
+# Verify makespec
+#-------------------------------------------------------------------------------
+QMAKE_OUTPUT=`$outpath/bin/qmake -E -nocache -spec "$XQMAKESPEC" "CONFIG=sdk" /dev/null 2>&1 >/dev/null`
+if [ $? != "0" ]; then
+    echo "Failed to process makespec for platform '$XPLATFORM'"
+    if [ "$OPT_VERBOSE" = "yes" ]; then
+        echo "$QMAKE_OUTPUT"
+    else
+        echo "Turn on verbose messaging (-v) to see the final report."
+    fi
+    exit 101
 fi
 
 #-------------------------------------------------------------------------------
@@ -6089,11 +6082,6 @@ if [ '!' -z "$OPENSSL_LIBS" ]; then
     echo "OPENSSL_LIBS = $OPENSSL_LIBS" >> "$QTMODULE.tmp"
 elif [ "$CFG_OPENSSL" = "linked" ]; then
     echo "OPENSSL_LIBS = -lssl -lcrypto" >> "$QTMODULE.tmp"
-fi
-
-#dump in the SDK info
-if [ '!' -z "$CFG_SDK" ]; then
-   echo "QMAKE_MAC_SDK = $CFG_SDK" >> "$QTMODULE.tmp"
 fi
 
 # cmdline args

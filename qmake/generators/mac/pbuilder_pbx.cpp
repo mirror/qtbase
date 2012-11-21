@@ -1317,9 +1317,10 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                 if (!project->isEmpty("COMPAT_VERSION"))
                     t << "\t\t\t\t" << writeSettings("DYLIB_COMPATIBILITY_VERSION", project->first("COMPAT_VERSION")) << ";" << "\n";
 
-                // FIXME: Deal with iOS vs MacOS
                 if (!project->isEmpty("QMAKE_MACOSX_DEPLOYMENT_TARGET"))
                     t << "\t\t\t\t" << writeSettings("MACOSX_DEPLOYMENT_TARGET", project->first("QMAKE_MACOSX_DEPLOYMENT_TARGET")) << ";" << "\n";
+                if (!project->isEmpty("QMAKE_IOS_DEPLOYMENT_TARGET"))
+                    t << "\t\t\t\t" << writeSettings("IPHONEOS_DEPLOYMENT_TARGET", project->first("QMAKE_IOS_DEPLOYMENT_TARGET")) << ";" << "\n";
 
                 if (!project->isEmpty("QMAKE_XCODE_CODE_SIGN_IDENTITY"))
                     t << "\t\t\t\t" << writeSettings("CODE_SIGN_IDENTITY", project->first("QMAKE_XCODE_CODE_SIGN_IDENTITY")) << ";" << "\n";

@@ -1,0 +1,9 @@
+# FIXME: Find a better way to distinguish between building
+# Qt itself, and building third party applications using Qt.
+QTDIR_build|!contains(IN_PWD, ^$$[QT_HOST_PREFIX/get].*): CONFIG += building_qt
+
+building_qt: \
+    # We don't want app bundles when we build Qt
+    CONFIG -= app_bundle
+
+load(default_pre)

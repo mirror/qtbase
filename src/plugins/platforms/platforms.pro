@@ -8,7 +8,7 @@ contains(QT_CONFIG, xcb) {
 
 mac:!ios: SUBDIRS += cocoa
 
-win32: SUBDIRS += windows
+win32:!winrt: SUBDIRS += windows
 
 qnx {
     SUBDIRS += qnx

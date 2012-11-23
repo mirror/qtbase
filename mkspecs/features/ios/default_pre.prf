@@ -5,5 +5,8 @@ QTDIR_build|!contains(IN_PWD, ^$$[QT_HOST_PREFIX/get].*): CONFIG += building_qt
 building_qt: \
     # We don't want app bundles when we build Qt
     CONFIG -= app_bundle
+else:contains(TEMPLATE, app): \
+    # For third party applications we want Xcode project files
+    MAKEFILE_GENERATOR = XCODE
 
 load(default_pre)

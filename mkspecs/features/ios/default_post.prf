@@ -1,0 +1,11 @@
+# Auto-detect makefile generator unless the user set it
+!building_qt:isEmpty(MAKEFILE_GENERATOR) {
+    contains(TEMPLATE, app): \
+        # For third party applications we want Xcode project files
+        MAKEFILE_GENERATOR = XCODE
+    else: \
+        # Otherwise (libs, etc) we want regular Makefiles
+        MAKEFILE_GENERATOR = UNIX
+}
+
+load(default_post)

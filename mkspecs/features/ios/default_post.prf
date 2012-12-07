@@ -1,4 +1,13 @@
-!building_qt {
+# FIXME: Find a better way to distinguish between building
+# Qt itself, and building third party applications using Qt.
+QTDIR_build|!isEmpty(QT_BUILD_TREE): CONFIG += building_qt
+
+building_qt {
+    MAKEFILE_GENERATOR = UNIX
+
+    # We don't want app bundles when we build Qt
+    CONFIG -= app_bundle
+} else {
     # Auto-detect makefile generator unless the user set it
     isEmpty(MAKEFILE_GENERATOR) {
         contains(TEMPLATE, app): \

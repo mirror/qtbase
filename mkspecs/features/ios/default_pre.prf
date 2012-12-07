@@ -1,13 +1,4 @@
-# FIXME: Find a better way to distinguish between building
-# Qt itself, and building third party applications using Qt.
-this_file = $$_FILE_ # Can't use _FILE_ direcly in contains
-QTDIR_build|!contains(this_file, ^$$[QT_HOST_PREFIX/get].*): CONFIG += building_qt
-
-building_qt: \
-    # We don't want app bundles when we build Qt
-    CONFIG -= app_bundle
-else: \
-    # Unset makefile generator, so we can auto-detect value in default_post
-    unset(MAKEFILE_GENERATOR)
+# Unset makefile generator, so we can auto-detect value in default_post
+unset(MAKEFILE_GENERATOR)
 
 load(default_pre)

@@ -1,36 +1,29 @@
-# FIXME: Find a better way to distinguish between building
-# Qt itself, and building third party applications using Qt.
-QTDIR_build|!isEmpty(QT_BUILD_TREE): CONFIG += building_qt
 
-building_qt {
-    MAKEFILE_GENERATOR = UNIX
+CONFIG(qt):contains(QT, gui):equals(TEMPLATE, app): CONFIG += gui_app
 
-    # We don't want app bundles when we build Qt
-    CONFIG -= app_bundle
-} else {
-    # Auto-detect makefile generator unless the user set it
-    isEmpty(MAKEFILE_GENERATOR) {
-        contains(TEMPLATE, app): \
-            # For third party applications we want Xcode project files
-            MAKEFILE_GENERATOR = XCODE
-        else: \
-            # Otherwise (libs, etc) we want regular Makefiles
-            MAKEFILE_GENERATOR = UNIX
-    }
+isEmpty(MAKEFILE_GENERATOR) {
+    gui_app:app_bundle: \
+        # For applications we want Xcode project files
+        MAKEFILE_GENERATOR = XCODE
+    else: \
+        # For libs, etc we still want regular Makefiles
+        MAKEFILE_GENERATOR = UNIX
+}
 
-    contains(TEMPLATE, app) {
-        # We have to do the link and dependency resolution for the platform plugin
-        # manually, since QTPLUGIN and the prl lookup logic does not support
-        # the -force_load link style, which we use since we load the platform
-        # plugin from the platform plugin.
-        lib_path_and_base = $$[QT_INSTALL_PLUGINS/get]/platforms/libqios$$qtPlatformTargetSuffix()
-        LIBS += "-force_load $${lib_path_and_base}.$${QMAKE_EXTENSION_STATICLIB}"
-        LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
+gui_app {
+    # We have to do the link and dependency resolution for the platform plugin
+    # manually, since QTPLUGIN and the prl lookup logic does not support
+    # the -force_load link style, which we use since we load the platform
+    # plugin from the platform plugin.
+    lib_path_and_base = $$[QT_INSTALL_PLUGINS/get]/platforms/libqios$$qtPlatformTargetSuffix()
+    LIBS += "-force_load $${lib_path_and_base}.$${QMAKE_EXTENSION_STATICLIB}"
+    LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
 
-        QTPLUGIN += iosmain
-        DEFINES += main=qt_main
-    }
+    QTPLUGIN += iosmain
+    DEFINES += main=qt_main
+}
 
+contains(MAKEFILE_GENERATOR, XCODE) {
     ios_device_family.name = TARGETED_DEVICE_FAMILY
     ios_device_family.value = $$QMAKE_IOS_TARGETED_DEVICE_FAMILY
     QMAKE_MAC_XCODE_SETTINGS += ios_device_family

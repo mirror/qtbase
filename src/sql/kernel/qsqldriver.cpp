@@ -218,6 +218,7 @@ bool QSqlDriver::isOpenError() const
     \value EventNotifications Whether the driver supports database event notifications.
     \value FinishQuery Whether the driver can do any low-level resource cleanup when QSqlQuery::finish() is called.
     \value MultipleResultSets Whether the driver can access multiple result sets returned from batched statements or stored procedures.
+    \value CancelQuery Whether the driver allows cancelling a running query.
 
     More information about supported features can be found in the
     \l{sql-driver.html}{Qt SQL driver} documentation.
@@ -787,6 +788,29 @@ void QSqlDriver::setNumericalPrecisionPolicy(QSql::NumericalPrecisionPolicy prec
 QSql::NumericalPrecisionPolicy QSqlDriver::numericalPrecisionPolicy() const
 {
     return d_func()->precisionPolicy;
+}
+
+/*!
+    \since 5.0
+    \internal
+
+    Tries to cancel the running query, if the underlying driver has the
+    capability to cancel queries. Returns true on success, otherwise false.
+
+    This function can be called from a different thread.
+
+    If you use this function as a slot, you need to use a Qt::DirectConnection
+    from a different thread.
+
+    Reimplement this function to support canceling running queries in
+    your own QSqlDriver subclass. It must be implemented in a thread-safe
+    manner.
+
+    \sa QSqlDriver::hasFeature()
+*/
+bool QSqlDriver::cancelQuery()
+{
+    return false;
 }
 
 QT_END_NAMESPACE

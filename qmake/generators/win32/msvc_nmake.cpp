@@ -441,7 +441,9 @@ void NmakeMakefileGenerator::writeBuildRulesPart(QTextStream &t)
                 // directly embed the manifest in the executable after linking
                 t << "\n\t";
                 writeLinkCommand(t, extraLFlags);
-                t << "\n\t" << "mt.exe /nologo /manifest " << manifest << " /outputresource:$(DESTDIR_TARGET);1";
+                const QString resourceId = (templateName == "app") ? "1" : "2";
+                t << "\n\t" << "mt.exe /nologo /manifest " << manifest
+                  << " /outputresource:$(DESTDIR_TARGET);" << resourceId;
             }
         }  else {
             t << "\n\t";
@@ -462,7 +464,7 @@ void NmakeMakefileGenerator::writeBuildRulesPart(QTextStream &t)
 
 void NmakeMakefileGenerator::writeLinkCommand(QTextStream &t, const QString &extraFlags, const QString &extraInlineFileContent)
 {
-    t << "$(LINK) $(LFLAGS)";
+    t << "$(LINKER) $(LFLAGS)";
     if (!extraFlags.isEmpty())
         t << ' ' << extraFlags;
     t << " /OUT:$(DESTDIR_TARGET) @<<\n"

@@ -76,6 +76,8 @@ class QAccessibleTextWidget : public QAccessibleWidget,
 public:
     QAccessibleTextWidget(QWidget *o, QAccessible::Role r = QAccessible::EditableText, const QString &name = QString());
 
+    QAccessible::State state() const;
+
     // QAccessibleTextInterface
     //  selection
     void selection(int selectionIndex, int *startOffset, int *endOffset) const;
@@ -109,6 +111,8 @@ public:
     void insertText(int offset, const QString &text);
     void replaceText(int startOffset, int endOffset, const QString &text);
 
+    using QAccessibleWidget::text;
+
 protected:
     QTextCursor textCursorForRange(int startOffset, int endOffset) const;
     QPair<int, int> getBoundaries(int offset, QAccessible2::BoundaryType boundaryType) const;
@@ -118,7 +122,6 @@ protected:
     virtual QTextDocument *textDocument() const = 0;
     virtual QWidget *viewport() const = 0;
 };
-#endif  //QT_NO_CURSOR
 
 #ifndef QT_NO_TEXTEDIT
 class QAccessiblePlainTextEdit : public QAccessibleTextWidget
@@ -134,6 +137,9 @@ public:
 
     // QAccessibleTextInterface
     void scrollToSubstring(int startIndex, int endIndex);
+
+    using QAccessibleTextWidget::text;
+
 protected:
     QPlainTextEdit *plainTextEdit() const;
 
@@ -158,6 +164,8 @@ public:
     // QAccessibleTextInterface
     void scrollToSubstring(int startIndex, int endIndex);
 
+    using QAccessibleTextWidget::text;
+
 protected:
     QTextEdit *textEdit() const;
 
@@ -168,6 +176,7 @@ protected:
     QWidget *viewport() const;
 };
 #endif // QT_NO_TEXTEDIT
+#endif  //QT_NO_CURSOR
 
 class QAccessibleStackedWidget : public QAccessibleWidget
 {
@@ -236,7 +245,7 @@ public:
     explicit QAccessibleDialogButtonBox(QWidget *widget);
 };
 
-#ifndef QT_NO_TEXTBROWSER
+#if !defined(QT_NO_TEXTBROWSER) && !defined(QT_NO_CURSOR)
 class QAccessibleTextBrowser : public QAccessibleTextEdit
 {
 public:
@@ -244,7 +253,7 @@ public:
 
     QAccessible::Role role() const;
 };
-#endif // QT_NO_TEXTBROWSER
+#endif // QT_NO_TEXTBROWSER && QT_NO_CURSOR
 
 #ifndef QT_NO_CALENDARWIDGET
 class QAccessibleCalendarWidget : public QAccessibleWidget

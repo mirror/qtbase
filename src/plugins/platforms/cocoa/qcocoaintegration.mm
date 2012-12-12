@@ -115,6 +115,18 @@ void QCocoaScreen::updateGeometry()
     QWindowSystemInterface::handleScreenAvailableGeometryChange(screen(), availableGeometry());
 }
 
+qreal QCocoaScreen::devicePixelRatio() const
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
+        return qreal([m_screen backingScaleFactor]);
+    } else
+#endif
+    {
+        return 1.0;
+    }
+}
+
 extern CGContextRef qt_mac_cg_context(const QPaintDevice *pdev);
 
 QPixmap QCocoaScreen::grabWindow(WId window, int x, int y, int width, int height) const
@@ -180,13 +192,14 @@ QCocoaIntegration::QCocoaIntegration()
     : mFontDb(new QCoreTextFontDatabase())
     , mEventDispatcher(new QCocoaEventDispatcher())
     , mInputContext(new QCocoaInputContext)
-#ifndef QT_NO_ACCESSIBILITY
+#ifndef QT_NO_COCOA_ACCESSIBILITY
     , mAccessibility(new QCococaAccessibility)
 #endif
     , mCocoaClipboard(new QCocoaClipboard)
     , mCocoaDrag(new QCocoaDrag)
     , mNativeInterface(new QCocoaNativeInterface)
     , mServices(new QCocoaServices)
+    , mKeyboardMapper(new QCocoaKeyMapper)
 {
     initResources();
     QCocoaAutoReleasePool pool;
@@ -358,7 +371,7 @@ QPlatformInputContext *QCocoaIntegration::inputContext() const
 
 QPlatformAccessibility *QCocoaIntegration::accessibility() const
 {
-#ifndef QT_NO_ACCESSIBILITY
+#ifndef QT_NO_COCOA_ACCESSIBILITY
     return mAccessibility.data();
 #else
     return 0;
@@ -400,6 +413,11 @@ QVariant QCocoaIntegration::styleHint(StyleHint hint) const
         return false;
 
     return QPlatformIntegration::styleHint(hint);
+}
+
+QList<int> QCocoaIntegration::possibleKeys(const QKeyEvent *event) const
+{
+    return mKeyboardMapper->possibleKeys(event);
 }
 
 QT_END_NAMESPACE

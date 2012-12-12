@@ -48,7 +48,10 @@
 #include <QPolygonF>
 
 class HoverPoints;
-QT_FORWARD_DECLARE_CLASS(QLineEdit)
+
+QT_BEGIN_NAMESPACE
+class QLineEdit;
+QT_END_NAMESPACE
 
 class XFormView : public ArthurFrame
 {
@@ -113,7 +116,9 @@ signals:
 
 protected:
     void timerEvent(QTimerEvent *e);
+#ifndef QT_NO_WHEELEVENT
     void wheelEvent(QWheelEvent *);
+#endif
 
 private:
     QPolygonF ctrlPoints;

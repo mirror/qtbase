@@ -26,10 +26,10 @@
 ****************************************************************************/
 
 /*!
-    \example gui/rasterwindow
+    \example rasterwindow
     \title Raster Window Example
 
-    This example shows how to create a minimal QWindow based
+    \brief This example shows how to create a minimal QWindow based
     application using QPainter for rendering.
 
 

@@ -44,6 +44,9 @@
 #include <Cocoa/Cocoa.h>
 
 #include <QtGui>
+
+#ifndef QT_NO_COCOA_ACCESSIBILITY
+
 #include <qpa/qplatformaccessibility.h>
 
 class QCococaAccessibility : public QPlatformAccessibility
@@ -77,7 +80,7 @@ namespace QCocoaAccessible {
     demand.
 */
 
-NSString *macRole(QAccessible::Role);
+NSString *macRole(QAccessibleInterface *interface);
 bool shouldBeIgnrored(QAccessibleInterface *interface);
 NSString *getTranslatedAction(const QString &qtAction);
 NSMutableArray *createTranslatedActionsList(const QStringList &qtActions);
@@ -86,5 +89,7 @@ bool hasValueAttribute(QAccessibleInterface *interface);
 id getValueAttribute(QAccessibleInterface *interface);
 
 }
+
+#endif // QT_NO_COCOA_ACCESSIBILITY
 
 #endif

@@ -1033,6 +1033,13 @@ void Configure::parseCmdLine()
             dictionary[ "QT_INSTALL_BINS" ] = configCmdLine.at(i);
         }
 
+        else if (configCmdLine.at(i) == "-libexecdir") {
+            ++i;
+            if (i == argCount)
+                break;
+            dictionary[ "QT_INSTALL_LIBEXECS" ] = configCmdLine.at(i);
+        }
+
         else if (configCmdLine.at(i) == "-libdir") {
             ++i;
             if (i == argCount)
@@ -1552,6 +1559,7 @@ void Configure::applySpecSpecifics()
         dictionary[ "IWMMXT" ]              = "no";
         dictionary[ "CE_CRT" ]              = "yes";
         dictionary[ "LARGE_FILE" ]          = "no";
+        dictionary[ "ANGLE" ]               = "no";
         // We only apply MMX/IWMMXT for mkspecs we know they work
         if (dictionary[ "XQMAKESPEC" ].startsWith("wincewm")) {
             dictionary[ "MMX" ]    = "yes";
@@ -1597,10 +1605,11 @@ bool Configure::displayHelp()
 
         desc("You may use these to separate different parts of the install:\n\n");
 
-        desc(       "-bindir <dir>",                    "Executables will be installed to <dir>\n(default PREFIX/bin)");
+        desc(       "-bindir <dir>",                    "User executables will be installed to <dir>\n(default PREFIX/bin)");
         desc(       "-libdir <dir>",                    "Libraries will be installed to <dir>\n(default PREFIX/lib)");
         desc(       "-headerdir <dir>",                 "Headers will be installed to <dir>\n(default PREFIX/include)");
         desc(       "-archdatadir <dir>",               "Architecture-dependent data used by Qt will be installed to <dir>\n(default PREFIX)");
+        desc(       "-libexecdir <dir>",                "Program executables will be installed to <dir>\n(default ARCHDATADIR/libexec)");
         desc(       "-plugindir <dir>",                 "Plugins will be installed to <dir>\n(default ARCHDATADIR/plugins)");
         desc(       "-importdir <dir>",                 "Imports for QML1 will be installed to <dir>\n(default ARCHDATADIR/imports)");
         desc(       "-qmldir <dir>",                    "Imports for QML2 will be installed to <dir>\n(default ARCHDATADIR/qml)");
@@ -2306,7 +2315,7 @@ bool Configure::verifyConfiguration()
                  << "Disabling the ANGLE backend." << endl;
             prompt = true;
         }
-        if (dictionary["OPENGL_ES_2"] == "yes") {
+        if ((dictionary["OPENGL_ES_2"] == "yes") && (dictionary.value("XQMAKESPEC").isEmpty())) {
             cout << endl << "WARNING: Using OpenGL ES 2.0 without ANGLE." << endl
                  << "Specify -opengl desktop to use Open GL." << endl
                  <<  "The build will most likely fail." << endl;
@@ -2623,6 +2632,9 @@ void Configure::generateOutputVars()
     else if (dictionary["QT_ICONV"] == "gnu")
         qtConfig += "gnu-libiconv";
 
+    if (dictionary["QT_INOTIFY"] == "yes")
+        qtConfig += "inotify";
+
     if (dictionary["FONT_CONFIG"] == "yes") {
         qtConfig += "fontconfig";
         qmakeVars += "QMAKE_CFLAGS_FONTCONFIG =";
@@ -2672,9 +2684,9 @@ void Configure::generateOutputVars()
     if (dictionary.contains("XQMAKESPEC") && dictionary[ "XQMAKESPEC" ].startsWith("linux"))
         qtConfig += "rpath";
 
-    qmakeVars += QString("OBJECTS_DIR     = ") + formatPath("tmp/obj/" + dictionary["QMAKE_OUTDIR"]);
-    qmakeVars += QString("MOC_DIR         = ") + formatPath("tmp/moc/" + dictionary["QMAKE_OUTDIR"]);
-    qmakeVars += QString("RCC_DIR         = ") + formatPath("tmp/rcc/" + dictionary["QMAKE_OUTDIR"]);
+    qmakeVars += QString("OBJECTS_DIR     = ") + formatPath(".obj/" + dictionary["QMAKE_OUTDIR"]);
+    qmakeVars += QString("MOC_DIR         = ") + formatPath(".moc/" + dictionary["QMAKE_OUTDIR"]);
+    qmakeVars += QString("RCC_DIR         = ") + formatPath(".rcc/" + dictionary["QMAKE_OUTDIR"]);
 
     if (!qmakeDefines.isEmpty())
         qmakeVars += QString("DEFINES        += ") + qmakeDefines.join(' ');
@@ -2762,9 +2774,8 @@ void Configure::generateCachefile()
     if (cacheFile.open(QFile::WriteOnly | QFile::Text)) { // Truncates any existing file.
         QTextStream cacheStream(&cacheFile);
 
-        for (QStringList::Iterator var = qmakeVars.begin(); var != qmakeVars.end(); ++var) {
-            cacheStream << (*var) << endl;
-        }
+        cacheStream << "QT_SOURCE_TREE = " << formatPath(dictionary["QT_SOURCE_TREE"]) << endl;
+        cacheStream << "QT_BUILD_TREE = " << formatPath(dictionary["QT_BUILD_TREE"]) << endl;
 
         cacheStream.flush();
         cacheFile.close();
@@ -2775,9 +2786,6 @@ void Configure::generateCachefile()
     if (moduleFile.open(QFile::WriteOnly | QFile::Text)) { // Truncates any existing file.
         QTextStream moduleStream(&moduleFile);
 
-        moduleStream << "#paths" << endl;
-        moduleStream << "QT_BUILD_TREE   = " << formatPath(dictionary["QT_BUILD_TREE"]) << endl;
-        moduleStream << "QT_SOURCE_TREE  = " << formatPath(dictionary["QT_SOURCE_TREE"]) << endl;
         moduleStream << "QT_BUILD_PARTS += " << buildParts.join(' ') << endl << endl;
 
         if (dictionary["QT_EDITION"] != "QT_EDITION_OPENSOURCE")
@@ -2828,6 +2836,9 @@ void Configure::generateCachefile()
         if (dictionary[ "STRIP" ] == "no")
             moduleStream << " nostrip";
         moduleStream << endl;
+
+        for (QStringList::Iterator var = qmakeVars.begin(); var != qmakeVars.end(); ++var)
+            moduleStream << (*var) << endl;
 
         moduleStream.flush();
         moduleFile.close();
@@ -3087,6 +3098,9 @@ void Configure::generateQConfigPri()
 
         if (!dictionary["QT_NAMESPACE"].isEmpty())
             configStream << "#namespaces" << endl << "QT_NAMESPACE = " << dictionary["QT_NAMESPACE"] << endl;
+
+        if (dictionary[ "SHARED" ] == "no")
+            configStream << "QT_DEFAULT_QPA_PLUGIN = q" << qpaPlatformName() << endl;
 
         configStream.flush();
         configFile.close();
@@ -3423,6 +3437,7 @@ void Configure::displayConfig()
     sout << "Libraries installed to......" << QDir::toNativeSeparators(dictionary["QT_INSTALL_LIBS"]) << endl;
     sout << "Arch-dep. data to..........." << QDir::toNativeSeparators(dictionary["QT_INSTALL_ARCHDATA"]) << endl;
     sout << "Plugins installed to........" << QDir::toNativeSeparators(dictionary["QT_INSTALL_PLUGINS"]) << endl;
+    sout << "Library execs installed to.." << QDir::toNativeSeparators(dictionary["QT_INSTALL_LIBEXEC"]) << endl;
     sout << "QML1 imports installed to..." << QDir::toNativeSeparators(dictionary["QT_INSTALL_IMPORTS"]) << endl;
     sout << "QML2 imports installed to..." << QDir::toNativeSeparators(dictionary["QT_INSTALL_QML"]) << endl;
     sout << "Binaries installed to......." << QDir::toNativeSeparators(dictionary["QT_INSTALL_BINS"]) << endl;
@@ -3554,6 +3569,8 @@ void Configure::generateQConfigCpp()
         dictionary["QT_INSTALL_LIBS"] = qipempty ? "" : dictionary["QT_INSTALL_PREFIX"] + "/lib";
     if (!dictionary["QT_INSTALL_ARCHDATA"].size())
         dictionary["QT_INSTALL_ARCHDATA"] = qipempty ? "" : dictionary["QT_INSTALL_PREFIX"];
+    if (!dictionary["QT_INSTALL_LIBEXECS"].size())
+        dictionary["QT_INSTALL_LIBEXECS"] = qipempty ? "" : dictionary["QT_INSTALL_ARCHDATA"] + "/libexec";
     if (!dictionary["QT_INSTALL_BINS"].size())
         dictionary["QT_INSTALL_BINS"] = qipempty ? "" : dictionary["QT_INSTALL_PREFIX"] + "/bin";
     if (!dictionary["QT_INSTALL_PLUGINS"].size())
@@ -3606,6 +3623,7 @@ void Configure::generateQConfigCpp()
                   << "    \"qt_docspath=" << formatPath(dictionary["QT_INSTALL_DOCS"]) << "\","  << endl
                   << "    \"qt_hdrspath=" << formatPath(dictionary["QT_INSTALL_HEADERS"]) << "\","  << endl
                   << "    \"qt_libspath=" << formatPath(dictionary["QT_INSTALL_LIBS"]) << "\","  << endl
+                  << "    \"qt_lbexpath=" << formatPath(dictionary["QT_INSTALL_LIBEXECS"]) << "\","  << endl
                   << "    \"qt_binspath=" << formatPath(dictionary["QT_INSTALL_BINS"]) << "\","  << endl
                   << "    \"qt_plugpath=" << formatPath(dictionary["QT_INSTALL_PLUGINS"]) << "\","  << endl
                   << "    \"qt_impspath=" << formatPath(dictionary["QT_INSTALL_IMPORTS"]) << "\","  << endl

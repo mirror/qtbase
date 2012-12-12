@@ -44,15 +44,15 @@
 #include <qlayout.h>
 #include <qapplication.h>
 #include <qwidget.h>
-#include <qwindowsstyle.h>
+#include <qproxystyle.h>
 #include <qsizepolicy.h>
 //#include <QtGui>
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QWindowsStyle>
 #include <QStyleFactory>
+#include <QSharedPointer>
 
 class tst_QGridLayout : public QObject
 {
@@ -89,6 +89,8 @@ private slots:
     void spacerWithSpacing();
     void contentsRect();
     void distributeMultiCell();
+
+    void taskQTBUG_27420_takeAtShouldUnparentLayout();
 
 private:
     QWidget *testWidget;
@@ -458,11 +460,11 @@ void tst_QGridLayout::spacingAndSpacers()
 }
 
 
-class Qt42Style : public QWindowsStyle
+class Qt42Style : public QProxyStyle
 {
     Q_OBJECT
 public:
-    Qt42Style() : QWindowsStyle()
+    Qt42Style() : QProxyStyle(QStyleFactory::create("windows"))
     {
         spacing = 6;
         margin = 9;
@@ -494,7 +496,7 @@ int Qt42Style::pixelMetric(PixelMetric metric, const QStyleOption * option /*= 0
         default:
             break;
     }
-    return QWindowsStyle::pixelMetric(metric, option, widget);
+    return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
 
@@ -915,11 +917,11 @@ void tst_QGridLayout::minMaxSize()
 }
 
 
-class CustomLayoutStyle : public QWindowsStyle
+class CustomLayoutStyle : public QProxyStyle
 {
     Q_OBJECT
 public:
-    CustomLayoutStyle() : QWindowsStyle()
+    CustomLayoutStyle() : QProxyStyle(QStyleFactory::create("windows"))
     {
         hspacing = 5;
         vspacing = 10;
@@ -961,7 +963,7 @@ QRect CustomLayoutStyle::subElementRect(SubElement sr, const QStyleOption *opt,
         }
     }
     if (rect.isNull())
-        rect = QWindowsStyle::subElementRect(sr, opt, widget);
+        rect = QProxyStyle::subElementRect(sr, opt, widget);
     return rect;
 }
 
@@ -1016,7 +1018,7 @@ int CustomLayoutStyle::pixelMetric(PixelMetric metric, const QStyleOption * opti
         default:
             break;
     }
-    return QWindowsStyle::pixelMetric(metric, option, widget);
+    return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
 void tst_QGridLayout::styleDependentSpacingsAndMargins_data()
@@ -1604,6 +1606,27 @@ void tst_QGridLayout::distributeMultiCell()
 
     QCOMPARE(box.sizeHint().height(), 57);
     QCOMPARE(w.sizeHint().height(), 11 + 57 + 11);
+}
+
+void tst_QGridLayout::taskQTBUG_27420_takeAtShouldUnparentLayout()
+{
+    QSharedPointer<QGridLayout> outer(new QGridLayout);
+    QPointer<QGridLayout> inner = new QGridLayout;
+
+    outer->addLayout(inner, 0, 0);
+    QCOMPARE(outer->count(), 1);
+    QCOMPARE(inner->parent(), outer.data());
+
+    QLayoutItem *item = outer->takeAt(0);
+    QCOMPARE(item->layout(), inner.data());
+    QVERIFY(!item->layout()->parent());
+
+    outer.reset();
+
+    if (inner)
+        delete item; // success: a taken item/layout should not be deleted when the old parent is deleted
+    else
+        QVERIFY(!inner.isNull());
 }
 
 QTEST_MAIN(tst_QGridLayout)

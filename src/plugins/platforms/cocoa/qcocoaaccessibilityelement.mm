@@ -47,6 +47,8 @@
 
 #import <AppKit/NSAccessibility.h>
 
+#ifndef QT_NO_COCOA_ACCESSIBILITY
+
 static QAccessibleInterface *acast(void *ptr)
 {
     return reinterpret_cast<QAccessibleInterface *>(ptr);
@@ -59,7 +61,7 @@ static QAccessibleInterface *acast(void *ptr)
     self = [super init];
     if (self) {
         accessibleInterface = anQAccessibleInterface;
-        role = QCocoaAccessible::macRole(acast(accessibleInterface)->role());
+        role = QCocoaAccessible::macRole(acast(accessibleInterface));
         parent = aParent;
     }
 
@@ -254,3 +256,6 @@ static QAccessibleInterface *acast(void *ptr)
 }
 
 @end
+
+#endif // QT_NO_COCOA_ACCESSIBILITY
+

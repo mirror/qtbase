@@ -3,6 +3,10 @@ option(host_build)
 TARGET = QtBootstrap
 QT =
 CONFIG += no_module_headers internal_module
+!build_pass: CONFIG += release
+
+# otherwise mingw headers do not declare common functions like putenv
+win32-g++*:QMAKE_CXXFLAGS_CXX11 = -std=gnu++0x
 
 MODULE_DEFINES = \
         QT_BOOTSTRAPPED \
@@ -32,8 +36,6 @@ MODULE_PRIVATE_INCLUDES = \
     \$\$QT_MODULE_INCLUDE_BASE/QtXml \
     \$\$QT_MODULE_INCLUDE_BASE/QtXml/$$QT_VERSION \
     \$\$QT_MODULE_INCLUDE_BASE/QtXml/$$QT_VERSION/QtXml
-
-CONFIG += release
 
 load(qt_module)
 
@@ -147,15 +149,18 @@ freeze_target.commands =
 freeze_target.depends = first
 QMAKE_EXTRA_TARGETS += freeze_target
 
-# We need the forwarding headers before their respective modules are built,
-# so do a minimal syncqt run.
-qtPrepareTool(QMAKE_SYNCQT, syncqt)
-QTDIR = $$[QT_HOST_PREFIX]
-exists($$QTDIR/.qmake.cache): \
-    mod_component_base = $$QTDIR
-else: \
-    mod_component_base = $$dirname(_QMAKE_CACHE_)
-QMAKE_SYNCQT += -minimal -module QtCore -module QtDBus -module QtXml \
-    -mkspecsdir $$[QT_HOST_DATA/get]/mkspecs -outdir $$mod_component_base $$dirname(_QMAKE_CONF_)
-!silent:message($$QMAKE_SYNCQT)
-system($$QMAKE_SYNCQT)|error("Failed to run: $$QMAKE_SYNCQT")
+!build_pass {
+    # We need the forwarding headers before their respective modules are built,
+    # so do a minimal syncqt run.
+    qtPrepareTool(QMAKE_SYNCQT, syncqt)
+    QTDIR = $$[QT_HOST_PREFIX]
+    exists($$QTDIR/.qmake.cache): \
+        mod_component_base = $$QTDIR
+    else: \
+        mod_component_base = $$dirname(_QMAKE_CACHE_)
+    QMAKE_SYNCQT += -minimal -module QtCore -module QtDBus -module QtXml \
+        -mkspecsdir $$[QT_HOST_DATA/get]/mkspecs -outdir $$mod_component_base $$dirname(_QMAKE_CONF_)
+    contains(QT_CONFIG, zlib):QMAKE_SYNCQT += -module QtZlib
+    !silent:message($$QMAKE_SYNCQT)
+    system($$QMAKE_SYNCQT)|error("Failed to run: $$QMAKE_SYNCQT")
+}

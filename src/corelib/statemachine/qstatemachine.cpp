@@ -86,17 +86,15 @@ QT_BEGIN_NAMESPACE
     \ingroup statemachine
 
     QStateMachine is based on the concepts and notation of
-    \l{Statecharts: A visual formalism for complex
-    systems}{Statecharts}. QStateMachine is part of \l{The State
-    Machine Framework}.
+    \l{http://www.wisdom.weizmann.ac.il/~dharel/SCANNED.PAPERS/Statecharts.pdf}{Statecharts}.
+    QStateMachine is part of \l{The State Machine Framework}.
 
     A state machine manages a set of states (classes that inherit from
     QAbstractState) and transitions (descendants of
     QAbstractTransition) between those states; these states and
     transitions define a state graph. Once a state graph has been
     built, the state machine can execute it. QStateMachine's
-    execution algorithm is based on the \l{State Chart XML: State
-    Machine Notation for Control Abstraction}{State Chart XML (SCXML)}
+    execution algorithm is based on the \l{http://www.w3.org/TR/scxml/}{State Chart XML (SCXML)}
     algorithm. The framework's \l{The State Machine
     Framework}{overview} gives several state graphs and the code to
     build them.
@@ -1408,14 +1406,14 @@ void QStateMachinePrivate::_q_start()
     qDebug() << q << ": initial configuration:" << configuration;
 #endif
 
-    emit q->started();
+    emit q->started(QStateMachine::QPrivateSignal());
 
     if (stopProcessingReason == Finished) {
         // The state machine immediately reached a final state.
         processingScheduled = false;
         state = NotRunning;
         unregisterAllTransitions();
-        emit q->finished();
+        emitFinished();
     } else {
         _q_process();
     }
@@ -1497,13 +1495,13 @@ void QStateMachinePrivate::_q_process()
         state = NotRunning;
         cancelAllDelayedEvents();
         unregisterAllTransitions();
-        emit q->finished();
+        emitFinished();
         break;
     case Stopped:
         state = NotRunning;
         cancelAllDelayedEvents();
         unregisterAllTransitions();
-        emit q->stopped();
+        emit q->stopped(QStateMachine::QPrivateSignal());
         break;
     }
 }

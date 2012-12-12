@@ -89,23 +89,16 @@ QT_BEGIN_NAMESPACE
     buffers to support double and triple buffering, as well as depth and stencil
     buffers. To release a window's memory resources, call the destroy() function.
 
-    \section1 Window and content orientation
+    \section1 Content orientation
 
-    QWindow has reportContentOrientationChange() and
-    requestWindowOrientation() that can be used to specify the
-    layout of the window contents in relation to the screen. The
-    window orientation determines the actual buffer layout of the
-    window, and the windowing system uses this value to rotate the
-    window before it ends up on the display, and to ensure that input
-    coordinates are in the correct coordinate space relative to the
-    application.
-
-    On the other hand, the content orientation is simply a hint to the
-    windowing system about which orientation the window contents are in.
-    It's useful when you wish to keep the same buffer layout, but rotate
-    the contents instead, especially when doing rotation animations
-    between different orientations. The windowing system might use this
-    value to determine the layout of system popups or dialogs.
+    QWindow has reportContentOrientationChange() that can be used to specify
+    the layout of the window contents in relation to the screen. The content
+    orientation is simply a hint to the windowing system about which
+    orientation the window contents are in.  It's useful when you wish to keep
+    the same window size, but rotate the contents instead, especially when
+    doing rotation animations between different orientations. The windowing
+    system might use this value to determine the layout of system popups or
+    dialogs.
 
     \section1 Visibility and Windowing system exposure.
 
@@ -743,8 +736,6 @@ bool QWindow::isActive() const
     to compute the necessary transform.
 
     The default value is Qt::PrimaryOrientation
-
-    \sa requestOrientation(), QScreen::orientation()
 */
 void QWindow::reportContentOrientationChange(Qt::ScreenOrientation orientation)
 {
@@ -766,43 +757,21 @@ Qt::ScreenOrientation QWindow::contentOrientation() const
 }
 
 /*!
-  Requests the given window \a orientation.
+    Returns the ratio between physical pixels and device-independent pixels
+    for the window. This value is dependent on the screen the window is on,
+    and may change when the window is moved.
 
-  The window \a orientation specifies how the window should be rotated
-  by the window manager in order to be displayed. Input events will
-  be correctly mapped to the given \a orientation.
+    Common values are 1.0 on normal displays and 2.0 on Apple "retina" displays.
 
-  The return value is false if the system doesn't support the given
-  \a orientation (for example when requesting a portrait orientation
-  on a device that only handles landscape buffers, typically a desktop
-  system).
-
-  If the return value is false, call \l orientation() to get the actual
-  supported orientation.
-
-  \sa orientation(), reportContentOrientationChange(), QScreen::orientation()
+    \sa QWindow::devicePixelRatio();
+    \sa QGuiApplicaiton::devicePixelRatio();
 */
-bool QWindow::requestOrientation(Qt::ScreenOrientation orientation)
-{
-    Q_D(QWindow);
-    if (!d->platformWindow)
-        create();
-    Q_ASSERT(d->platformWindow);
-    d->windowOrientation = d->platformWindow->requestWindowOrientation(orientation);
-    return d->windowOrientation == orientation;
-}
-
-/*!
-  Returns the actual window orientation.
-
-  The default value is Qt::PrimaryOrientation.
-
-  \sa requestOrientation()
-*/
-Qt::ScreenOrientation QWindow::orientation() const
+qreal QWindow::devicePixelRatio() const
 {
     Q_D(const QWindow);
-    return d->windowOrientation;
+    if (!d->platformWindow)
+        return 1.0;
+    return d->platformWindow->devicePixelRatio();
 }
 
 /*!
@@ -1176,7 +1145,7 @@ QRect QWindow::frameGeometry() const
 
     \sa geometry(), frameGeometry()
 */
-QPoint QWindow::framePos() const
+QPoint QWindow::framePosition() const
 {
     Q_D(const QWindow);
     if (d->platformWindow) {
@@ -1191,7 +1160,7 @@ QPoint QWindow::framePos() const
 
     \sa setGeometry(), frameGeometry()
 */
-void QWindow::setFramePos(const QPoint &point)
+void QWindow::setFramePosition(const QPoint &point)
 {
     Q_D(QWindow);
     d->positionPolicy = QWindowPrivate::WindowFrameInclusive;
@@ -1388,8 +1357,16 @@ void QWindow::setScreen(QScreen *newScreen)
 void QWindow::screenDestroyed(QObject *object)
 {
     Q_D(QWindow);
-    if (object == static_cast<QObject *>(d->screen))
+    if (object == static_cast<QObject *>(d->screen)) {
+        const bool wasVisible = isVisible();
         setScreen(0);
+        // destroy() might have hidden our window, show it again.
+        // This might not be the best behavior if the new screen isn't a virtual sibling
+        // of the old one. This can be removed once platform plugins have the power to
+        // update the QScreen of its QWindows itself.
+        if (wasVisible && d->platformWindow)
+            setVisible(true);
+    }
 }
 
 /*!

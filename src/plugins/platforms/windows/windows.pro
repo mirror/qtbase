@@ -1,13 +1,12 @@
-TARGET = windows
+TARGET = qwindows
 
 PLUGIN_TYPE = platforms
+PLUGIN_CLASS_NAME = QWindowsIntegrationPlugin
 load(qt_plugin)
 
 QT *= core-private
 QT *= gui-private
 QT *= platformsupport-private
-
-INCLUDEPATH += ../../../3rdparty/harfbuzz/src
 
 # Note: OpenGL32 must precede Gdi32 as it overwrites some functions.
 LIBS *= -lole32
@@ -157,6 +156,8 @@ contains(QT_CONFIG, freetype) {
    INCLUDEPATH += \
        $$QT_FREETYPE_DIR/src \
        $$QT_FREETYPE_DIR/include
+
+   TR_EXCLUDE += $$QT_FREETYPE_DIR/*
 
    DEFINES += FT2_BUILD_LIBRARY
    contains(QT_CONFIG, system-zlib) {

@@ -28,8 +28,8 @@
 /*!
     \example itemviews/chart
     \title Chart Example
-
-    The Chart example shows how to create a custom view for the model/view framework.
+    \ingroup examples-itemviews
+    \brief The Chart example shows how to create a custom view for the model/view framework.
 
     \image chart-example.png
 

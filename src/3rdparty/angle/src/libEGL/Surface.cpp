@@ -217,11 +217,26 @@ bool Surface::resetSwapChain(int backbufferWidth, int backbufferHeight)
         mDepthStencil = NULL;
     }
 
-    mShareHandle = NULL;
     HANDLE *pShareHandle = NULL;
     if (!mWindow && mDisplay->shareHandleSupported())
     {
         pShareHandle = &mShareHandle;
+    }
+
+    // CreateTexture will fail on zero dimensions, so just release old target
+    if (!backbufferWidth || !backbufferHeight)
+    {
+        if (mRenderTarget)
+        {
+            mRenderTarget->Release();
+            mRenderTarget = NULL;
+        }
+
+        mWidth = backbufferWidth;
+        mHeight = backbufferHeight;
+        mPresentIntervalDirty = false;
+
+        return true;
     }
 
     result = device->CreateTexture(backbufferWidth, backbufferHeight, 1, D3DUSAGE_RENDERTARGET,

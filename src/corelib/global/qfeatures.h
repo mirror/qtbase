@@ -91,9 +91,6 @@
 // QHostInfo
 //#define QT_NO_HOSTINFO
 
-// QImageIOPlugin
-//#define QT_NO_IMAGEFORMATPLUGIN
-
 // BMP Image Format
 //#define QT_NO_IMAGEFORMAT_BMP
 
@@ -120,6 +117,9 @@
 
 // QLCDNumber
 //#define QT_NO_LCDNUMBER
+
+// QLibrary
+//#define QT_NO_LIBRARY
 
 // QLineEdit
 //#define QT_NO_LINEEDIT
@@ -153,9 +153,6 @@
 
 // Properties
 //#define QT_NO_PROPERTIES
-
-//  Universally Unique Identifier Convertion
-//#define QT_NO_QUUID_STRING
 
 // Resize Handler
 //#define QT_NO_RESIZEHANDLER
@@ -296,6 +293,16 @@
 #define QT_NO_ICONV
 #endif
 
+// QInputContext
+#if !defined(QT_NO_IM) && (defined(QT_NO_LIBRARY))
+#define QT_NO_IM
+#endif
+
+// QLocalServer
+#if !defined(QT_NO_LOCALSERVER) && (defined(QT_NO_TEMPORARYFILE))
+#define QT_NO_LOCALSERVER
+#endif
+
 // QMenu
 #if !defined(QT_NO_MENU) && (defined(QT_NO_ACTION))
 #define QT_NO_MENU
@@ -304,11 +311,6 @@
 // QNetworkDiskCache
 #if !defined(QT_NO_NETWORKDISKCACHE) && (defined(QT_NO_TEMPORARYFILE))
 #define QT_NO_NETWORKDISKCACHE
-#endif
-
-// QLocalServer
-#if !defined(QT_NO_LOCALSERVER) && (defined(QT_NO_TEMPORARYFILE))
-#define QT_NO_LOCALSERVER
 #endif
 
 // QProgressDialog
@@ -334,6 +336,11 @@
 // State machine
 #if !defined(QT_NO_STATEMACHINE) && (defined(QT_NO_PROPERTIES))
 #define QT_NO_STATEMACHINE
+#endif
+
+// QFusionStyle
+#if !defined(QT_NO_STYLE_FUSION) && (defined(QT_NO_IMAGEFORMAT_XPM))
+#define QT_NO_STYLE_FUSION
 #endif
 
 // QWindowsXPStyle
@@ -374,11 +381,6 @@
 // QtDBus module
 #if !defined(QT_NO_DBUS) && (defined(QT_NO_PROPERTIES) || defined(QT_NO_DOM))
 #define QT_NO_DBUS
-#endif
-
-// QInputContext
-#if !defined(QT_NO_IM) && (defined(QT_NO_LIBRARY))
-#define QT_NO_IM
 #endif
 
 // QPrinter
@@ -431,6 +433,11 @@
 #define QT_NO_WHATSTHIS
 #endif
 
+// Bearer Management
+#if !defined(QT_NO_BEARERMANAGEMENT) && (defined(QT_NO_LIBRARY) || defined(QT_NO_NETWORKINTERFACE) || defined(QT_NO_PROPERTIES))
+#define QT_NO_BEARERMANAGEMENT
+#endif
+
 // QGraphicsView
 #if !defined(QT_NO_GRAPHICSVIEW) && (defined(QT_NO_SCROLLAREA))
 #define QT_NO_GRAPHICSVIEW
@@ -451,14 +458,14 @@
 #define QT_NO_STYLE_STYLESHEET
 #endif
 
-// Bearer Management
-#if !defined(QT_NO_BEARERMANAGEMENT) && (defined(QT_NO_LIBRARY) || defined(QT_NO_NETWORKINTERFACE) || defined(QT_NO_PROPERTIES))
-#define QT_NO_BEARERMANAGEMENT
-#endif
-
 // QColorDialog
 #if !defined(QT_NO_COLORDIALOG) && (defined(QT_NO_SPINBOX))
 #define QT_NO_COLORDIALOG
+#endif
+
+// Common UNIX Printing System
+#if !defined(QT_NO_CUPS) && (defined(QT_NO_PRINTER) || defined(QT_NO_LIBRARY))
+#define QT_NO_CUPS
 #endif
 
 // QGraphicsEffect
@@ -484,11 +491,6 @@
 // QTextEdit
 #if !defined(QT_NO_TEXTEDIT) && (defined(QT_NO_SCROLLAREA) || defined(QT_NO_PROPERTIES))
 #define QT_NO_TEXTEDIT
-#endif
-
-// Common UNIX Printing System
-#if !defined(QT_NO_CUPS) && (defined(QT_NO_PRINTER) || defined(QT_NO_LIBRARY))
-#define QT_NO_CUPS
 #endif
 
 // QErrorMessage

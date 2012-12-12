@@ -206,10 +206,10 @@ void QLineEdit::initStyleOption(QStyleOptionFrame *option) const
     \table 100%
     \row \li \inlineimage macintosh-lineedit.png Screenshot of a Macintosh style line edit
          \li A line edit shown in the \l{Macintosh Style Widget Gallery}{Macintosh widget style}.
-    \row \li \inlineimage windows-lineedit.png Screenshot of a Windows XP style line edit
-         \li A line edit shown in the \l{Windows XP Style Widget Gallery}{Windows XP widget style}.
-    \row \li \inlineimage plastique-lineedit.png Screenshot of a Plastique style line edit
-         \li A line edit shown in the \l{Plastique Style Widget Gallery}{Plastique widget style}.
+    \row \li \inlineimage windowsvista-lineedit.png Screenshot of a Windows Vista style line edit
+         \li A line edit shown in the \l{Windows Vista Style Widget Gallery}{Windows Vista widget style}.
+    \row \li \inlineimage fusion-lineedit.png Screenshot of a Fusion style line edit
+         \li A line edit shown in the \l{Fusion Style Widget Gallery}{Fusion widget style}.
     \endtable
 
     \sa QTextEdit, QLabel, QComboBox, {fowler}{GUI Design Handbook: Field, Entry}, {Line Edits Example}

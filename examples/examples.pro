@@ -24,8 +24,10 @@ contains(QT_BUILD_PARTS, tools):!contains(QT_CONFIG, no-gui):!contains(QT_CONFIG
 contains(QT_CONFIG, opengl):!contains(QT_CONFIG, no-widgets):SUBDIRS += opengl
 contains(QT_CONFIG, dbus): SUBDIRS += dbus
 contains(QT_CONFIG, concurrent): SUBDIRS += qtconcurrent
+contains(DEFINES, QT_NO_TRANSLATION): SUBDIRS -= linguist
 
-# install
-sources.files = README *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]
-INSTALLS += sources
+aggregate.files = aggregate/examples.pro
+aggregate.path = $$[QT_INSTALL_EXAMPLES]
+readme.files = README
+readme.path = $$[QT_INSTALL_EXAMPLES]
+INSTALLS += aggregate readme

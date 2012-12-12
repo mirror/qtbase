@@ -28,8 +28,9 @@
 /*!
     \example mainwindows/mainwindow
     \title Main Window
+    \ingroup examples-mainwindow
 
-    The Main Window example shows Qt's extensive support for tool bars,
+    \brief The Main Window example shows Qt's extensive support for tool bars,
     dock windows, menus, and other standard application features.
 
     \image mainwindow-demo.png

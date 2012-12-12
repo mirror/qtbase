@@ -28,8 +28,9 @@
 /*! 
     \example dialogs/standarddialogs
     \title Standard Dialogs Example
+    \ingroup examples-dialogs
 
-    The Standard Dialogs example shows the standard dialogs that are provided by Qt.
+    \brief The Standard Dialogs example shows the standard dialogs that are provided by Qt.
 
     \image standarddialogs-example.png
 */

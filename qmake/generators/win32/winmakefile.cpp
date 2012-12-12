@@ -245,6 +245,23 @@ Win32MakefileGenerator::processPrlFiles()
                 l.insert(lit + prl + 1, prl_libs.at(prl));
             prl_libs.clear();
         }
+
+        // Merge them into a logical order
+        if (!project->isActiveConfig("no_smart_library_merge") && !project->isActiveConfig("no_lflags_merge")) {
+            ProStringList lflags;
+            for (int lit = 0; lit < l.size(); ++lit) {
+                ProString opt = l.at(lit).trimmed();
+                if (opt.startsWith(libArg)) {
+                    if (!lflags.contains(opt))
+                        lflags.append(opt);
+                } else {
+                    // Make sure we keep the dependency-order of libraries
+                    lflags.removeAll(opt);
+                    lflags.append(opt);
+                }
+            }
+            l = lflags;
+        }
     }
 }
 
@@ -436,6 +453,7 @@ void Win32MakefileGenerator::processRcFileVar()
         ts << "\t\t\t\tVALUE \"LegalCopyright\", \"" << copyright << "\\0\"" << endl;
         ts << "\t\t\t\tVALUE \"OriginalFilename\", \"" << originalName << "\\0\"" << endl;
         ts << "\t\t\t\tVALUE \"ProductName\", \"" << productName << "\\0\"" << endl;
+        ts << "\t\t\t\tVALUE \"ProductVersion\", \"" << versionString << "\\0\"" << endl;
         ts << "\t\t\tEND" << endl;
         ts << "\t\tEND" << endl;
         ts << "\t\tBLOCK \"VarFileInfo\"" << endl;
@@ -727,7 +745,7 @@ void Win32MakefileGenerator::writeLibsPart(QTextStream &t)
         t << "LIBAPP        = " << var("QMAKE_LIB") << endl;
         t << "LIBFLAGS      = " << var("QMAKE_LIBFLAGS") << endl;
     } else {
-        t << "LINK          = " << var("QMAKE_LINK") << endl;
+        t << "LINKER        = " << var("QMAKE_LINK") << endl;
         t << "LFLAGS        = " << var("QMAKE_LFLAGS") << endl;
         t << "LIBS          = " << var("QMAKE_LIBS") << " " << var("QMAKE_LIBS_PRIVATE") << endl;
     }
@@ -765,8 +783,20 @@ void Win32MakefileGenerator::writeRcFilePart(QTextStream &t)
         // use these defines in the .rc file itself. Also, we need to add the _DEBUG define manually
         // since the compiler defines this symbol by itself, and we use it in the automatically
         // created rc file when VERSION is define the .pro file.
+
+        const ProStringList rcIncPaths = project->values("RC_INCLUDEPATH");
+        QString incPathStr;
+        for (int i = 0; i < rcIncPaths.count(); ++i) {
+            const ProString &path = rcIncPaths.at(i);
+            if (path.isEmpty())
+                continue;
+            incPathStr += QStringLiteral(" /i ");
+            incPathStr += escapeFilePath(path);
+        }
+
         t << res_file << ": " << rc_file << "\n\t"
-          << var("QMAKE_RC") << (project->isActiveConfig("debug") ? " -D_DEBUG" : "") << " $(DEFINES) -fo " << res_file << " " << rc_file;
+          << var("QMAKE_RC") << (project->isActiveConfig("debug") ? " -D_DEBUG" : "")
+          << " $(DEFINES)" << incPathStr << " -fo " << res_file << " " << rc_file;
         t << endl << endl;
     }
 }

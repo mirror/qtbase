@@ -55,7 +55,7 @@
 #include <qpushbutton.h>
 #include <qstyle.h>
 #include <qwidget.h>
-#include <qwindowsstyle.h>
+#include <qstylefactory.h>
 #include <qdesktopwidget.h>
 #include <private/qwidget_p.h>
 #include <private/qapplication_p.h>
@@ -392,10 +392,13 @@ private slots:
     void nativeChildFocus();
     void grab();
     void grabMouse();
+    void grabKeyboard();
 
     void touchEventSynthesizedMouseEvent();
 
     void styleSheetPropagation();
+
+    void destroyedSignal();
 private:
     bool ensureScreenSize(int width, int height);
     QWidget *testWidget;
@@ -417,7 +420,7 @@ void tst_QWidget::getSetCheck()
     QWidget child1(&obj1);
     // QStyle * QWidget::style()
     // void QWidget::setStyle(QStyle *)
-    QScopedPointer<QWindowsStyle> var1(new QWindowsStyle);
+    QScopedPointer<QStyle> var1(QStyleFactory::create(QLatin1String("Windows")));
     obj1.setStyle(var1.data());
     QCOMPARE(static_cast<QStyle *>(var1.data()), obj1.style());
     obj1.setStyle((QStyle *)0);
@@ -4830,7 +4833,7 @@ void tst_QWidget::moveChild()
 
     ColorWidget parent;
     // prevent custom styles
-    parent.setStyle(new QWindowsStyle);
+    parent.setStyle(QStyleFactory::create(QLatin1String("Windows")));
     ColorWidget child(&parent, Qt::blue);
 
 #ifndef Q_OS_WINCE
@@ -4878,7 +4881,7 @@ void tst_QWidget::showAndMoveChild()
 {
     QWidget parent(0, Qt::FramelessWindowHint);
     // prevent custom styles
-    parent.setStyle(new QWindowsStyle);
+    parent.setStyle(QStyleFactory::create(QLatin1String("Windows")));
 
     QDesktopWidget desktop;
     QRect desktopDimensions = desktop.availableGeometry(&parent);
@@ -4948,7 +4951,7 @@ void tst_QWidget::subtractOpaqueSiblings()
 void tst_QWidget::deleteStyle()
 {
     QWidget widget;
-    widget.setStyle(new QWindowsStyle);
+    widget.setStyle(QStyleFactory::create(QLatin1String("Windows")));
     widget.show();
     delete widget.style();
     qApp->processEvents();
@@ -6040,7 +6043,7 @@ void tst_QWidget::render()
         QWidget window;
         window.resize(100, 100);
         // prevent custom styles
-        window.setStyle(new QWindowsStyle);
+        window.setStyle(QStyleFactory::create(QLatin1String("Windows")));
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window));
         QWidget child(&window);
@@ -6059,7 +6062,7 @@ void tst_QWidget::render()
         widget.setAutoFillBackground(true);
         widget.setPalette(Qt::red);
         // prevent custom styles
-        widget.setStyle(new QWindowsStyle);
+        widget.setStyle(QStyleFactory::create(QLatin1String("Windows")));
         widget.show();
         QVERIFY(QTest::qWaitForWindowExposed(&widget));
         QImage image(widget.size(), QImage::Format_RGB32);
@@ -6311,7 +6314,7 @@ void tst_QWidget::renderWithPainter()
 {
     QWidget widget(0, Qt::Tool);
     // prevent custom styles
-    widget.setStyle(new QWindowsStyle);
+    widget.setStyle(QStyleFactory::create(QLatin1String("Windows")));
     widget.show();
     widget.resize(70, 50);
     widget.setAutoFillBackground(true);
@@ -9410,6 +9413,27 @@ void tst_QWidget::grabMouse()
     QCOMPARE(log, expectedLog);
 }
 
+void tst_QWidget::grabKeyboard()
+{
+    QWidget w;
+    w.setObjectName(QLatin1String("tst_qwidget_grabKeyboard"));
+    w.setWindowTitle(w.objectName());
+    QLayout *layout = new QVBoxLayout(&w);
+    QLineEdit *grabber = new QLineEdit(&w);
+    layout->addWidget(grabber);
+    QLineEdit *nonGrabber = new QLineEdit(&w);
+    layout->addWidget(nonGrabber);
+    w.show();
+    qApp->setActiveWindow(&w);
+    QVERIFY(QTest::qWaitForWindowActive(&w));
+    nonGrabber->setFocus();
+    grabber->grabKeyboard();
+    QTest::keyClick(w.windowHandle(), Qt::Key_A);
+    grabber->releaseKeyboard();
+    QCOMPARE(grabber->text().toLower(), QStringLiteral("a"));
+    QVERIFY(nonGrabber->text().isEmpty());
+}
+
 class TouchMouseWidget : public QWidget {
 public:
     explicit TouchMouseWidget(QWidget *parent = 0)
@@ -9590,6 +9614,104 @@ void tst_QWidget::styleSheetPropagation()
         if (QWidget *w = qobject_cast<QWidget *>(child))
             QCOMPARE(w->style(), tw.style());
     }
+}
+
+class DestroyTester : public QObject
+{
+    Q_OBJECT
+public:
+    DestroyTester(QObject *parent) : QObject(parent) { parentDestroyed = 0; }
+    static int parentDestroyed;
+public slots:
+    void parentDestroyedSlot() {
+        ++parentDestroyed;
+    }
+};
+
+int DestroyTester::parentDestroyed = 0;
+
+void tst_QWidget::destroyedSignal()
+{
+    {
+        QWidget *w = new QWidget;
+        DestroyTester *t = new DestroyTester(w);
+        connect(w, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete w;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+    }
+
+    {
+        QWidget *w = new QWidget;
+        DestroyTester *t = new DestroyTester(w);
+        connect(w, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        w->blockSignals(true);
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete w;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+    }
+
+    {
+        QObject *o = new QWidget;
+        DestroyTester *t = new DestroyTester(o);
+        connect(o, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete o;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+    }
+
+    {
+        QObject *o = new QWidget;
+        DestroyTester *t = new DestroyTester(o);
+        connect(o, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        o->blockSignals(true);
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete o;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+    }
+
+    {
+        QWidget *w = new QWidget;
+        DestroyTester *t = new DestroyTester(0);
+        connect(w, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete w;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+        delete t;
+    }
+
+    {
+        QWidget *w = new QWidget;
+        DestroyTester *t = new DestroyTester(0);
+        connect(w, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        w->blockSignals(true);
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete w;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+        delete t;
+    }
+
+    {
+        QObject *o = new QWidget;
+        DestroyTester *t = new DestroyTester(0);
+        connect(o, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete o;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+        delete t;
+    }
+
+    {
+        QObject *o = new QWidget;
+        DestroyTester *t = new DestroyTester(0);
+        connect(o, SIGNAL(destroyed()), t, SLOT(parentDestroyedSlot()));
+        o->blockSignals(true);
+        QCOMPARE(DestroyTester::parentDestroyed, 0);
+        delete o;
+        QCOMPARE(DestroyTester::parentDestroyed, 1);
+        delete t;
+    }
+
 }
 
 #ifndef QTEST_NO_CURSOR

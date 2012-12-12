@@ -5,8 +5,6 @@ SOURCES       = main.cpp \
                 widgetgallery.cpp
 RESOURCES     = styles.qrc
 
-REQUIRES += "contains(styles, windows)"
-
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/styles
 sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS styles.pro images

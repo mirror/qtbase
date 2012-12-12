@@ -29,6 +29,6 @@ HEADERS = qiosintegration.h \
     qiosorientationlistener.h \
     qiosviewcontroller.h \
     qioscontext.h \
-    qiosinputcontext.mm
+    qiosinputcontext.h
 
 #HEADERS = qiossoftwareinputhandler.h

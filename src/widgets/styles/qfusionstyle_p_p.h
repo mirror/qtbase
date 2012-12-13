@@ -89,12 +89,13 @@ public:
     bool isMacSystemPalette(const QPalette &pal) const {
         Q_UNUSED(pal);
 #ifdef Q_OS_MAC
-        const QPalette *themePalette = QGuiApplicationPrivate::platformTheme()->palette();
-        if (themePalette->color(QPalette::Normal, QPalette::Highlight) ==
-                pal.color(QPalette::Normal, QPalette::Highlight) &&
-            themePalette->color(QPalette::Normal, QPalette::HighlightedText) ==
-                pal.color(QPalette::Normal, QPalette::HighlightedText))
-            return true;
+        if (const QPalette *themePalette = QGuiApplicationPrivate::platformTheme()->palette()) {
+            if (themePalette->color(QPalette::Normal, QPalette::Highlight) ==
+                    pal.color(QPalette::Normal, QPalette::Highlight) &&
+                themePalette->color(QPalette::Normal, QPalette::HighlightedText) ==
+                    pal.color(QPalette::Normal, QPalette::HighlightedText))
+                return true;
+        }
 #endif
         return false;
     }

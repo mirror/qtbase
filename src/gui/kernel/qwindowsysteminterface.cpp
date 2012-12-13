@@ -75,10 +75,10 @@ extern QPointer<QWindow> qt_last_mouse_receiver;
     until sendWindowSystemEvents() is called by the event dispatcher.
 */
 
-void QWindowSystemInterface::handleEnterEvent(QWindow *tlw)
+void QWindowSystemInterface::handleEnterEvent(QWindow *tlw, const QPointF &local, const QPointF &global)
 {
     if (tlw) {
-        QWindowSystemInterfacePrivate::EnterEvent *e = new QWindowSystemInterfacePrivate::EnterEvent(tlw);
+        QWindowSystemInterfacePrivate::EnterEvent *e = new QWindowSystemInterfacePrivate::EnterEvent(tlw, local, global);
         QWindowSystemInterfacePrivate::handleWindowSystemEvent(e);
     }
 }
@@ -96,13 +96,13 @@ void QWindowSystemInterface::handleLeaveEvent(QWindow *tlw)
     determine where mouse went and act accordingly. E.g. QWidgetWindow needs to know if mouse
     cursor moves between windows in same window hierarchy.
 */
-void QWindowSystemInterface::handleEnterLeaveEvent(QWindow *enter, QWindow *leave)
+void QWindowSystemInterface::handleEnterLeaveEvent(QWindow *enter, QWindow *leave, const QPointF &local, const QPointF& global)
 {
     bool wasSynchronous = QWindowSystemInterfacePrivate::synchronousWindowsSystemEvents;
     if (wasSynchronous)
         setSynchronousWindowsSystemEvents(false);
     handleLeaveEvent(leave);
-    handleEnterEvent(enter);
+    handleEnterEvent(enter, local, global);
     if (wasSynchronous) {
         flushWindowSystemEvents();
         setSynchronousWindowsSystemEvents(true);
@@ -629,6 +629,18 @@ void QWindowSystemInterface::handlePlatformPanelEvent(QWindow *w)
             new QWindowSystemInterfacePrivate::PlatformPanelEvent(w);
     QWindowSystemInterfacePrivate::handleWindowSystemEvent(e);
 }
+
+#ifndef QT_NO_CONTEXTMENU
+void QWindowSystemInterface::handleContextMenuEvent(QWindow *w, bool mouseTriggered,
+                                                    const QPoint &pos, const QPoint &globalPos,
+                                                    Qt::KeyboardModifiers modifiers)
+{
+    QWindowSystemInterfacePrivate::ContextMenuEvent *e =
+            new QWindowSystemInterfacePrivate::ContextMenuEvent(w, mouseTriggered, pos,
+                                                                globalPos, modifiers);
+    QWindowSystemInterfacePrivate::handleWindowSystemEvent(e);
+}
+#endif
 
 Q_GUI_EXPORT void qt_handleMouseEvent(QWindow *w, const QPointF & local, const QPointF & global, Qt::MouseButtons b, Qt::KeyboardModifiers mods = Qt::NoModifier) {
     QWindowSystemInterface::handleMouseEvent(w, local, global,  b,  mods);

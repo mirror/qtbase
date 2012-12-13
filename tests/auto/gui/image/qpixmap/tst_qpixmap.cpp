@@ -109,7 +109,6 @@ private slots:
     void setGetMask();
     void cacheKey();
     void drawBitmap();
-    void grabWindow();
     void isNull();
     void task_246446();
 
@@ -440,12 +439,7 @@ void tst_QPixmap::fill_data()
         QTest::newRow(QString("syscolor_%1").arg(color).toLatin1())
             << uint(color) << true << false;
 
-#ifdef Q_WS_QWS
-    if (QScreen::instance()->depth() >= 24) {
-#elif defined (Q_WS_X11)
-    QPixmap pm(1, 1);
-    if (pm.x11PictureHandle()) {
-#elif defined (Q_OS_WINCE)
+#if defined (Q_OS_WINCE)
     QPixmap pixmap(1,1);
     if (QApplication::desktop()->grab().depth() >= 24) {
 #else
@@ -721,36 +715,6 @@ void tst_QPixmap::drawBitmap()
     expected.fill(Qt::red);
 
     QVERIFY(lenientCompare(pixmap, expected));
-}
-
-void tst_QPixmap::grabWindow()
-{
-//  ### fixme: Check platforms
-    QSKIP("QTBUG-20863 grabWindow is broken on most qpa backends");
-#ifndef QT_NO_WIDGETS
-#ifdef Q_OS_WINCE
-    // We get out of memory, if the desktop itself is too big.
-    if (QApplication::desktop()->width() <= 480)
-#endif
-    QVERIFY(QPixmap::grabWindow(QApplication::desktop()->winId()).isNull() == false);
-    QWidget w;
-    w.resize(640, 480);
-    w.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&w));
-    QVERIFY(QPixmap::grabWindow(w.winId()).isNull() == false);
-
-    QWidget child(&w);
-    child.setGeometry(50, 50, 100, 100);
-    child.setPalette(Qt::red);
-    child.setAutoFillBackground(true);
-    child.show();
-    QTest::qWait(20);
-    const QPixmap grabWidgetPixmap = child.grab();
-    const WId childWinId = child.winId(); // Create native child
-    QVERIFY(QTest::qWaitForWindowExposed(child.windowHandle()));
-    const QPixmap grabWindowPixmap = QPixmap::grabWindow(childWinId);
-    QVERIFY(lenientCompare(grabWindowPixmap, grabWidgetPixmap));
-#endif
 }
 
 void tst_QPixmap::isNull()

@@ -199,6 +199,7 @@ private slots:
     void task234926_setHeaderSorting();
 
     void changeHeaderData();
+    void viewOptions();
 };
 
 // Testing get/set functions
@@ -475,6 +476,10 @@ public:
     int sizeHintForRow(int row) const
     {
         return QTableView::sizeHintForRow(row);
+    }
+
+    QStyleOptionViewItem viewOptions() const {
+        return QTableView::viewOptions();
     }
 
     bool checkSignalOrder;
@@ -2691,7 +2696,7 @@ void tst_QTableView::indexAt_data()
       << 0 << 0;   // expected
 
     QTest::newRow("no hidden, no span, scroll (5,0), at (20,20)")
-      << 10 << 10  // dim
+      << 20 << 20  // dim
       << 40 << 40  // size
       << -1 << -1  // hide
       << -1 << -1  // pos
@@ -2701,7 +2706,7 @@ void tst_QTableView::indexAt_data()
       << 0 << 5;   // expected
 
     QTest::newRow("no hidden, no span, scroll (0,5), at (20,20)")
-      << 10 << 10  // dim
+      << 20 << 20  // dim
       << 40 << 40  // size
       << -1 << -1  // hide
       << -1 << -1  // pos
@@ -2711,7 +2716,7 @@ void tst_QTableView::indexAt_data()
       << 5 << 0;   // expected
 
     QTest::newRow("no hidden, no span, scroll (5,5), at (20,20)")
-      << 10 << 10  // dim
+      << 20 << 20  // dim
       << 40 << 40  // size
       << -1 << -1  // hide
       << -1 << -1  // pos
@@ -4060,9 +4065,9 @@ void tst_QTableView::taskQTBUG_8777_scrollToSpans()
 }
 
 void tst_QTableView::taskQTBUG_10169_sizeHintForRow()
-{ 
-    QtTestTableView tableView; 
-    QStandardItemModel model(1, 3); 
+{
+    QtTestTableView tableView;
+    QStandardItemModel model(1, 3);
     model.setData(model.index(0, 0), "Word wrapping text goes here.");
     tableView.setModel(&model);
     tableView.verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -4072,6 +4077,13 @@ void tst_QTableView::taskQTBUG_10169_sizeHintForRow()
 
     //the order of the columns shouldn't matter.
     QCOMPARE(orderedHeight, reorderedHeight);
+}
+
+void tst_QTableView::viewOptions()
+{
+    QtTestTableView view;
+    QStyleOptionViewItem options = view.viewOptions();
+    QVERIFY(options.showDecorationSelected);
 }
 
 QTEST_MAIN(tst_QTableView)

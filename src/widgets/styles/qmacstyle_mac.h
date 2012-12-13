@@ -42,7 +42,7 @@
 #ifndef QMACSTYLE_MAC_H
 #define QMACSTYLE_MAC_H
 
-#include <QtWidgets/qwindowsstyle.h>
+#include <QtWidgets/qcommonstyle.h>
 
 QT_BEGIN_HEADER
 
@@ -62,7 +62,7 @@ class QPalette;
 class QPushButton;
 class QStyleOptionButton;
 class QMacStylePrivate;
-class Q_WIDGETS_EXPORT_STYLE_MAC QMacStyle : public QWindowsStyle
+class Q_WIDGETS_EXPORT_STYLE_MAC QMacStyle : public QCommonStyle
 {
     Q_OBJECT
 public:
@@ -104,8 +104,9 @@ public:
 
     enum WidgetSizePolicy { SizeSmall, SizeLarge, SizeMini, SizeDefault
     };
+
     static void setWidgetSizePolicy(const QWidget *w, WidgetSizePolicy policy);
-    static WidgetSizePolicy widgetSizePolicy(const QWidget *w);
+    static WidgetSizePolicy widgetSizePolicy(const QWidget *w, const QStyleOption *opt = 0);
 
     QPixmap standardPixmap(StandardPixmap sp, const QStyleOption *opt,
                            const QWidget *widget = 0) const;
@@ -123,9 +124,6 @@ public:
     int layoutSpacing(QSizePolicy::ControlType control1, QSizePolicy::ControlType control2,
                       Qt::Orientation orientation, const QStyleOption *option = 0,
                       const QWidget *widget = 0) const;
-
-protected:
-    bool eventFilter(QObject *, QEvent *);
 
 private:
     Q_DISABLE_COPY(QMacStyle)

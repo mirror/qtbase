@@ -47,7 +47,7 @@
 #undef check
 
 #include "qmacstyle_mac.h"
-#include "qwindowsstyle_p.h"
+#include "qcommonstyle_p.h"
 #include <private/qapplication_p.h>
 #include <private/qcombobox_p.h>
 #include <private/qpainter_p.h>
@@ -139,7 +139,7 @@ enum QAquaWidgetSize { QAquaSizeLarge = 0, QAquaSizeSmall = 1, QAquaSizeMini = 2
 
 bool qt_mac_buttonIsRenderedFlat(const QPushButton *pushButton, const QStyleOptionButton *option);
 
-class QMacStylePrivate : public QWindowsStylePrivate
+class QMacStylePrivate : public QCommonStylePrivate
 {
     Q_DECLARE_PUBLIC(QMacStyle)
 public:
@@ -158,14 +158,7 @@ public:
     static const qreal ScrollBarFadeOutDuration;
     static const qreal ScrollBarFadeOutDelay;
 
-    // Stuff from QAquaAnimate:
-    bool addWidget(QWidget *);
-    void removeWidget(QWidget *);
-
     enum Animates { AquaPushButton, AquaProgressBar, AquaListViewItemOpen, AquaScrollBar };
-    bool animatable(Animates, const QObject *) const;
-    void stopAnimate(Animates, QObject *);
-    void startAnimate(Animates, QObject *);
     static ThemeDrawState getDrawState(QStyle::State flags);
     QAquaWidgetSize aquaSizeConstrain(const QStyleOption *option, const QWidget *widg,
                              QStyle::ContentsType ct = QStyle::CT_CustomBase,
@@ -201,30 +194,9 @@ public:
     QPixmap generateBackgroundPattern() const;
 
 public:
-    QPointer<QPushButton> defaultButton; //default push buttons
-
-    struct OverlayScrollBarInfo {
-        OverlayScrollBarInfo()
-            : lastValue(-1),
-              lastMinimum(-1),
-              lastMaximum(-1),
-              lastUpdate(QDateTime::currentMSecsSinceEpoch()),
-              hovered(false),
-              lastHovered(0),
-              cleared(false),
-              animating(false)
-        {}
-        int lastValue;
-        int lastMinimum;
-        int lastMaximum;
-        QSize lastSize;
-        qint64 lastUpdate;
-        bool hovered;
-        qint64 lastHovered;
-        bool cleared;
-        bool animating;
-    };
-    mutable QMap<const QWidget*, OverlayScrollBarInfo> scrollBarInfos;
+    mutable QPointer<QObject> pressedButton;
+    mutable QPointer<QObject> defaultButton;
+    mutable QPointer<QObject> autoDefaultButton;
 
     struct ButtonState {
         int frame;
@@ -237,6 +209,34 @@ public:
     void* receiver;
     void *nsscroller;
 #endif
+};
+
+class QFadeOutAnimation : public QNumberStyleAnimation
+{
+    Q_OBJECT
+
+public:
+    QFadeOutAnimation(QObject *target) : QNumberStyleAnimation(target), _active(false)
+    {
+        setDuration(QMacStylePrivate::ScrollBarFadeOutDelay + QMacStylePrivate::ScrollBarFadeOutDuration);
+        setDelay(QMacStylePrivate::ScrollBarFadeOutDelay);
+        setStartValue(1.0);
+        setEndValue(0.0);
+    }
+
+    bool wasActive() const { return _active; }
+    void setActive(bool active) { _active = active; }
+
+private slots:
+    void updateCurrentTime(int time)
+    {
+        QNumberStyleAnimation::updateCurrentTime(time);
+        if (qFuzzyIsNull(currentValue()))
+            target()->setProperty("visible", false);
+    }
+
+private:
+    bool _active;
 };
 
 QT_END_NAMESPACE

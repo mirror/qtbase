@@ -42,6 +42,17 @@
 #ifndef QGUIAPPLICATION_P_H
 #define QGUIAPPLICATION_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtGui/qguiapplication.h>
 
 #include <QtCore/QPointF>
@@ -138,6 +149,9 @@ public:
     static void processTabletLeaveProximityEvent(QWindowSystemInterfacePrivate::TabletLeaveProximityEvent *e);
 
     static void processPlatformPanelEvent(QWindowSystemInterfacePrivate::PlatformPanelEvent *e);
+#ifndef QT_NO_CONTEXTMENU
+    static void processContextMenuEvent(QWindowSystemInterfacePrivate::ContextMenuEvent *e);
+#endif
 
 #ifndef QT_NO_DRAGANDDROP
     static QPlatformDragQtResponse processDrag(QWindow *w, const QMimeData *dropData, const QPoint &p, Qt::DropActions supportedActions);
@@ -186,6 +200,7 @@ public:
     static QPointF lastCursorPosition;
     static bool tabletState;
     static QWindow *tabletPressTarget;
+    static QWindow *currentMouseWindow;
 
 #ifndef QT_NO_CLIPBOARD
     static QClipboard *qt_clipboard;

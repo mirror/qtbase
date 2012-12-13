@@ -1349,6 +1349,8 @@ void QHeaderView::setSortIndicator(int logicalIndex, Qt::SortOrder order)
 
     // This is so that people can set the position of the sort indicator before the fill the model
     int old = d->sortIndicatorSection;
+    if (old == logicalIndex && order == d->sortIndicatorOrder)
+        return;
     d->sortIndicatorSection = logicalIndex;
     d->sortIndicatorOrder = order;
 
@@ -2266,7 +2268,12 @@ void QHeaderView::mousePressEvent(QMouseEvent *e)
         d->pressed = logicalIndexAt(pos);
         if (d->clickableSections)
             emit sectionPressed(d->pressed);
-        if (d->movableSections) {
+
+        bool acceptMoveSection = d->movableSections;
+        if (acceptMoveSection && d->pressed == 0 && !d->allowUserMoveOfSection0)
+            acceptMoveSection = false; // Do not allow moving the tree nod
+
+        if (acceptMoveSection) {
             d->section = d->target = d->pressed;
             if (d->section == -1)
                 return;
@@ -2330,7 +2337,10 @@ void QHeaderView::mouseMoveEvent(QMouseEvent *e)
                 int visual = visualIndexAt(pos);
                 if (visual == -1)
                     return;
-                int posThreshold = d->headerSectionPosition(visual) + d->headerSectionSize(visual) / 2;
+                if (visual == 0 && logicalIndex(0) == 0 && !d->allowUserMoveOfSection0)
+                    return;
+
+                int posThreshold = d->headerSectionPosition(visual) - d->offset + d->headerSectionSize(visual) / 2;
                 int moving = visualIndex(d->section);
                 if (visual < moving) {
                     if (pos < posThreshold)
@@ -3228,6 +3238,7 @@ void QHeaderViewPrivate::clear()
     sectionHidden.clear();
     hiddenSectionSize.clear();
     sectionItems.clear();
+    invalidateCachedSizeHint();
     }
 }
 

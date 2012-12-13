@@ -3,8 +3,11 @@ TARGET = libEGL
 
 include(../common/common.pri)
 
-LIBS += -ld3d9 -ldxguid -ldwmapi \
-        -L$$[QT_INSTALL_LIBS] -llibGLESv2
+# Note: ANGLE is patched to dynamically resolve DwmIsCompositionEnabled DwmSetPresentParameters
+# in Surface.cpp, which would otherwise require -ldwmapi, which does not exist on Windows XP
+# (QTBUG-27741).
+LIBS += -ld3d9 -ldxguid \
+        -L$$QT_BUILD_TREE/lib -llibGLESv2
 
 HEADERS += \
     $$ANGLE_DIR/src/libEGL/Config.h \

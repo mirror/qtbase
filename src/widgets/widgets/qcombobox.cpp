@@ -64,7 +64,6 @@
 #include <private/qcombobox_p.h>
 #include <private/qabstractitemmodel_p.h>
 #include <private/qabstractscrollarea_p.h>
-#include <private/qsoftkeymanager_p.h>
 #include <qdebug.h>
 #if defined(Q_WS_MAC) && !defined(QT_NO_EFFECTS) && !defined(QT_NO_STYLE_MAC)
 #include <private/qcore_mac_p.h>
@@ -561,13 +560,6 @@ void QComboBoxPrivateContainer::setItemView(QAbstractItemView *itemView)
 #endif
     connect(view, SIGNAL(destroyed()),
             this, SLOT(viewDestroyed()));
-
-#ifdef QT_SOFTKEYS_ENABLED
-    selectAction = QSoftKeyManager::createKeyedAction(QSoftKeyManager::SelectSoftKey, Qt::Key_Select, itemView);
-    cancelAction = QSoftKeyManager::createKeyedAction(QSoftKeyManager::CancelSoftKey, Qt::Key_Escape, itemView);
-    addAction(selectAction);
-    addAction(cancelAction);
-#endif
 }
 
 /*!
@@ -617,11 +609,6 @@ void QComboBoxPrivateContainer::changeEvent(QEvent *e)
         view->setMouseTracking(combo->style()->styleHint(QStyle::SH_ComboBox_ListMouseTracking, &opt, combo) ||
                                combo->style()->styleHint(QStyle::SH_ComboBox_Popup, &opt, combo));
         setFrameStyle(combo->style()->styleHint(QStyle::SH_ComboBox_PopupFrameStyle, &opt, combo));
-#ifdef QT_SOFTKEYS_ENABLED
-    } else if (e->type() == QEvent::LanguageChange) {
-        selectAction->setText(QSoftKeyManager::standardSoftKeyText(QSoftKeyManager::SelectSoftKey));
-        cancelAction->setText(QSoftKeyManager::standardSoftKeyText(QSoftKeyManager::CancelSoftKey));
-#endif
     }
 
     QWidget::changeEvent(e);
@@ -822,6 +809,14 @@ QStyleOptionComboBox QComboBoxPrivateContainer::comboStyleOption() const
 */
 
 /*!
+    \fn void QComboBox::currentTextChanged(const QString &text)
+    \since 5.0
+
+    This signal is sent whenever currentText changes. The new value
+    is passed as \a text.
+*/
+
+/*!
     Constructs a combobox with the given \a parent, using the default
     model QStandardItemModel.
 */
@@ -919,7 +914,17 @@ QComboBox::QComboBox(QComboBoxPrivate &dd, QWidget *parent)
 void QComboBoxPrivate::init()
 {
     Q_Q(QComboBox);
-    q->setFocusPolicy(Qt::WheelFocus);
+#ifdef Q_OS_MAC
+    // On Mac, only line edits and list views always get tab focus. It's only
+    // when we enable full keyboard access that other controls can get tab focus.
+    // When it's not editable, a combobox looks like a button, and it behaves as
+    // such in this respect.
+    if (!q->isEditable())
+        q->setFocusPolicy(Qt::TabFocus);
+    else
+#endif
+        q->setFocusPolicy(Qt::WheelFocus);
+
     q->setSizePolicy(QSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed,
                                  QSizePolicy::ComboBox));
     setLayoutItemMargins(QStyle::SE_ComboBoxLayoutItem);
@@ -970,9 +975,12 @@ void QComboBoxPrivate::_q_dataChanged(const QModelIndex &topLeft, const QModelIn
     }
 
     if (currentIndex.row() >= topLeft.row() && currentIndex.row() <= bottomRight.row()) {
+        const QString text = q->itemText(currentIndex.row());
         if (lineEdit) {
-            lineEdit->setText(q->itemText(currentIndex.row()));
+            lineEdit->setText(text);
             updateLineEditGeometry();
+        } else {
+            emit q->currentTextChanged(text);
         }
         q->update();
     }
@@ -1232,7 +1240,11 @@ void QComboBoxPrivate::_q_emitCurrentIndexChanged(const QModelIndex &index)
 {
     Q_Q(QComboBox);
     emit q->currentIndexChanged(index.row());
-    emit q->currentIndexChanged(itemText(index));
+    const QString text = itemText(index);
+    emit q->currentIndexChanged(text);
+    // signal lineEdit.textChanged already connected to signal currentTextChanged, so don't emit double here
+    if (!lineEdit)
+        emit q->currentTextChanged(text);
 #ifndef QT_NO_ACCESSIBILITY
         QAccessibleEvent event(q, QAccessible::NameChanged);
         QAccessible::updateAccessibility(&event);
@@ -1655,6 +1667,10 @@ void QComboBox::setEditable(bool editable)
         }
         QLineEdit *le = new QLineEdit(this);
         setLineEdit(le);
+#ifdef Q_OS_MAC
+        // See comment in QComboBoxPrivate::init()
+        setFocusPolicy(Qt::WheelFocus);
+#endif
     } else {
         if (style()->styleHint(QStyle::SH_ComboBox_Popup, &opt, this)) {
             d->viewContainer()->updateScrollers();
@@ -1664,6 +1680,10 @@ void QComboBox::setEditable(bool editable)
         d->lineEdit->hide();
         d->lineEdit->deleteLater();
         d->lineEdit = 0;
+#ifdef Q_OS_MAC
+        // See comment in QComboBoxPrivate::init()
+        setFocusPolicy(Qt::TabFocus);
+#endif
     }
 
     d->viewContainer()->updateTopBottomMargin();
@@ -1696,6 +1716,7 @@ void QComboBox::setLineEdit(QLineEdit *edit)
     connect(d->lineEdit, SIGNAL(returnPressed()), this, SLOT(_q_returnPressed()));
     connect(d->lineEdit, SIGNAL(editingFinished()), this, SLOT(_q_editingFinished()));
     connect(d->lineEdit, SIGNAL(textChanged(QString)), this, SIGNAL(editTextChanged(QString)));
+    connect(d->lineEdit, SIGNAL(textChanged(QString)), this, SIGNAL(currentTextChanged(QString)));
     d->lineEdit->setFrame(false);
     d->lineEdit->setContextMenuPolicy(Qt::NoContextMenu);
     d->lineEdit->setFocusProxy(this);
@@ -1983,6 +2004,17 @@ void QComboBox::setCurrentIndex(int index)
     d->setCurrentIndex(mi);
 }
 
+void QComboBox::setCurrentText(const QString &text)
+{
+    if (isEditable()) {
+        setEditText(text);
+    } else {
+        const int i = findText(text);
+        if (i > -1)
+            setCurrentIndex(i);
+    }
+}
+
 void QComboBoxPrivate::setCurrentIndex(const QModelIndex &mi)
 {
     Q_Q(QComboBox);
@@ -2016,7 +2048,11 @@ void QComboBoxPrivate::setCurrentIndex(const QModelIndex &mi)
     by the line edit. Otherwise, it is the value of the current item or
     an empty string if the combo box is empty or no current item is set.
 
-    \sa editable
+    The setter setCurrentText() simply calls setEditText() if the combo box is editable.
+    Otherwise, if there is a matching text in the list, currentIndex is set to the
+    corresponding index.
+
+    \sa editable, setEditText()
 */
 QString QComboBox::currentText() const
 {

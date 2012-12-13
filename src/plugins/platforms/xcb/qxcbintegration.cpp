@@ -214,8 +214,9 @@ bool QXcbIntegration::hasCapability(QPlatformIntegration::Capability cap) const
 #else
     case OpenGL: return false;
 #endif
-    case ThreadedOpenGL: return false;
+    case ThreadedOpenGL: return m_connections.at(0)->supportsThreadedRendering();
     case WindowMasks: return true;
+    case MultipleWindows: return true;
     default: return QPlatformIntegration::hasCapability(cap);
     }
 }
@@ -275,8 +276,8 @@ QPlatformServices *QXcbIntegration::services() const
 Qt::KeyboardModifiers QXcbIntegration::queryKeyboardModifiers() const
 {
     int keybMask = 0;
-    QXcbConnection* conn = m_connections.at(0);
-    QXcbCursor::queryPointer(conn->xcb_connection(), 0, 0, &keybMask);
+    QXcbConnection *conn = m_connections.at(0);
+    QXcbCursor::queryPointer(conn, 0, 0, &keybMask);
     return conn->keyboard()->translateModifiers(keybMask);
 }
 

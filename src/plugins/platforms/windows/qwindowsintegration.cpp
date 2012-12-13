@@ -96,6 +96,7 @@ QT_BEGIN_NAMESPACE
 class QWindowsNativeInterface : public QPlatformNativeInterface
 {
     Q_OBJECT
+    Q_PROPERTY(bool asyncExpose READ asyncExpose WRITE setAsyncExpose)
 public:
 #ifndef QT_NO_OPENGL
     virtual void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
@@ -106,6 +107,8 @@ public:
     Q_INVOKABLE void *createMessageWindow(const QString &classNameTemplate,
                                           const QString &windowName,
                                           void *eventProc) const;
+    bool asyncExpose() const;
+    void setAsyncExpose(bool value);
 };
 
 void *QWindowsNativeInterface::nativeResourceForWindow(const QByteArray &resource, QWindow *window)
@@ -181,6 +184,16 @@ void *QWindowsNativeInterface::createMessageWindow(const QString &classNameTempl
                                              (wchar_t*)windowName.utf16(),
                                              (WNDPROC)eventProc);
     return hwnd;
+}
+
+bool QWindowsNativeInterface::asyncExpose() const
+{
+    return QWindowsContext::instance()->asyncExpose();
+}
+
+void QWindowsNativeInterface::setAsyncExpose(bool value)
+{
+    QWindowsContext::instance()->setAsyncExpose(value);
 }
 
 /*!
@@ -266,6 +279,12 @@ static inline unsigned parseOptions(const QStringList &paramList)
             } else if (param.endsWith(QLatin1String("native"))) {
                 options |= QWindowsIntegration::FontDatabaseNative;
             }
+        } else if (param.startsWith(QLatin1String("dialogs="))) {
+            if (param.endsWith(QLatin1String("xp"))) {
+                options |= QWindowsIntegration::XpNativeDialogs;
+            } else if (param.endsWith(QLatin1String("none"))) {
+                options |= QWindowsIntegration::NoNativeDialogs;
+            }
         } else if (param == QLatin1String("gl=gdi")) {
             options |= QWindowsIntegration::DisableArb;
         }
@@ -319,6 +338,8 @@ bool QWindowsIntegration::hasCapability(QPlatformIntegration::Capability cap) co
 #endif // !QT_NO_OPENGL
     case WindowMasks:
         return true;
+    case MultipleWindows:
+        return true;
     default:
         return QPlatformIntegration::hasCapability(cap);
     }
@@ -333,10 +354,10 @@ QPlatformPixmap *QWindowsIntegration::createPlatformPixmap(QPlatformPixmap::Pixe
 QPlatformWindow *QWindowsIntegration::createPlatformWindow(QWindow *window) const
 {
     QWindowsWindow::WindowData requested;
-    requested.flags = window->windowFlags();
+    requested.flags = window->flags();
     requested.geometry = window->geometry();
     const QWindowsWindow::WindowData obtained
-            = QWindowsWindow::WindowData::create(window, requested, window->windowTitle());
+            = QWindowsWindow::WindowData::create(window, requested, window->title());
     if (QWindowsContext::verboseIntegration || QWindowsContext::verboseWindows)
         qDebug().nospace()
             << __FUNCTION__ << '<' << window << '\n'
@@ -351,7 +372,7 @@ QPlatformWindow *QWindowsIntegration::createPlatformWindow(QWindow *window) cons
     if (!obtained.hwnd)
         return 0;
     if (requested.flags != obtained.flags)
-        window->setWindowFlags(obtained.flags);
+        window->setFlags(obtained.flags);
     return new QWindowsWindow(window, obtained);
 }
 

@@ -72,20 +72,6 @@
 
 QT_BEGIN_NAMESPACE
 
-/*****************************************************************************
- UNIX signal handling
- *****************************************************************************/
-
-static sig_atomic_t signal_received;
-static sig_atomic_t signals_fired[NSIG];
-
-static void signalHandler(int sig)
-{
-    signals_fired[sig] = 1;
-    signal_received = 1;
-}
-
-
 #if defined(Q_OS_INTEGRITY) || defined(Q_OS_VXWORKS)
 static void initThreadPipeFD(int fd)
 {
@@ -110,7 +96,7 @@ QEventDispatcherUNIXPrivate::QEventDispatcherUNIXPrivate()
     bool pipefail = false;
 
     // initialize the common parts of the event loop
-#if defined(Q_OS_NACL)
+#if defined(Q_OS_NACL) || defined (Q_OS_BLACKBERRY)
    // do nothing.
 #elif defined(Q_OS_INTEGRITY)
     // INTEGRITY doesn't like a "select" on pipes, so use socketpair instead
@@ -157,7 +143,7 @@ QEventDispatcherUNIXPrivate::QEventDispatcherUNIXPrivate()
 
 QEventDispatcherUNIXPrivate::~QEventDispatcherUNIXPrivate()
 {
-#if defined(Q_OS_NACL)
+#if defined(Q_OS_NACL) || defined (Q_OS_BLACKBERRY)
    // do nothing.
 #elif defined(Q_OS_VXWORKS)
     close(thread_pipe[0]);
@@ -185,18 +171,6 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
 
     int nsel;
     do {
-        if (mainThread) {
-            while (signal_received) {
-                signal_received = 0;
-                for (int i = 0; i < NSIG; ++i) {
-                    if (signals_fired[i]) {
-                        signals_fired[i] = 0;
-                        emit QCoreApplication::instance()->unixSignal(i);
-                    }
-                }
-            }
-        }
-
         // Process timers and socket notifiers - the common UNIX stuff
         int highest = 0;
         if (! (flags & QEventLoop::ExcludeSocketNotifiers) && (sn_highest >= 0)) {
@@ -211,8 +185,8 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
             FD_ZERO(&sn_vec[2].select_fds);
         }
 
-        FD_SET(thread_pipe[0], &sn_vec[0].select_fds);
-        highest = qMax(highest, thread_pipe[0]);
+        int wakeUpFd = initThreadWakeUp();
+        highest = qMax(highest, wakeUpFd);
 
         nsel = q->select(highest + 1,
                          &sn_vec[0].select_fds,
@@ -271,25 +245,7 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
         }
     }
 
-    // some other thread woke us up... consume the data on the thread pipe so that
-    // select doesn't immediately return next time
-    int nevents = 0;
-    if (nsel > 0 && FD_ISSET(thread_pipe[0], &sn_vec[0].select_fds)) {
-#if defined(Q_OS_VXWORKS)
-        char c[16];
-        ::read(thread_pipe[0], c, sizeof(c));
-        ::ioctl(thread_pipe[0], FIOFLUSH, 0);
-#else
-        char c[16];
-        while (::read(thread_pipe[0], c, sizeof(c)) > 0)
-            ;
-#endif
-        if (!wakeUps.testAndSetRelease(1, 0)) {
-            // hopefully, this is dead code
-            qWarning("QEventDispatcherUNIX: internal error, wakeUps.testAndSetRelease(1, 0) failed!");
-        }
-        ++nevents;
-    }
+    int nevents = processThreadWakeUp(nsel);
 
     // activate socket notifiers
     if (! (flags & QEventLoop::ExcludeSocketNotifiers) && nsel > 0 && sn_highest >= 0) {
@@ -305,6 +261,35 @@ int QEventDispatcherUNIXPrivate::doSelect(QEventLoop::ProcessEventsFlags flags, 
         }
     }
     return (nevents + q->activateSocketNotifiers());
+}
+
+int QEventDispatcherUNIXPrivate::initThreadWakeUp()
+{
+    FD_SET(thread_pipe[0], &sn_vec[0].select_fds);
+    return thread_pipe[0];
+}
+
+int QEventDispatcherUNIXPrivate::processThreadWakeUp(int nsel)
+{
+    if (nsel > 0 && FD_ISSET(thread_pipe[0], &sn_vec[0].select_fds)) {
+        // some other thread woke us up... consume the data on the thread pipe so that
+        // select doesn't immediately return next time
+#if defined(Q_OS_VXWORKS)
+        char c[16];
+        ::read(thread_pipe[0], c, sizeof(c));
+        ::ioctl(thread_pipe[0], FIOFLUSH, 0);
+#else
+        char c[16];
+        while (::read(thread_pipe[0], c, sizeof(c)) > 0)
+            ;
+#endif
+        if (!wakeUps.testAndSetRelease(1, 0)) {
+            // hopefully, this is dead code
+            qWarning("QEventDispatcherUNIX: internal error, wakeUps.testAndSetRelease(1, 0) failed!");
+        }
+        return 1;
+    }
+    return 0;
 }
 
 QEventDispatcherUNIX::QEventDispatcherUNIX(QObject *parent)
@@ -659,24 +644,5 @@ void QEventDispatcherUNIX::interrupt()
 
 void QEventDispatcherUNIX::flush()
 { }
-
-
-
-/*!
-  \internal
-*/
-void QCoreApplication::watchUnixSignal(int sig, bool watch)
-{
-    if (sig < NSIG) {
-        struct sigaction sa;
-        sigemptyset(&(sa.sa_mask));
-        sa.sa_flags = 0;
-        if (watch)
-            sa.sa_handler = signalHandler;
-        else
-            sa.sa_handler = SIG_DFL;
-        sigaction(sig, &sa, 0);
-    }
-}
 
 QT_END_NAMESPACE

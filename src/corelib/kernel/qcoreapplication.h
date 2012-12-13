@@ -85,7 +85,11 @@ public:
         GuiServer // # deprecated
     };
 
-    QCoreApplication(int &argc, char **argv, int = ApplicationFlags);
+    QCoreApplication(int &argc, char **argv
+#ifndef Q_QDOC
+                     , int = ApplicationFlags
+#endif
+            );
 
     ~QCoreApplication();
 
@@ -152,10 +156,6 @@ public:
 
     static void flush();
 
-#if defined(Q_OS_UNIX)
-    static void watchUnixSignal(int signal, bool watch);
-#endif
-
     void installNativeEventFilter(QAbstractNativeEventFilter *filterObj);
     void removeNativeEventFilter(QAbstractNativeEventFilter *filterObj);
 
@@ -166,8 +166,11 @@ public Q_SLOTS:
     static void quit();
 
 Q_SIGNALS:
-    void aboutToQuit();
-    void unixSignal(int);
+    void aboutToQuit(
+#if !defined(qdoc)
+    QPrivateSignal
+#endif
+    );
 
 protected:
     bool event(QEvent *);

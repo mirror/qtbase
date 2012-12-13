@@ -1123,20 +1123,27 @@ bool QMakeEvaluator::loadSpecInternal()
     if (evaluateFeatureFile(QLatin1String("spec_pre.prf")) != ReturnTrue)
         return false;
     QString spec = m_qmakespec + QLatin1String("/qmake.conf");
-#ifdef Q_OS_UNIX
+    if (evaluateFile(spec, QMakeHandler::EvalConfigFile, LoadProOnly) != ReturnTrue) {
+        evalError(fL1S("Could not read qmake configuration file %1.").arg(spec));
+        return false;
+    }
+#ifndef QT_BUILD_QMAKE
+    // Legacy support for Qt4 default specs
+#  ifdef Q_OS_UNIX
     if (m_qmakespec.endsWith(QLatin1String("/default-host"))
         || m_qmakespec.endsWith(QLatin1String("/default"))) {
         QString rspec = QFileInfo(m_qmakespec).readLink();
         if (!rspec.isEmpty())
             m_qmakespec = QDir::cleanPath(QDir(m_qmakespec).absoluteFilePath(rspec));
     }
-#else
+#  else
     // We can't resolve symlinks as they do on Unix, so configure.exe puts
     // the source of the qmake.conf at the end of the default/qmake.conf in
     // the QMAKESPEC_ORIGINAL variable.
     const ProString &orig_spec = first(ProKey("QMAKESPEC_ORIGINAL"));
     if (!orig_spec.isEmpty())
         m_qmakespec = orig_spec.toQString();
+#  endif
 #endif
     valuesRef(ProKey("QMAKESPEC")) << ProString(m_qmakespec);
     m_qmakespecName = IoUtils::fileName(m_qmakespec).toString();
@@ -1188,7 +1195,12 @@ bool QMakeEvaluator::loadSpec()
 
     updateMkspecPaths();
     if (qmakespec.isEmpty())
-        qmakespec = m_hostBuild ? QLatin1String("default-host") : QLatin1String("default");
+        qmakespec = propertyValue(ProKey(m_hostBuild ? "QMAKE_SPEC" : "QMAKE_XSPEC")).toQString();
+#ifndef QT_BUILD_QMAKE
+    // Legacy support for Qt4 qmake in Qt Creator, etc.
+    if (qmakespec.isEmpty())
+        qmakespec = QLatin1String("default-host") : QLatin1String("default");
+#endif
     if (IoUtils::isRelativePath(qmakespec)) {
         foreach (const QString &root, m_mkspecPaths) {
             QString mkspec = root + QLatin1Char('/') + qmakespec;

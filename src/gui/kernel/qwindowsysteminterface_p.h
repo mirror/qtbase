@@ -41,6 +41,17 @@
 #ifndef QWINDOWSYSTEMINTERFACE_P_H
 #define QWINDOWSYSTEMINTERFACE_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include "qwindowsysteminterface.h"
 
 #include <QElapsedTimer>
@@ -77,7 +88,8 @@ public:
         Tablet,
         TabletEnterProximity,
         TabletLeaveProximity,
-        PlatformPanel
+        PlatformPanel,
+        ContextMenu
     };
 
     class WindowSystemEvent {
@@ -107,10 +119,12 @@ public:
 
     class EnterEvent : public WindowSystemEvent {
     public:
-        explicit EnterEvent(QWindow *enter)
-            : WindowSystemEvent(Enter), enter(enter)
+        explicit EnterEvent(QWindow *enter, const QPointF &local, const QPointF &global)
+            : WindowSystemEvent(Enter), enter(enter), localPos(local), globalPos(global)
         { }
         QPointer<QWindow> enter;
+        const QPointF localPos;
+        const QPointF globalPos;
     };
 
     class LeaveEvent : public WindowSystemEvent {
@@ -332,6 +346,21 @@ public:
             : WindowSystemEvent(PlatformPanel), window(w) { }
         QPointer<QWindow> window;
     };
+
+#ifndef QT_NO_CONTEXTMENU
+    class ContextMenuEvent : public WindowSystemEvent {
+    public:
+        explicit ContextMenuEvent(QWindow *w, bool mouseTriggered, const QPoint &pos,
+                                  const QPoint &globalPos, Qt::KeyboardModifiers modifiers)
+            : WindowSystemEvent(ContextMenu), window(w), mouseTriggered(mouseTriggered), pos(pos),
+              globalPos(globalPos), modifiers(modifiers) { }
+        QPointer<QWindow> window;
+        bool mouseTriggered;
+        QPoint pos;       // Only valid if triggered by mouse
+        QPoint globalPos; // Only valid if triggered by mouse
+        Qt::KeyboardModifiers modifiers;
+    };
+#endif
 
     class WindowSystemEventList {
         QList<WindowSystemEvent *> impl;

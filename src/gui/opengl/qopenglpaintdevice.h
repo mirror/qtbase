@@ -70,6 +70,7 @@ public:
     QOpenGLContext *context() const;
     QSize size() const;
     void setSize(const QSize &size);
+    void setDevicePixelRatio(qreal devicePixelRatio);
 
     qreal dotsPerMeterX() const;
     qreal dotsPerMeterY() const;

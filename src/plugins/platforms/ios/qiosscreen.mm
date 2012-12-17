@@ -185,6 +185,12 @@ QIOSScreen::QIOSScreen(unsigned int screenIndex)
     const qreal millimetersPerInch = 25.4;
     m_physicalSize = QSizeF(m_geometry.size()) / unscaledDpi * millimetersPerInch;
 
+    if ([[UIApplication sharedApplication].delegate isKindOfClass:[QIOSApplicationDelegate class]]) {
+        // When in a non-mixed environment, let QScreen follow the current interface orientation:
+        UIViewController *controller = [[UIApplication sharedApplication].delegate.window.rootViewController;
+        setPrimaryOrientation(toQtScreenOrientation(controller.interfaceOrientation));
+    }
+
     [pool release];
 }
 

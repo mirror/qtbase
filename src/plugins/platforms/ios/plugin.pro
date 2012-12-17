@@ -15,7 +15,6 @@ OBJECTIVE_SOURCES = plugin.mm \
     qioseventdispatcher.mm \
     qiosbackingstore.mm \
     qiosapplicationdelegate.mm \
-    qiosorientationlistener.mm \
     qiosviewcontroller.mm \
     qioscontext.mm \
     qiosinputcontext.mm \
@@ -27,7 +26,6 @@ HEADERS = qiosintegration.h \
     qioseventdispatcher.h \
     qiosbackingstore.h \
     qiosapplicationdelegate.h \
-    qiosorientationlistener.h \
     qiosviewcontroller.h \
     qioscontext.h \
     qiosinputcontext.h \

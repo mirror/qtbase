@@ -42,6 +42,7 @@
 #include "qiosscreen.h"
 #include "qioswindow.h"
 #include <qpa/qwindowsysteminterface.h>
+#include "qiosapplicationdelegate.h"
 
 #include <sys/sysctl.h>
 
@@ -187,7 +188,7 @@ QIOSScreen::QIOSScreen(unsigned int screenIndex)
 
     if ([[UIApplication sharedApplication].delegate isKindOfClass:[QIOSApplicationDelegate class]]) {
         // When in a non-mixed environment, let QScreen follow the current interface orientation:
-        UIViewController *controller = [[UIApplication sharedApplication].delegate.window.rootViewController;
+        UIViewController *controller = [UIApplication sharedApplication].delegate.window.rootViewController;
         setPrimaryOrientation(toQtScreenOrientation(controller.interfaceOrientation));
     }
 

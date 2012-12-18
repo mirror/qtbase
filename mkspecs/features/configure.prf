@@ -4,6 +4,8 @@ else:equals(MAKEFILE_GENERATOR, MINGW): \
     QMAKE_MAKE = mingw32-make
 else:if(equals(MAKEFILE_GENERATOR, MSVC.NET)|equals(MAKEFILE_GENERATOR, MSBUILD)): \
     QMAKE_MAKE = nmake
+else:ios: \
+    QMAKE_MAKE = make
 else: \
     error("Configure tests are not supported with the $$MAKEFILE_GENERATOR Makefile generator.")
 

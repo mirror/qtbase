@@ -3833,7 +3833,7 @@ rm -f "$OUTFILE" 2>/dev/null
 
 if [ "$QMAKESPEC" != "$XQMAKESPEC" ]; then
     # Do the same test again, using the host compiler
-    SYSROOT_FLAG= MAC_SDK_FLAG= "$unixtests/arch.test" "$QMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG_HOST"
+    SYSROOT_FLAG= "$unixtests/arch.test" "$QMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG_HOST"
     if [ $? -eq 0 ]; then
         eval `cat "$OUTFILE"`
     else

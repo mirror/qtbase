@@ -566,8 +566,8 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
     sources.append(ProjectBuilderSources("HEADERS"));
     sources.append(ProjectBuilderSources("QMAKE_INTERNAL_INCLUDED_FILES"));
     if(!project->isEmpty("QMAKE_EXTRA_COMPILERS")) {
-        const ProStringList &quc = project->values("QMAKE_EXTRA_COMPILERS");
-        for (ProStringList::ConstIterator it = quc.begin(); it != quc.end(); ++it) {
+        ProStringList &quc = project->values("QMAKE_EXTRA_COMPILERS");
+        for (ProStringList::Iterator it = quc.begin(); it != quc.end(); ++it) {
             if (project->isEmpty(ProKey(*it + ".output")))
                 continue;
             const ProStringList &inputs = project->values(ProKey(*it + ".input"));
@@ -594,6 +594,9 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                     }
                     sources.append(ProjectBuilderSources(inputs.at(input).toQString(), true,
                             QString(), (*it).toQString(), isObj));
+
+                    if (isObj)
+                        quc.erase(it); // We'll let Xcode build this source
                 }
             }
         }

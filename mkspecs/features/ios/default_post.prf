@@ -19,8 +19,10 @@ gui_app {
     LIBS += "-force_load $${lib_path_and_base}.$${QMAKE_EXTENSION_STATICLIB}"
     LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
 
-    QTPLUGIN += iosmain
-    DEFINES += main=qt_main
+    !no_main_wrapper {
+        QTPLUGIN += iosmain
+        DEFINES += main=qt_main
+    }
 }
 
 contains(MAKEFILE_GENERATOR, XCODE) {

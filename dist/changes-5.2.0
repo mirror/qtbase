@@ -34,6 +34,8 @@ QtWidgets
 
 - QSizePolicy got a retainSizeWhenHidden attribute.
 
+- QDateTimeEdit: Extended date minimum to QDate minimum
+
 QtCore
 ------
 - [QTBUG-30250] QTime, QDateTime:

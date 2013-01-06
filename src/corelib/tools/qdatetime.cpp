@@ -4498,8 +4498,8 @@ int QDateTimeParser::absoluteMin(int s) const
     case MinuteSection:
     case SecondSection:
     case MSecSection:
-    case YearSection2Digits:
-    case YearSection: return 0;
+    case YearSection2Digits: return 0;
+    case YearSection: return QDATETIMEEDIT_DATE_MIN.year();
     case MonthSection:
     case DaySection:
     case DayOfWeekSectionShort:
@@ -4976,7 +4976,8 @@ int QDateTimeParser::parseSection(const QDateTime &currentValue, int sectionInde
         return -1;
     }
 
-    const int sectionmaxsize = sectionMaxSize(sectionIndex);
+    // negative year adjustment
+    const int sectionmaxsize = sn.type == YearSection && text.at(0) == '-' ? 5 : sectionMaxSize(sectionIndex);
     QString sectiontext = text.mid(index, sectionmaxsize);
     int sectiontextSize = sectiontext.size();
 
@@ -5071,7 +5072,13 @@ int QDateTimeParser::parseSection(const QDateTime &currentValue, int sectionInde
             const int max = qMin(sectionmaxsize, sectiontextSize);
             for (int digits = max; digits >= 1; --digits) {
                 digitsStr.truncate(digits);
-                int tmp = (int)loc.toUInt(digitsStr, &ok);
+                int tmp;
+                // negative year allowance
+                if (sn.type == YearSection) {
+                    tmp = loc.toInt(digitsStr, &ok);
+                } else {
+                    tmp = (int)loc.toUInt(digitsStr, &ok);
+                }
                 if (ok && sn.type == Hour12Section) {
                     if (tmp > 12) {
                         tmp = -1;
@@ -5113,10 +5120,12 @@ int QDateTimeParser::parseSection(const QDateTime &currentValue, int sectionInde
                         QDTPDEBUG << "invalid because" << num << "is less than absoluteMin" << absMin;
                 } else if (num > absMax) {
                     state = Intermediate;
+                // zero pad
                 } else if (!done && (fi & (FixedWidth|Numeric)) == (FixedWidth|Numeric)) {
                     if (skipToNextSection(sectionIndex, currentValue, digitsStr)) {
                         state = Acceptable;
-                        const int missingZeroes = sectionmaxsize - digitsStr.size();
+                        // negative year adjustment
+                        int missingZeroes = (sn.type == YearSection ? 4 : sectionmaxsize) - digitsStr.size();
                         text.insert(index, QString().fill(QLatin1Char('0'), missingZeroes));
                         used = sectionmaxsize;
                         cursorPosition += missingZeroes;
@@ -5897,7 +5906,8 @@ bool QDateTimeParser::skipToNextSection(int index, const QDateTime &current, con
     Q_ASSERT(current >= getMinimum() && current <= getMaximum());
 
     const SectionNode &node = sectionNode(index);
-    Q_ASSERT(text.size() < sectionMaxSize(index));
+    // negative year adjustment
+    Q_ASSERT(text.size() < node.type != YearSection ? 5 : sectionMaxSize(index));
 
     const QDateTime maximum = getMaximum();
     const QDateTime minimum = getMinimum();

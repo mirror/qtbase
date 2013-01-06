@@ -535,8 +535,9 @@ void tst_QDateTimeEdit::minimumDateTime_data()
     QTest::newRow("normal-4") << QDateTime(QDate(2008, 5, 10), QTime(2, 3, 1))
                               << QDateTime(QDate(2008, 5, 10), QTime(2, 3, 1));
     QTest::newRow("invalid-0") << QDateTime() << QDateTime(QDate(1752, 9, 14), QTime(0, 0, 0));
-    QTest::newRow("old") << QDateTime(QDate(1492, 8, 3), QTime(2, 3, 1))
-                         << QDateTime(QDate(1492, 8, 3), QTime(2, 3, 1));
+    // test pre-1752 year
+    QTest::newRow("old") << QDateTime(QDate::fromJulianDay(1), QTime(0, 0, 0))
+                         << QDateTime(QDate::fromJulianDay(1), QTime(0, 0, 0));
 }
 
 void tst_QDateTimeEdit::minimumDateTime()
@@ -1067,6 +1068,14 @@ void tst_QDateTimeEdit::enterKey()
 
 void tst_QDateTimeEdit::specialValueText()
 {
+    // test negative year
+    testWidget->setMinimumDate(QDate::fromJulianDay(1));
+    testWidget->setDisplayFormat("yyyy-MM-dd");
+    testWidget->setDate(QDate(-1000, 1, 1));
+    testWidget->setCurrentSection(QDateTimeEdit::YearSection);
+    QCOMPARE(testWidget->date(), QDate(-1000, 1, 1));
+    QCOMPARE(testWidget->text(), QString("-1000-01-01"));
+
     testWidget->setDisplayFormat("dd/MM/yyyy");
     testWidget->setDateRange(QDate(2000, 1, 1), QDate(2001, 1, 1));
     testWidget->setDate(QDate(2000, 1, 2));

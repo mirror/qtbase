@@ -81,7 +81,8 @@ QT_BEGIN_NAMESPACE
   the arrow keys to increase and decrease date and time values. The
   arrow keys can be used to move from section to section within the
   QDateTimeEdit box. Dates and times appear in accordance with the
-  format set; see setDisplayFormat().
+  format set; see setDisplayFormat(). Changing a negative year is
+  supported for a ISO format date.
 
   \snippet code/src_gui_widgets_qdatetimeedit.cpp 0
 
@@ -440,8 +441,6 @@ void QDateTimeEdit::setDateTimeRange(const QDateTime &min, const QDateTime &max)
   not a valid QDate object, this function does nothing.
 
   By default, this property contains a date that refers to September 14, 1752.
-  The minimum date must be at least the first day in year 100, otherwise
-  setMinimumDate() has no effect.
 
   \sa minimumTime(), maximumTime(), setDateRange()
 */
@@ -1103,7 +1102,7 @@ void QDateTimeEdit::keyPressEvent(QKeyEvent *event)
         event->ignore();
         emit editingFinished();
         return;
-    default:
+    default: {
 #ifdef QT_KEYPAD_NAVIGATION
         if (QApplication::keypadNavigationEnabled() && !hasEditFocus()
             && !event->text().isEmpty() && event->text().at(0).isLetterOrNumber()) {
@@ -1116,11 +1115,14 @@ void QDateTimeEdit::keyPressEvent(QKeyEvent *event)
             oldCurrent = 0;
         }
 #endif
-        if (!d->isSeparatorKey(event)) {
+        // allow minus sign as first character for negative year
+        int pos = d->edit->cursorPosition();
+        if (!pos || !d->isSeparatorKey(event)) {
             inserted = select = !event->text().isEmpty() && event->text().at(0).isPrint()
                        && !(event->modifiers() & ~(Qt::ShiftModifier|Qt::KeypadModifier));
             break;
         }
+    }
     case Qt::Key_Left:
     case Qt::Key_Right:
         if (event->key() == Qt::Key_Left || event->key() == Qt::Key_Right) {
@@ -2026,6 +2028,15 @@ QDateTime QDateTimeEditPrivate::stepBy(int sectionIndex, int steps, bool test) c
     }
 
     val += steps;
+
+    // step past invalid year
+    if (sn.type == YearSection && !val) {
+        if (steps > 0) {
+            val++;
+        } else {
+            val--;
+        }
+    }
 
     const int min = absoluteMin(sectionIndex);
     const int max = absoluteMax(sectionIndex, value.toDateTime());

@@ -91,6 +91,7 @@ public class QtActivity extends Activity
     private static final String APPLICATION_PARAMETERS_KEY="application.parameters";
     private static final String BUNDLED_LIBRARIES_KEY="bundled.libraries";
     private static final String MAIN_LIBRARY_KEY="main.library";
+    private static final String STATIC_INIT_CLASSES_KEY="static.init.classes";
     private static final String NECESSITAS_API_LEVEL_KEY="necessitas.api.level";
 
     /// Ministro server parameter keys
@@ -351,6 +352,8 @@ public class QtActivity extends Activity
                 loaderParams.putString(LOADER_CLASS_NAME_KEY, getIntent().getExtras().containsKey("loader_class_name")
                                                             ?getIntent().getExtras().getString("loader_class_name")
                                                             :"org.kde.necessitas.industrius.QtActivityDelegate");
+                if (getIntent().getExtras().containsKey("static_init_classes"))
+                    loaderParams.putStringArray(STATIC_INIT_CLASSES_KEY, getIntent().getExtras().getString("static_init_classes").split(":"));
                 loaderParams.putStringArrayList(NATIVE_LIBRARIES_KEY, libraryList);
                 loaderParams.putString(ENVIRONMENT_VARIABLES_KEY,"QML_IMPORT_PATH="+localPrefix+"/imports\tQT_PLUGIN_PATH="+localPrefix+"/plugins");
                 loaderParams.putString(APPLICATION_PARAMETERS_KEY,"-platform\tandroid");

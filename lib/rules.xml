@@ -69,6 +69,7 @@
         <lib name="Qt5Sensors">
             <depends>
                 <lib file="plugins/sensors/libqtsensors_android.so"/>
+                <jar file="jar/QtSensors.jar" initClass="org.qt_project.android.mobile.QtSensors"/>
             </depends>
         </lib>
 
@@ -84,6 +85,7 @@
                 <lib file="libs/QtOpenGL.so"/>
             </depends>
         </lib>
+
         <lib name="Qt53DQuick">
             <depends>
                 <lib file="libs/libQtOpenGL.so"/>

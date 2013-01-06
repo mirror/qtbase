@@ -265,8 +265,11 @@ public class QtActivityDelegate
         QtNative.setActivity(m_activity, this);
         QtNative.setClassLoader(classLoader);
         if (loaderParams.containsKey(STATIC_INIT_CLASSES_KEY))
-            for(String className: loaderParams.getStringArrayList(STATIC_INIT_CLASSES_KEY))
+        {
+            for(String className: loaderParams.getStringArray(STATIC_INIT_CLASSES_KEY))
             {
+                if (className.length()==0)
+                    continue;
                 try {
                     @SuppressWarnings("rawtypes")
                     Class initClass = classLoader.loadClass(className);
@@ -277,7 +280,7 @@ public class QtActivityDelegate
                     e.printStackTrace();
                 }
             }
-
+        }
         QtNative.loadQtLibraries(loaderParams.getStringArrayList(NATIVE_LIBRARIES_KEY));
         ArrayList<String> libraries = loaderParams.getStringArrayList(BUNDLED_LIBRARIES_KEY);
         QtNative.loadBundledLibraries(libraries, QtNativeLibrariesDir.nativeLibrariesDir(m_activity));

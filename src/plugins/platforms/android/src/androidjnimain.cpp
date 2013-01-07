@@ -216,7 +216,7 @@ namespace QtAndroid
     }
 
 #else // for #ifndef ANDROID_PLUGIN_OPENGL
-    EGLNativeWindowType getNativeWindow(bool waitForWindow)
+    EGLNativeWindowType nativeWindow(bool waitForWindow)
     {
         m_surfaceMutex.lock();
         if (!m_nativeWindow && waitForWindow)
@@ -229,6 +229,19 @@ namespace QtAndroid
         }
         m_surfaceMutex.unlock();
         return m_nativeWindow;
+    }
+
+    QSize nativeWindowSize()
+    {
+        if (m_nativeWindow == 0) {
+            qWarning("QtAndroid::nativeWindowSize: Called before native window is set.");
+            return QSize();
+        }
+
+        int width = ANativeWindow_getWidth(m_nativeWindow);
+        int height = ANativeWindow_getHeight(m_nativeWindow);
+
+        return QSize(width, height);
     }
 #endif
 
@@ -259,7 +272,9 @@ namespace QtAndroid
 
     QWindow * topLevelWindowAt(const QPoint &globalPos)
     {
-        return m_androidPlatformIntegration?m_androidPlatformIntegration->getPrimaryScreen()->topLevelAt(globalPos):0;
+        return m_androidPlatformIntegration
+                ? m_androidPlatformIntegration->screen()->topLevelAt(globalPos)
+                :0;
     }
 
     int desktopWidthPixels()
@@ -375,12 +390,32 @@ static jboolean startQtAndroidPlugin(JNIEnv* /*env*/, jobject /*object*//*, jobj
 #endif
 }
 
+static void androidMessageHandler(QtMsgType type,
+                                  const QMessageLogContext &context,
+                                  const QString &message)
+{
+    android_LogPriority priority;
+    switch (type) {
+    case QtDebugMsg: priority = ANDROID_LOG_DEBUG; break;
+    case QtWarningMsg: priority = ANDROID_LOG_WARN; break;
+    case QtCriticalMsg: priority = ANDROID_LOG_ERROR; break;
+    case QtFatalMsg: priority = ANDROID_LOG_FATAL; break;
+    };
+
+    __android_log_print(priority,
+                        qPrintable(QString::fromLatin1("Qt (%1:%2 (%3)")
+                                   .arg(context.file).arg(context.line).arg(context.function)),
+                        qPrintable(message));
+}
+
 static void * startMainMethod(void * /*data*/)
 {
     char **  params;
     params=(char**)malloc(sizeof(char*)*m_applicationParams.length());
     for (int i=0;i<m_applicationParams.size();i++)
         params[i]= (char*)m_applicationParams[i].constData();
+
+    qInstallMessageHandler(androidMessageHandler);
 
     int ret = m_main(m_applicationParams.length(), params);
 
@@ -537,16 +572,19 @@ static void setSurface(JNIEnv *env, jobject /*thiz*/, jobject jSurface)
 #else
     m_surfaceMutex.lock();
     m_nativeWindow = ANativeWindow_fromSurface(env, jSurface);
-    qDebug()<<"setSurface"<<ANativeWindow_fromSurface(env, jSurface)<<(EGLNativeWindowType)env->GetIntField(jSurface, m_surfaceFieldID);
+    qDebug() << "setSurface"
+             << ANativeWindow_fromSurface(env, jSurface)
+             << (EGLNativeWindowType)env->GetIntField(jSurface, m_surfaceFieldID);
+
     if (m_waitForWindow)
-        m_waitForWindowSemaphore.release();
-    if (m_androidPlatformIntegration)
-    {
+        m_waitForWindowSemaphore.release();    
+    if (m_androidPlatformIntegration) {
         m_surfaceMutex.unlock();
-        m_androidPlatformIntegration->surfaceChanged();
+        // ### TODO: Fix surfaceChanged
+        // m_androidPlatformIntegration->surfaceChanged();
+    } else {
+        m_surfaceMutex.unlock();
     }
-    else
-        m_surfaceMutex.unlock();
 #endif  // for #ifndef ANDROID_PLUGIN_OPENGL
 }
 
@@ -572,15 +610,17 @@ static void setDisplayMetrics(JNIEnv* /*env*/, jclass /*clazz*/,
     m_desktopWidthPixels=desktopWidthPixels;
     m_desktopHeightPixels=desktopHeightPixels;
 
-    if (!m_androidPlatformIntegration)
+    if (!m_androidPlatformIntegration) {
         QAndroidPlatformIntegration::setDefaultDisplayMetrics(desktopWidthPixels,desktopHeightPixels,
                                                                 qRound((double)desktopWidthPixels  / xdpi * 25.4 ),
                                                                 qRound((double)desktopHeightPixels / ydpi * 25.4 ));
-    else
-    {
+    } else {
+// ### TODO
+#ifndef ANDROID_PLUGIN_OPENGL
         m_androidPlatformIntegration->setDisplayMetrics(qRound((double)desktopWidthPixels  / xdpi * 25.4 ),
                                                 qRound((double)desktopHeightPixels / ydpi * 25.4 ));
         m_androidPlatformIntegration->setDesktopSize(desktopWidthPixels, desktopHeightPixels);
+#endif
     }
 }
 
@@ -602,8 +642,10 @@ static void updateWindow(JNIEnv */*env*/, jobject /*thiz*/)
     foreach(QWidget * w, qApp->topLevelWidgets())
         w->update();
 
-    QAndroidPlatformScreen * screen = m_androidPlatformIntegration->getPrimaryScreen();
+#ifndef ANDROID_PLUGIN_OPENGL
+    QAndroidPlatformScreen *screen = static_cast<QAndroidPlatformScreen *>(m_androidPlatformIntegration->screen());
     QMetaObject::invokeMethod(screen, "setDirty", Qt::QueuedConnection, Q_ARG(QRect,screen->geometry()));
+#endif
 }
 
 static JNINativeMethod methods[] = {

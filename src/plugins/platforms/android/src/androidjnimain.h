@@ -41,10 +41,14 @@
 
 #ifndef ANDROID_APP_H
 #define ANDROID_APP_H
+
 #include <android/log.h>
+
 #ifdef ANDROID_PLUGIN_OPENGL
-#include <EGL/eglplatform.h>
+#  include <EGL/eglplatform.h>
 #endif
+
+#include <QtCore/qsize.h>
 
 #include <jni.h>
 #include "native/include/android/asset_manager.h"
@@ -68,9 +72,9 @@ namespace QtAndroid
 #ifndef ANDROID_PLUGIN_OPENGL
     void flushImage(const QPoint &pos, const QImage &image, const QRect &rect);
 #else
-    EGLNativeWindowType getNativeWindow(bool waitToCreate=true);
+    EGLNativeWindowType nativeWindow(bool waitToCreate=true);
+    QSize nativeWindowSize();
 #endif
-
     QWindow * topLevelWindowAt(const QPoint &globalPos);
     int desktopWidthPixels();
     int desktopHeightPixels();

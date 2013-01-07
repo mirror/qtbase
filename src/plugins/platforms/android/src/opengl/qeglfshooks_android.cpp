@@ -39,52 +39,74 @@
 **
 ****************************************************************************/
 
-#ifndef QEGLFSINTEGRATION_H
-#define QEGLFSINTEGRATION_H
+#include "qeglfshooks.h"
+#include "androidjnimain.h"
 
-#include "qeglfsscreen.h"
-
-#include <qpa/qplatformintegration.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformscreen.h>
-
-QT_BEGIN_HEADER
+#include <android/native_window.h>
+#include <jni.h>
 
 QT_BEGIN_NAMESPACE
 
-class QEglFSIntegration : public QPlatformIntegration, public QPlatformNativeInterface
+class QEglFSAndroidHooks: public QEglFSHooks
 {
 public:
-    QEglFSIntegration();
-    ~QEglFSIntegration();
-
+    void platformInit();
+    void platformDestroy();
+    EGLNativeDisplayType platformDisplay() const;
+    QSize screenSize() const;
+    EGLNativeWindowType createNativeWindow(const QSize &size, const QSurfaceFormat &format);
+    void destroyNativeWindow(EGLNativeWindowType window);
     bool hasCapability(QPlatformIntegration::Capability cap) const;
-
-    QPlatformWindow *createPlatformWindow(QWindow *window) const;
-    QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
-    QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
-    QPlatformNativeInterface *nativeInterface() const;
-
-    QPlatformFontDatabase *fontDatabase() const;
-
-    QAbstractEventDispatcher *guiThreadEventDispatcher() const;
-
-    QVariant styleHint(QPlatformIntegration::StyleHint hint) const;
-
-    // QPlatformNativeInterface
-    void *nativeResourceForIntegration(const QByteArray &resource);
-    void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
-
-    QPlatformScreen *screen() const { return mScreen; }
-
-private:
-    EGLDisplay mDisplay;
-    QAbstractEventDispatcher *mEventDispatcher;
-    QPlatformFontDatabase *mFontDb;
-    QPlatformScreen *mScreen;
+    int screenDepth() const;
 };
 
-QT_END_NAMESPACE
-QT_END_HEADER
+void QEglFSAndroidHooks::platformInit()
+{
+}
 
-#endif // QEGLFSINTEGRATION_H
+void QEglFSAndroidHooks::platformDestroy()
+{
+}
+
+EGLNativeDisplayType QEglFSAndroidHooks::platformDisplay() const
+{
+    return EGL_DEFAULT_DISPLAY;
+}
+
+QSize QEglFSAndroidHooks::screenSize() const
+{
+    return QtAndroid::nativeWindowSize();
+}
+
+EGLNativeWindowType QEglFSAndroidHooks::createNativeWindow(const QSize &size, const QSurfaceFormat &format)
+{
+    ANativeWindow *window = QtAndroid::nativeWindow();
+    ANativeWindow_acquire(window);
+
+    return window;
+}
+
+void QEglFSAndroidHooks::destroyNativeWindow(EGLNativeWindowType window)
+{
+    ANativeWindow_release(window);
+}
+
+bool QEglFSAndroidHooks::hasCapability(QPlatformIntegration::Capability capability) const
+{
+    switch (capability) {
+    case QPlatformIntegration::OpenGL: return true;
+    case QPlatformIntegration::ThreadedOpenGL: return true;
+    default: return false;
+    };
+}
+
+int QEglFSAndroidHooks::screenDepth() const
+{
+    // ### Hardcoded
+    return 32;
+}
+
+static QEglFSAndroidHooks eglFSAndroidHooks;
+QEglFSHooks *platformHooks = &eglFSAndroidHooks;
+
+QT_END_NAMESPACE

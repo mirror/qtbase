@@ -288,6 +288,7 @@ then
 	cp -f $NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$NDK_TOOLCHAIN_VERSION/libs/$TARGET_ARCH/libgnustl_shared.so $SRC_DIR_QT/lib
 	$SRC_DIR_QT/configure -v \
                 -opensource \
+	        -opengl es2 \
 		-xplatform android-g++ \
 		-no-largefile \
 		-openssl \

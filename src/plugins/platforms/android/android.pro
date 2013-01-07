@@ -1,4 +1,3 @@
 TEMPLATE = subdirs
 
-SUBDIRS += raster
-# opengl
+SUBDIRS += raster opengl

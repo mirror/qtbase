@@ -48,24 +48,33 @@
 #include <QtWidgets/QAction>
 
 #include <jni.h>
-#include <qandroidplatformscreen.h>
 #include "qandroidinputcontext.h"
+
+#ifndef ANDROID_PLUGIN_OPENGL
+#  include "qandroidplatformscreen.h"
+#else
+#  include "qeglfsintegration.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
 class QDesktopWidget;
 class QAndroidPlatformServices;
 
-class QAndroidPlatformNativeInterface : public QPlatformNativeInterface
+class QAndroidPlatformNativeInterface: public QPlatformNativeInterface
 {
 public:
     virtual void *nativeResourceForIntegration(const QByteArray &resource);
 };
 
-class QAndroidPlatformIntegration : public QPlatformIntegration
+class QAndroidPlatformIntegration
+#ifndef ANDROID_PLUGIN_OPENGL
+    : public QPlatformIntegration
+#else
+    : public QEglFSIntegration
+#endif
 {
     friend class QAndroidPlatformScreen;
-    friend class QAndroidEglFSScreen;
 
 public:
     QAndroidPlatformIntegration(const QStringList &paramList);
@@ -73,20 +82,24 @@ public:
 
     bool hasCapability(QPlatformIntegration::Capability cap) const;
 
+#ifndef ANDROID_PLUGIN_OPENGL
     QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     QAbstractEventDispatcher *guiThreadEventDispatcher() const;
-
-    QAndroidPlatformScreen * getPrimaryScreen(){return m_primaryScreen;}
-    bool isVirtualDesktop() { return true; }
+    QAndroidPlatformScreen *screen() { return m_primaryScreen; }
     virtual void setDesktopSize(int width, int height);
     virtual void setDisplayMetrics(int width, int height);
+#endif
+
+    bool isVirtualDesktop() { return true; }
+
     QPlatformFontDatabase *fontDatabase() const;
+
 #ifndef QT_NO_CLIPBOARD
     virtual QPlatformClipboard *clipboard() const;
 #endif
-    virtual QPlatformInputContext *inputContext() const;
 
+    virtual QPlatformInputContext *inputContext() const;
     virtual QPlatformNativeInterface *nativeInterface() const;
     virtual QPlatformServices *services() const;
 
@@ -99,10 +112,14 @@ public:
     static void setDefaultDesktopSize(int gw, int gh);
 
 private:
-    QThread * m_mainThread;
-    QAndroidPlatformScreen *m_primaryScreen;
-    static int m_defaultGeometryWidth,m_defaultGeometryHeight,m_defaultPhysicalSizeWidth,m_defaultPhysicalSizeHeight;
+
+#ifndef ANDROID_PLUGIN_OPENGL
     QAbstractEventDispatcher *m_eventDispatcher;
+    QAndroidPlatformScreen *m_primaryScreen;
+#endif
+
+    QThread * m_mainThread;
+    static int m_defaultGeometryWidth,m_defaultGeometryHeight,m_defaultPhysicalSizeWidth,m_defaultPhysicalSizeHeight;
     QPlatformFontDatabase *m_androidFDB;
     QImage * mFbScreenImage;
     QPainter *compositePainter;
@@ -111,7 +128,7 @@ private:
     QPlatformClipboard *m_androidPlatformClipboard;
     mutable QAndroidInputContext m_platformInputContext;
 
-#ifdef ANDROID_PLUGIN_OPENGL
+#if 0
 public:
     void surfaceChanged();
 #endif

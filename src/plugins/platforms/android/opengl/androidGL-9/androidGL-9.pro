@@ -11,7 +11,9 @@ CONFIG += dll
 
 QT += opengl
 
-include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/opengl/eglfs.pri)
+EGLFS_PLATFORM_HOOKS_SOURCES = $$QT_SOURCE_TREE/src/plugins/platforms/android/src/opengl/qeglfshooks_android.cpp
+
+include($$QT_SOURCE_TREE/src/plugins/platforms/eglfs/eglfs.pri)
 include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/src.pri)
 
 

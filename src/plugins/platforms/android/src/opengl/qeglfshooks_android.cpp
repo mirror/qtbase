@@ -54,10 +54,12 @@ public:
     void platformDestroy();
     EGLNativeDisplayType platformDisplay() const;
     QSize screenSize() const;
+    int screenDepth() const;
+    QSurfaceFormat surfaceFormatFor(const QSurfaceFormat &inputFormat) const;
     EGLNativeWindowType createNativeWindow(const QSize &size, const QSurfaceFormat &format);
     void destroyNativeWindow(EGLNativeWindowType window);
     bool hasCapability(QPlatformIntegration::Capability cap) const;
-    int screenDepth() const;
+
 };
 
 void QEglFSAndroidHooks::platformInit()
@@ -104,6 +106,16 @@ int QEglFSAndroidHooks::screenDepth() const
 {
     // ### Hardcoded
     return 32;
+}
+
+QSurfaceFormat QEglFSAndroidHooks::surfaceFormatFor(const QSurfaceFormat &inputFormat) const
+{
+    QSurfaceFormat ret(inputFormat);
+    ret.setAlphaBufferSize(8);
+    ret.setRedBufferSize(8);
+    ret.setGreenBufferSize(8);
+    ret.setBlueBufferSize(8);
+    return ret;
 }
 
 static QEglFSAndroidHooks eglFSAndroidHooks;

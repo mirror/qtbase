@@ -39,4 +39,4 @@
 **
 ****************************************************************************/
 
-#include "../../win32-msvc2005/qplatformdefs.h"
+#include "../win32-msvc2005/qplatformdefs.h"

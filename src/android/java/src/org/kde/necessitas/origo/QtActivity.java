@@ -355,7 +355,7 @@ public class QtActivity extends Activity
                 if (getIntent().getExtras().containsKey("static_init_classes"))
                     loaderParams.putStringArray(STATIC_INIT_CLASSES_KEY, getIntent().getExtras().getString("static_init_classes").split(":"));
                 loaderParams.putStringArrayList(NATIVE_LIBRARIES_KEY, libraryList);
-                loaderParams.putString(ENVIRONMENT_VARIABLES_KEY,"QML_IMPORT_PATH="+localPrefix+"/imports\tQT_PLUGIN_PATH="+localPrefix+"/plugins");
+                loaderParams.putString(ENVIRONMENT_VARIABLES_KEY,"QT_QPA_EGLFS_HIDECURSOR=1\tQML2_IMPORT_PATH="+localPrefix+"/qml\tQML_IMPORT_PATH="+localPrefix+"/imports\tQT_PLUGIN_PATH="+localPrefix+"/plugins");
                 loaderParams.putString(APPLICATION_PARAMETERS_KEY,"-platform\tandroid");
                 loadApplication(loaderParams);
                 return;

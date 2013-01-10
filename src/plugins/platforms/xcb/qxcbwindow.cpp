@@ -121,13 +121,13 @@ QT_BEGIN_NAMESPACE
 // Returns true if we should set WM_TRANSIENT_FOR on \a w
 static inline bool isTransient(const QWindow *w)
 {
-    return w->windowType() == Qt::Dialog
-           || w->windowType() == Qt::Sheet
-           || w->windowType() == Qt::Tool
-           || w->windowType() == Qt::SplashScreen
-           || w->windowType() == Qt::ToolTip
-           || w->windowType() == Qt::Drawer
-           || w->windowType() == Qt::Popup;
+    return w->type() == Qt::Dialog
+           || w->type() == Qt::Sheet
+           || w->type() == Qt::Tool
+           || w->type() == Qt::SplashScreen
+           || w->type() == Qt::ToolTip
+           || w->type() == Qt::Drawer
+           || w->type() == Qt::Popup;
 }
 
 static inline QImage::Format imageFormatForDepth(int depth)
@@ -175,7 +175,7 @@ void QXcbWindow::create()
     m_configureNotifyPending = true;
     m_windowState = Qt::WindowNoState;
 
-    Qt::WindowType type = window()->windowType();
+    Qt::WindowType type = window()->type();
 
     if (type == Qt::Desktop) {
         m_window = m_screen->root();
@@ -309,7 +309,7 @@ void QXcbWindow::create()
     if (m_screen->syncRequestSupported())
         properties[propertyCount++] = atom(QXcbAtom::_NET_WM_SYNC_REQUEST);
 
-    if (window()->windowFlags() & Qt::WindowContextHelpButtonHint)
+    if (window()->flags() & Qt::WindowContextHelpButtonHint)
         properties[propertyCount++] = atom(QXcbAtom::_NET_WM_CONTEXT_HELP);
 
     Q_XCB_CALL(xcb_change_property(xcb_connection(),
@@ -347,7 +347,7 @@ void QXcbWindow::create()
     memset(&hints, 0, sizeof(hints));
     xcb_wm_hints_set_normal(&hints);
 
-    xcb_wm_hints_set_input(&hints, !(window()->windowFlags() & Qt::WindowDoesNotAcceptFocus));
+    xcb_wm_hints_set_input(&hints, !(window()->flags() & Qt::WindowDoesNotAcceptFocus));
 
     xcb_set_wm_hints(xcb_connection(), m_window, &hints);
 
@@ -375,16 +375,20 @@ void QXcbWindow::create()
     connection()->xi2Select(m_window);
 #endif
 
-    setWindowFlags(window()->windowFlags());
-    setWindowTitle(window()->windowTitle());
     setWindowState(window()->windowState());
+    setWindowFlags(window()->flags());
+    setWindowTitle(window()->title());
 
-    if (window()->windowFlags() & Qt::WindowTransparentForInput)
+    if (window()->flags() & Qt::WindowTransparentForInput)
         setTransparentForMouseEvents(true);
 
 #ifndef QT_NO_DRAGANDDROP
     connection()->drag()->dndEnable(this, true);
 #endif
+
+    const qreal opacity = qt_window_private(window())->opacity;
+    if (!qFuzzyCompare(opacity, qreal(1.0)))
+        setOpacity(opacity);
 }
 
 QXcbWindow::~QXcbWindow()
@@ -534,7 +538,7 @@ void QXcbWindow::show()
         else
             xcb_wm_hints_set_normal(&hints);
 
-        xcb_wm_hints_set_input(&hints, !(window()->windowFlags() & Qt::WindowDoesNotAcceptFocus));
+        xcb_wm_hints_set_input(&hints, !(window()->flags() & Qt::WindowDoesNotAcceptFocus));
 
         xcb_set_wm_hints(xcb_connection(), m_window, &hints);
 
@@ -943,8 +947,8 @@ void QXcbWindow::updateMotifWmHintsBeforeMap()
 {
     QtMotifWmHints mwmhints = getMotifWmHints(connection(), m_window);
 
-    if (window()->windowModality() != Qt::NonModal) {
-        switch (window()->windowModality()) {
+    if (window()->modality() != Qt::NonModal) {
+        switch (window()->modality()) {
         case Qt::WindowModal:
             mwmhints.input_mode = MWM_INPUT_PRIMARY_APPLICATION_MODAL;
             break;
@@ -979,17 +983,17 @@ void QXcbWindow::updateMotifWmHintsBeforeMap()
         }
     }
 
-    if (window()->windowFlags() & Qt::WindowMinimizeButtonHint) {
+    if (window()->flags() & Qt::WindowMinimizeButtonHint) {
         mwmhints.flags |= MWM_HINTS_DECORATIONS;
         mwmhints.decorations |= MWM_DECOR_MINIMIZE;
         mwmhints.functions |= MWM_FUNC_MINIMIZE;
     }
-    if (window()->windowFlags() & Qt::WindowMaximizeButtonHint) {
+    if (window()->flags() & Qt::WindowMaximizeButtonHint) {
         mwmhints.flags |= MWM_HINTS_DECORATIONS;
         mwmhints.decorations |= MWM_DECOR_MAXIMIZE;
         mwmhints.functions |= MWM_FUNC_MAXIMIZE;
     }
-    if (window()->windowFlags() & Qt::WindowCloseButtonHint)
+    if (window()->flags() & Qt::WindowCloseButtonHint)
         mwmhints.functions |= MWM_FUNC_CLOSE;
 
     setMotifWmHints(connection(), m_window, mwmhints);
@@ -999,7 +1003,7 @@ void QXcbWindow::updateNetWmStateBeforeMap()
 {
     NetWmStates states(0);
 
-    const Qt::WindowFlags flags = window()->windowFlags();
+    const Qt::WindowFlags flags = window()->flags();
     if (flags & Qt::WindowStaysOnTopHint) {
         states |= NetWmStateAbove;
         states |= NetWmStateStaysOnTop;
@@ -1015,7 +1019,7 @@ void QXcbWindow::updateNetWmStateBeforeMap()
         states |= NetWmStateMaximizedVert;
     }
 
-    if (window()->windowModality() != Qt::NonModal)
+    if (window()->modality() != Qt::NonModal)
         states |= NetWmStateModal;
 
     setNetWmStates(states);
@@ -1024,6 +1028,7 @@ void QXcbWindow::updateNetWmStateBeforeMap()
 void QXcbWindow::updateNetWmUserTime(xcb_timestamp_t timestamp)
 {
     xcb_window_t wid = m_window;
+    connection()->setNetWmUserTime(timestamp);
 
     const bool isSupportedByWM = connection()->wmSupport()->isSupportedByWM(atom(QXcbAtom::_NET_WM_USER_TIME_WINDOW));
     if (m_netWmUserTimeWindow || isSupportedByWM) {
@@ -1112,7 +1117,18 @@ void QXcbWindow::setParent(const QPlatformWindow *parent)
 
 void QXcbWindow::setWindowTitle(const QString &title)
 {
-    QByteArray ba = title.toUtf8();
+    QString fullTitle = title;
+    if (QGuiApplicationPrivate::displayName) {
+        // Append display name, if set.
+        if (!fullTitle.isEmpty())
+            fullTitle += QString::fromUtf8(" \xe2\x80\x94 "); // unicode character U+2014, EM DASH
+        fullTitle += *QGuiApplicationPrivate::displayName;
+    } else if (fullTitle.isEmpty()) {
+        // Don't let the window title be completely empty, use the app name as fallback.
+        fullTitle = QCoreApplication::applicationName();
+    }
+    const QByteArray ba = fullTitle.toUtf8();
+
     Q_XCB_CALL(xcb_change_property(xcb_connection(),
                                    XCB_PROP_MODE_REPLACE,
                                    m_window,
@@ -1303,6 +1319,42 @@ QXcbEGLSurface *QXcbWindow::eglSurface() const
 }
 #endif
 
+class ExposeCompressor
+{
+public:
+    ExposeCompressor(xcb_window_t window, QRegion *region)
+        : m_window(window)
+        , m_region(region)
+        , m_pending(true)
+    {
+    }
+
+    bool checkEvent(xcb_generic_event_t *event)
+    {
+        if (!event)
+            return false;
+        if ((event->response_type & ~0x80) != XCB_EXPOSE)
+            return false;
+        xcb_expose_event_t *expose = (xcb_expose_event_t *)event;
+        if (expose->window != m_window)
+            return false;
+        if (expose->count == 0)
+            m_pending = false;
+        *m_region |= QRect(expose->x, expose->y, expose->width, expose->height);
+        return true;
+    }
+
+    bool pending() const
+    {
+        return m_pending;
+    }
+
+private:
+    xcb_window_t m_window;
+    QRegion *m_region;
+    bool m_pending;
+};
+
 void QXcbWindow::handleExposeEvent(const xcb_expose_event_t *event)
 {
     QRect rect(event->x, event->y, event->width, event->height);
@@ -1312,8 +1364,15 @@ void QXcbWindow::handleExposeEvent(const xcb_expose_event_t *event)
     else
         m_exposeRegion |= rect;
 
+    ExposeCompressor compressor(m_window, &m_exposeRegion);
+    xcb_generic_event_t *filter = 0;
+    do {
+        filter = connection()->checkEvent(compressor);
+        free(filter);
+    } while (filter);
+
     // if count is non-zero there are more expose events pending
-    if (event->count == 0) {
+    if (event->count == 0 || !compressor.pending()) {
         QWindowSystemInterface::handleExposeEvent(window(), m_exposeRegion);
         m_exposeRegion = QRegion();
     }
@@ -1417,53 +1476,6 @@ void QXcbWindow::handleUnmapNotifyEvent(const xcb_unmap_notify_event_t *event)
     }
 }
 
-static Qt::MouseButtons translateMouseButtons(int s)
-{
-    Qt::MouseButtons ret = 0;
-    if (s & XCB_BUTTON_MASK_1)
-        ret |= Qt::LeftButton;
-    if (s & XCB_BUTTON_MASK_2)
-        ret |= Qt::MidButton;
-    if (s & XCB_BUTTON_MASK_3)
-        ret |= Qt::RightButton;
-    return ret;
-}
-
-static Qt::MouseButton translateMouseButton(xcb_button_t s)
-{
-    switch (s) {
-    case 1: return Qt::LeftButton;
-    case 2: return Qt::MidButton;
-    case 3: return Qt::RightButton;
-    // Button values 4-7 were already handled as Wheel events, and won't occur here.
-    case 8: return Qt::BackButton;      // Also known as Qt::ExtraButton1
-    case 9: return Qt::ForwardButton;   // Also known as Qt::ExtraButton2
-    case 10: return Qt::ExtraButton3;
-    case 11: return Qt::ExtraButton4;
-    case 12: return Qt::ExtraButton5;
-    case 13: return Qt::ExtraButton6;
-    case 14: return Qt::ExtraButton7;
-    case 15: return Qt::ExtraButton8;
-    case 16: return Qt::ExtraButton9;
-    case 17: return Qt::ExtraButton10;
-    case 18: return Qt::ExtraButton11;
-    case 19: return Qt::ExtraButton12;
-    case 20: return Qt::ExtraButton13;
-    case 21: return Qt::ExtraButton14;
-    case 22: return Qt::ExtraButton15;
-    case 23: return Qt::ExtraButton16;
-    case 24: return Qt::ExtraButton17;
-    case 25: return Qt::ExtraButton18;
-    case 26: return Qt::ExtraButton19;
-    case 27: return Qt::ExtraButton20;
-    case 28: return Qt::ExtraButton21;
-    case 29: return Qt::ExtraButton22;
-    case 30: return Qt::ExtraButton23;
-    case 31: return Qt::ExtraButton24;
-    default: return Qt::NoButton;
-    }
-}
-
 void QXcbWindow::handleButtonPressEvent(const xcb_button_press_event_t *event)
 {
     updateNetWmUserTime(event->time);
@@ -1485,7 +1497,7 @@ void QXcbWindow::handleButtonPressEvent(const xcb_button_press_event_t *event)
         return;
     }
 
-    handleMouseEvent(event->detail, event->state, event->time, local, global, modifiers);
+    handleMouseEvent(event->time, local, global, modifiers);
 }
 
 void QXcbWindow::handleButtonReleaseEvent(const xcb_button_release_event_t *event)
@@ -1494,7 +1506,12 @@ void QXcbWindow::handleButtonReleaseEvent(const xcb_button_release_event_t *even
     QPoint global(event->root_x, event->root_y);
     Qt::KeyboardModifiers modifiers = connection()->keyboard()->translateModifiers(event->state);
 
-    handleMouseEvent(event->detail, event->state, event->time, local, global, modifiers);
+    if (event->detail >= 4 && event->detail <= 7) {
+        // mouse wheel, handled in handleButtonPressEvent()
+        return;
+    }
+
+    handleMouseEvent(event->time, local, global, modifiers);
 }
 
 void QXcbWindow::handleMotionNotifyEvent(const xcb_motion_notify_event_t *event)
@@ -1503,20 +1520,37 @@ void QXcbWindow::handleMotionNotifyEvent(const xcb_motion_notify_event_t *event)
     QPoint global(event->root_x, event->root_y);
     Qt::KeyboardModifiers modifiers = connection()->keyboard()->translateModifiers(event->state);
 
-    handleMouseEvent(event->detail, event->state, event->time, local, global, modifiers);
+    handleMouseEvent(event->time, local, global, modifiers);
 }
 
-void QXcbWindow::handleMouseEvent(xcb_button_t detail, uint16_t state, xcb_timestamp_t time, const QPoint &local, const QPoint &global, Qt::KeyboardModifiers modifiers)
+void QXcbWindow::handleMouseEvent(xcb_timestamp_t time, const QPoint &local, const QPoint &global, Qt::KeyboardModifiers modifiers)
 {
     connection()->setTime(time);
-
-    Qt::MouseButtons buttons = translateMouseButtons(state);
-    Qt::MouseButton button = translateMouseButton(detail);
-
-    buttons ^= button; // X event uses state *before*, Qt uses state *after*
-
-    QWindowSystemInterface::handleMouseEvent(window(), time, local, global, buttons, modifiers);
+    QWindowSystemInterface::handleMouseEvent(window(), time, local, global, connection()->buttons(), modifiers);
 }
+
+class EnterEventChecker
+{
+public:
+    bool checkEvent(xcb_generic_event_t *event)
+    {
+        if (!event)
+            return false;
+        if ((event->response_type & ~0x80) != XCB_ENTER_NOTIFY)
+            return false;
+
+        xcb_enter_notify_event_t *enter = (xcb_enter_notify_event_t *)event;
+
+        if ((enter->mode != XCB_NOTIFY_MODE_NORMAL && enter->mode != XCB_NOTIFY_MODE_UNGRAB)
+            || enter->detail == XCB_NOTIFY_DETAIL_VIRTUAL
+            || enter->detail == XCB_NOTIFY_DETAIL_NONLINEAR_VIRTUAL)
+        {
+            return false;
+        }
+
+        return true;
+    }
+};
 
 void QXcbWindow::handleEnterNotifyEvent(const xcb_enter_notify_event_t *event)
 {
@@ -1529,7 +1563,9 @@ void QXcbWindow::handleEnterNotifyEvent(const xcb_enter_notify_event_t *event)
         return;
     }
 
-    QWindowSystemInterface::handleEnterEvent(window());
+    const QPoint local(event->event_x, event->event_y);
+    const QPoint global(event->root_x, event->root_y);
+    QWindowSystemInterface::handleEnterEvent(window(), local, global);
 }
 
 void QXcbWindow::handleLeaveNotifyEvent(const xcb_leave_notify_event_t *event)
@@ -1537,12 +1573,26 @@ void QXcbWindow::handleLeaveNotifyEvent(const xcb_leave_notify_event_t *event)
     connection()->setTime(event->time);
 
     if ((event->mode != XCB_NOTIFY_MODE_NORMAL && event->mode != XCB_NOTIFY_MODE_UNGRAB)
-        || event->detail == XCB_NOTIFY_DETAIL_INFERIOR)
+        || event->detail == XCB_NOTIFY_DETAIL_VIRTUAL
+        || event->detail == XCB_NOTIFY_DETAIL_NONLINEAR_VIRTUAL)
     {
         return;
     }
 
-    QWindowSystemInterface::handleLeaveEvent(window());
+    EnterEventChecker checker;
+    xcb_enter_notify_event_t *enter = (xcb_enter_notify_event_t *)connection()->checkEvent(checker);
+    QXcbWindow *enterWindow = enter ? connection()->platformWindowFromId(enter->event) : 0;
+
+    if (enterWindow) {
+        QPoint local(enter->event_x, enter->event_y);
+        QPoint global(enter->root_x, enter->root_y);
+
+        QWindowSystemInterface::handleEnterLeaveEvent(enterWindow->window(), window(), local, global);
+    } else {
+        QWindowSystemInterface::handleLeaveEvent(window());
+    }
+
+    free(enter);
 }
 
 void QXcbWindow::handlePropertyNotifyEvent(const xcb_property_notify_event_t *event)
@@ -1702,6 +1752,23 @@ static inline xcb_rectangle_t qRectToXCBRectangle(const QRect &r)
     result.width = qMin((int)USHRT_MAX, r.width());
     result.height = qMin((int)USHRT_MAX, r.height());
     return result;
+}
+
+void QXcbWindow::setOpacity(qreal level)
+{
+    if (!m_window)
+        return;
+
+    quint32 value = qRound64(qBound(qreal(0), level, qreal(1)) * 0xffffffff);
+
+    Q_XCB_CALL(xcb_change_property(xcb_connection(),
+                                   XCB_PROP_MODE_REPLACE,
+                                   m_window,
+                                   atom(QXcbAtom::_NET_WM_WINDOW_OPACITY),
+                                   XCB_ATOM_CARDINAL,
+                                   32,
+                                   1,
+                                   (uchar *)&value));
 }
 
 void QXcbWindow::setMask(const QRegion &region)

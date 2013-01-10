@@ -102,8 +102,8 @@ static void printHelp()
            "    -imagemono      Paints the files to a monochrome image\n"
            "    -imagewidget    same as image, but with interacion...\n"
 #ifndef QT_NO_OPENGL
-           "    -opengl         Paints the files to an OpenGL on screen\n"
-           "    -pbuffer        Paints the files to an OpenGL pbuffer\n"
+           "    -opengl         Paints the files to a QGLWidget (Qt4 style) on screen\n"
+           "    -glbuffer       Paints the files to a QOpenGLFrameBufferObject (Qt5 style) \n"
 #endif
 #ifdef USE_CUSTOM_DEVICE
            "    -customdevice   Paints the files to the custom paint device\n"
@@ -121,6 +121,7 @@ static void printHelp()
            "    -commands       Displays all available commands\n"
            "    -w              Width of the paintdevice\n"
            "    -h              Height of the paintdevice\n"
+           "    -scalefactor    Scale factor (device pixel ratio) of the paintdevice\n"
            "    -cmp            Show the reference picture\n"
            "    -bg-white       No checkers background\n");
 }
@@ -238,6 +239,8 @@ int main(int argc, char **argv)
     bool highres = false;
     bool show_cmp = false;
     int width = 800, height = 800;
+    int scaledWidth = width, scaledHeight = height;
+    qreal scalefactor = 1.0;
     bool verboseMode = false;
 
 #ifndef QT_NO_OPENGL
@@ -289,8 +292,8 @@ int main(int argc, char **argv)
 #ifndef QT_NO_OPENGL
             else if (option == "opengl")
                 type = OpenGLType;
-            else if (option == "pbuffer")
-                type = OpenGLPBufferType;
+            else if (option == "glbuffer")
+                type = OpenGLBufferType;
 #endif
 #ifdef USE_CUSTOM_DEVICE
             else if (option == "customdevice")
@@ -328,6 +331,9 @@ int main(int argc, char **argv)
             } else if (option == "h") {
                 Q_ASSERT_X(i + 1 < argc, "main", "-h must be followed by a value");
                 height = atoi(argv[++i]);
+            } else if (option == "scalefactor") {
+                Q_ASSERT_X(i + 1 < argc, "main", "-scalefactor must be followed by a value");
+                scalefactor = atof(argv[++i]);
             } else if (option == "cmp") {
                 show_cmp = true;
             } else if (option == "bg-white") {
@@ -350,6 +356,8 @@ int main(int argc, char **argv)
 #endif
         }
     }
+    scaledWidth = width * scalefactor;
+    scaledHeight = height * scalefactor;
 
     PaintCommands pcmd(QStringList(), 800, 800);
     pcmd.setVerboseMode(verboseMode);
@@ -424,16 +432,28 @@ int main(int argc, char **argv)
 
             }
 #ifndef QT_NO_OPENGL
-            case OpenGLPBufferType:
+            case OpenGLBufferType:
             {
-                QGLPixelBuffer pbuffer(QSize(width, height));
-                QPainter pt(&pbuffer);
+                QWindow win;
+                win.setSurfaceType(QSurface::OpenGLSurface);
+                win.create();
+                QOpenGLFramebufferObjectFormat fmt;
+                fmt.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
+                fmt.setSamples(4);
+                QOpenGLContext ctx;
+                ctx.create();
+                ctx.makeCurrent(&win);
+                QOpenGLFramebufferObject fbo(width, height, fmt);
+                fbo.bind();
+                QOpenGLPaintDevice pdev(width, height);
+
+                QPainter pt(&pdev);
                 pcmd.setPainter(&pt);
                 pcmd.setFilePath(fileinfo.absolutePath());
                 pcmd.runCommands();
                 pt.end();
 
-                QImage image = pbuffer.toImage();
+                QImage image = fbo.toImage();
 
                 QLabel *label = createLabel();
                 label->setPixmap(QPixmap::fromImage(image));
@@ -456,8 +476,11 @@ int main(int argc, char **argv)
             }
 #else
             case OpenGLType:
+            case OpenGLBufferType:
+            {
                 printf("OpenGL type not supported in this Qt build\n");
                 break;
+            }
 #endif
 #ifdef USE_CUSTOM_DEVICE
             case CustomDeviceType:
@@ -499,7 +522,8 @@ int main(int argc, char **argv)
 #endif
             case PixmapType:
             {
-                QPixmap pixmap(width, height);
+                QPixmap pixmap(scaledWidth, scaledHeight);
+                pixmap.setDevicePixelRatio(scalefactor);
                 pixmap.fill(Qt::white);
                 QPainter pt(&pixmap);
                 pcmd.setPainter(&pt);
@@ -512,7 +536,8 @@ int main(int argc, char **argv)
 
             case BitmapType:
             {
-                QBitmap bitmap(width, height);
+                QBitmap bitmap(scaledWidth, scaledHeight);
+                bitmap.setDevicePixelRatio(scalefactor);
                 QPainter pt(&bitmap);
                 pcmd.setPainter(&pt);
                 pcmd.setFilePath(fileinfo.absolutePath());
@@ -532,9 +557,10 @@ int main(int argc, char **argv)
             case ImageType:
             {
                 qDebug() << "Creating image";
-                QImage image(width, height, type == ImageMonoType
+                QImage image(scaledWidth, scaledHeight, type == ImageMonoType
                              ? QImage::Format_MonoLSB
                              : imageFormat);
+                image.setDevicePixelRatio(scalefactor);
                 image.fill(0);
                 QPainter pt(&image);
                 pcmd.setPainter(&pt);
@@ -542,6 +568,7 @@ int main(int argc, char **argv)
                 pcmd.runCommands();
                 pt.end();
                 image.convertToFormat(QImage::Format_ARGB32).save("output_image.png", "PNG");
+                image.setDevicePixelRatio(1.0); // reset scale factor: display "large" image.
 #ifndef CONSOLE_APPLICATION
                 QLabel *label = createLabel();
                 label->setPixmap(QPixmap::fromImage(image));

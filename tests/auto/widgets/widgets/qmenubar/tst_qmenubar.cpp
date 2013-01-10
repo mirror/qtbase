@@ -45,7 +45,8 @@
 #include <qmainwindow.h>
 #include <qmenubar.h>
 #include <qstyle.h>
-#include <qwindowsstyle.h>
+#include <qproxystyle.h>
+#include <qstylefactory.h>
 #include <qdesktopwidget.h>
 #include <qaction.h>
 #include <qstyleoption.h>
@@ -1015,6 +1016,25 @@ void tst_QMenuBar::check_shortcutPress()
 }
 #endif
 
+class LayoutDirectionSaver
+{
+    Q_DISABLE_COPY(LayoutDirectionSaver)
+public:
+    explicit LayoutDirectionSaver(Qt::LayoutDirection direction)
+        : m_oldDirection(qApp->layoutDirection())
+    {
+        qApp->setLayoutDirection(direction);
+    }
+
+    ~LayoutDirectionSaver()
+    {
+        qApp->setLayoutDirection(m_oldDirection);
+    }
+
+private:
+    const Qt::LayoutDirection m_oldDirection;
+};
+
 // Qt/Mac,WinCE does not use the native popups/menubar
 #if !defined(Q_OS_MAC) && !defined(Q_OS_WINCE)
 void tst_QMenuBar::check_menuPosition()
@@ -1069,10 +1089,9 @@ void tst_QMenuBar::check_menuPosition()
         menu.close();
     }
 
-    //in RTL, the menu should be stuck at the right of the action geometry
+    // QTBUG-2596: in RTL, the menu should be stuck at the right of the action geometry
     {
-        Qt::LayoutDirection dir = qApp->layoutDirection();
-        qApp->setLayoutDirection(Qt::RightToLeft);
+        LayoutDirectionSaver directionSaver(Qt::RightToLeft);
         menu.clear();
         QObject::connect(&menu, SIGNAL(aboutToShow()), &menu, SLOT(addActions()));
         QRect mbItemRect = mw->menuBar()->actionGeometry(menu_action);
@@ -1081,14 +1100,28 @@ void tst_QMenuBar::check_menuPosition()
         QVERIFY(menu.isActiveWindow());
         QCOMPARE(menu.geometry().right(), mbItemRect.right());
         menu.close();
-        qApp->setLayoutDirection(dir);
     }
+
+#  ifndef QTEST_NO_CURSOR
+    // QTBUG-28031: Click at bottom-right corner.
+    {
+        mw->move(400, 200);
+        LayoutDirectionSaver directionSaver(Qt::RightToLeft);
+        QMenuBar *mb = mw->menuBar();
+        const QPoint localPos = mb->actionGeometry(menu.menuAction()).bottomRight() - QPoint(1, 1);
+        const QPoint globalPos = mb->mapToGlobal(localPos);
+        QCursor::setPos(globalPos);
+        QTest::mouseClick(mb, Qt::LeftButton, 0, localPos);
+        QTRY_VERIFY(menu.isActiveWindow());
+        QCOMPARE(menu.geometry().right() - 1, globalPos.x());
+        menu.close();
+    }
+#  endif // QTEST_NO_CURSOR
 }
 #endif
 
 void tst_QMenuBar::task223138_triggered()
 {
-    qRegisterMetaType<QAction *>("QAction *");
     //we create a window with submenus and we check that both menubar and menus get the triggered signal
     QMainWindow win;
     QMenu *menu = win.menuBar()->addMenu("test");
@@ -1158,8 +1191,10 @@ void tst_QMenuBar::task256322_highlight()
 
 void tst_QMenuBar::menubarSizeHint()
 {
-    struct MyStyle : public QWindowsStyle
+    struct MyStyle : public QProxyStyle
     {
+        MyStyle() : QProxyStyle(QStyleFactory::create("windows")) { }
+
         virtual int pixelMetric(PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const
         {
             // I chose strange values (prime numbers to be more sure that the size of the menubar is correct)
@@ -1174,7 +1209,7 @@ void tst_QMenuBar::menubarSizeHint()
             case PM_MenuBarPanelWidth:
                 return 1;
             default:
-              return QWindowsStyle::pixelMetric(metric, option, widget);
+              return QProxyStyle::pixelMetric(metric, option, widget);
             }
         }
     } style;

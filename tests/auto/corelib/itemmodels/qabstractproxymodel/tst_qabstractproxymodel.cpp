@@ -123,8 +123,6 @@ void tst_QAbstractProxyModel::qabstractproxymodel()
     model.submit();
 }
 
-Q_DECLARE_METATYPE(QVariant)
-Q_DECLARE_METATYPE(QModelIndex)
 void tst_QAbstractProxyModel::data_data()
 {
     QTest::addColumn<QModelIndex>("proxyIndex");
@@ -283,8 +281,6 @@ void tst_QAbstractProxyModel::revert()
 // public void setSourceModel(QAbstractItemModel* sourceModel)
 void tst_QAbstractProxyModel::setSourceModel()
 {
-    qRegisterMetaType<QAbstractItemModel*>();
-
     SubQAbstractProxyModel model;
 
     QCOMPARE(model.property("sourceModel"), QVariant::fromValue<QAbstractItemModel*>(0));

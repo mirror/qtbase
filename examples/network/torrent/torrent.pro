@@ -1,4 +1,4 @@
-QT += widgets
+QT += network widgets
 
 HEADERS += addtorrentdialog.h \
            bencodeparser.h \
@@ -29,14 +29,9 @@ SOURCES += main.cpp \
 FORMS += forms/addtorrentform.ui
 RESOURCES += icons.qrc
 
-QT += network
-
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/network/torrent
-sources.files = $$SOURCES $$HEADERS $$RESOURCES torrent.pro *.torrent
-sources.files += icons forms 3rdparty
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/network/torrent
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/network/torrent
+INSTALLS += target
 
 
 simulator: warning(This example might not fully work on Simulator platform)

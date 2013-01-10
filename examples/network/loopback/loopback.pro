@@ -1,12 +1,9 @@
-QT += widgets
+QT += network widgets
 
 HEADERS       = dialog.h
 SOURCES       = dialog.cpp \
                 main.cpp
-QT           += network
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/network/loopback
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS loopback.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/network/loopback
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/network/loopback
+INSTALLS += target

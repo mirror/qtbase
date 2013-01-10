@@ -916,7 +916,7 @@ QWizardLayoutInfo QWizardPrivate::layoutInfoForCurrentPage()
         info.buttonSpacing = 12;
 
     info.wizStyle = wizStyle;
-    if ((info.wizStyle == QWizard::AeroStyle)
+    if (info.wizStyle == QWizard::AeroStyle
 #if !defined(QT_NO_STYLE_WINDOWSVISTA)
         && (QVistaHelper::vistaState() == QVistaHelper::Classic || vistaDisabled())
 #endif
@@ -1557,7 +1557,7 @@ void QWizardPrivate::handleAeroStyleChange()
     _q_updateButtonStates();
 
     if (q->isVisible())
-        vistaHelper->setWindowPosHack();
+        vistaHelper->updateCustomMargins();
 
     inHandleAeroStyleChange = false;
 }
@@ -2922,6 +2922,10 @@ QWidget *QWizard::sideWidget() const
 void QWizard::setVisible(bool visible)
 {
     Q_D(QWizard);
+#if !defined(QT_NO_STYLE_WINDOWSVISTA)
+    if (visible)
+        d->vistaHelper->updateCustomMargins();
+#endif
     if (visible) {
         if (d->current == -1)
             restart();
@@ -3381,6 +3385,13 @@ QWizardPage::QWizardPage(QWidget *parent)
     : QWidget(*new QWizardPagePrivate, parent, 0)
 {
     connect(this, SIGNAL(completeChanged()), this, SLOT(_q_updateCachedCompleteState()));
+}
+
+/*!
+    Destructor.
+*/
+QWizardPage::~QWizardPage()
+{
 }
 
 /*!

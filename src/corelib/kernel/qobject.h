@@ -73,7 +73,7 @@ class QWidget;
 #ifndef QT_NO_REGEXP
 class QRegExp;
 #endif
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
 class QRegularExpression;
 #endif
 #ifndef QT_NO_USERDATA
@@ -125,7 +125,7 @@ public:
     virtual bool event(QEvent *);
     virtual bool eventFilter(QObject *, QEvent *);
 
-#ifdef qdoc
+#ifdef Q_QDOC
     static QString tr(const char *sourceText, const char *comment = 0, int n = -1);
     static QString trUtf8(const char *sourceText, const char *comment = 0, int n = -1);
     virtual const QMetaObject *metaObject() const;
@@ -187,7 +187,7 @@ public:
     }
 #endif
 
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
     template<typename T>
     inline QList<T> findChildren(const QRegularExpression &re, Qt::FindChildOptions options = Qt::FindChildrenRecursively) const
     {
@@ -279,10 +279,28 @@ public:
     static inline typename QtPrivate::QEnableIf<QtPrivate::FunctionPointer<Func2>::ArgumentCount == -1, QMetaObject::Connection>::Type
             connect(const typename QtPrivate::FunctionPointer<Func1>::Object *sender, Func1 signal, Func2 slot)
     {
+#ifndef Q_COMPILER_DECLTYPE  //Workaround the lack of decltype using another function as indirection
+        return connect_functor(sender, signal, slot, &Func2::operator()); }
+    template <typename Func1, typename Func2, typename Func2Operator>
+    static inline QMetaObject::Connection connect_functor(const QObject *sender, Func1 signal, Func2 slot, Func2Operator) {
+        typedef QtPrivate::FunctionPointer<Func2Operator> SlotType ;
+#else
+
+        typedef QtPrivate::FunctionPointer<decltype(&Func2::operator())> SlotType ;
+#endif
         typedef QtPrivate::FunctionPointer<Func1> SignalType;
 
+        Q_STATIC_ASSERT_X(int(SignalType::ArgumentCount) >= int(SlotType::ArgumentCount),
+                          "The slot requires more arguments than the signal provides.");
+        Q_STATIC_ASSERT_X((QtPrivate::CheckCompatibleArguments<typename SignalType::Arguments, typename SlotType::Arguments>::value),
+                          "Signal and slot arguments are not compatible.");
+        Q_STATIC_ASSERT_X((QtPrivate::AreArgumentsCompatible<typename SlotType::ReturnType, typename SignalType::ReturnType>::value),
+                          "Return type of the slot is not compatible with the return type of the signal.");
+
         return connectImpl(sender, reinterpret_cast<void **>(&signal), sender, 0,
-                           new QtPrivate::QFunctorSlotObject<Func2, SignalType::ArgumentCount, typename SignalType::Arguments, typename SignalType::ReturnType>(slot),
+                           new QtPrivate::QFunctorSlotObject<Func2, SlotType::ArgumentCount,
+                                typename QtPrivate::List_Left<typename SignalType::Arguments, SlotType::ArgumentCount>::Value,
+                                typename SignalType::ReturnType>(slot),
                            Qt::DirectConnection, 0, &SignalType::Object::staticMetaObject);
     }
 #endif //Q_QDOC
@@ -349,7 +367,7 @@ public:
 Q_SIGNALS:
     void destroyed(QObject * = 0);
     void objectNameChanged(const QString &objectName
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
     , QPrivateSignal
 #endif
     );
@@ -420,7 +438,7 @@ public:
 };
 #endif
 
-#ifdef qdoc
+#ifdef Q_QDOC
 T qFindChild(const QObject *o, const QString &name = QString());
 QList<T> qFindChildren(const QObject *oobj, const QString &name = QString());
 QList<T> qFindChildren(const QObject *o, const QRegExp &re);

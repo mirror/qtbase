@@ -122,7 +122,7 @@ public:
         Format_Grayscale2,
         Format_Grayscale2LSB
 #endif
-#ifndef qdoc
+#ifndef Q_QDOC
         NImageFormats
 #endif
     };
@@ -210,6 +210,9 @@ public:
 
     QVector<QRgb> colorTable() const;
     void setColorTable(const QVector<QRgb> colors);
+
+    qreal devicePixelRatio() const;
+    void setDevicePixelRatio(qreal scaleFactor);
 
     void fill(uint pixel);
     void fill(const QColor &color);

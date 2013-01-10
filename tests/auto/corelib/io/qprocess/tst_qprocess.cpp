@@ -56,7 +56,6 @@
 #  include <windows.h>
 # endif
 
-Q_DECLARE_METATYPE(QList<QProcess::ExitStatus>);
 Q_DECLARE_METATYPE(QProcess::ExitStatus);
 Q_DECLARE_METATYPE(QProcess::ProcessState);
 #endif
@@ -322,7 +321,7 @@ void tst_QProcess::crashTest()
     QVERIFY(process->waitForStarted(5000));
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
-    qRegisterMetaType<QProcess::ProcessError>("QProcess::ExitStatus");
+    qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
 
     QSignalSpy spy(process, SIGNAL(error(QProcess::ProcessError)));
     QSignalSpy spy2(process, SIGNAL(finished(int,QProcess::ExitStatus)));
@@ -357,7 +356,7 @@ void tst_QProcess::crashTest2()
     QVERIFY(process->waitForStarted(5000));
 
     qRegisterMetaType<QProcess::ProcessError>("QProcess::ProcessError");
-    qRegisterMetaType<QProcess::ProcessError>("QProcess::ExitStatus");
+    qRegisterMetaType<QProcess::ExitStatus>("QProcess::ExitStatus");
 
     QSignalSpy spy(process, SIGNAL(error(QProcess::ProcessError)));
     QSignalSpy spy2(process, SIGNAL(finished(int,QProcess::ExitStatus)));
@@ -1257,7 +1256,6 @@ void tst_QProcess::waitForBytesWrittenInABytesWrittenSlot()
     process->start("testProcessEcho/testProcessEcho");
     QVERIFY(process->waitForStarted(5000));
 
-    qRegisterMetaType<qint64>("qint64");
     QSignalSpy spy(process, SIGNAL(bytesWritten(qint64)));
     QVERIFY(spy.isValid());
     process->write("f");

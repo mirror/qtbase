@@ -41,6 +41,17 @@
 #ifndef QWINDOWSYSTEMINTERFACE_P_H
 #define QWINDOWSYSTEMINTERFACE_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include "qwindowsysteminterface.h"
 
 #include <QElapsedTimer>
@@ -55,30 +66,31 @@ QT_BEGIN_NAMESPACE
 class Q_GUI_EXPORT QWindowSystemInterfacePrivate {
 public:
     enum EventType {
-        Close,
-        GeometryChange,
-        Enter,
-        Leave,
-        ActivatedWindow,
-        WindowStateChanged,
-        Mouse,
-        FrameStrutMouse,
-        Wheel,
-        Key,
-        Touch,
-        ScreenOrientation,
-        ScreenGeometry,
-        ScreenAvailableGeometry,
-        ScreenLogicalDotsPerInch,
-        ScreenRefreshRate,
-        ThemeChange,
-        Expose,
-        FileOpen,
-        Tablet,
-        TabletEnterProximity,
-        TabletLeaveProximity,
-        PlatformPanel,
-        ContextMenu
+        UserInputEvent = 0x100,
+        Close = UserInputEvent | 0x01,
+        GeometryChange = 0x02,
+        Enter = UserInputEvent | 0x03,
+        Leave = UserInputEvent | 0x04,
+        ActivatedWindow = 0x05,
+        WindowStateChanged = 0x06,
+        Mouse = UserInputEvent | 0x07,
+        FrameStrutMouse = UserInputEvent | 0x08,
+        Wheel = UserInputEvent | 0x09,
+        Key = UserInputEvent | 0x0a,
+        Touch = UserInputEvent | 0x0b,
+        ScreenOrientation = 0x0c,
+        ScreenGeometry = 0x0d,
+        ScreenAvailableGeometry = 0x0e,
+        ScreenLogicalDotsPerInch = 0x0f,
+        ScreenRefreshRate = 0x10,
+        ThemeChange = 0x11,
+        Expose = 0x12,
+        FileOpen = UserInputEvent | 0x13,
+        Tablet = UserInputEvent | 0x14,
+        TabletEnterProximity = UserInputEvent | 0x15,
+        TabletLeaveProximity = UserInputEvent | 0x16,
+        PlatformPanel = UserInputEvent | 0x17,
+        ContextMenu = UserInputEvent | 0x18
     };
 
     class WindowSystemEvent {
@@ -108,10 +120,12 @@ public:
 
     class EnterEvent : public WindowSystemEvent {
     public:
-        explicit EnterEvent(QWindow *enter)
-            : WindowSystemEvent(Enter), enter(enter)
+        explicit EnterEvent(QWindow *enter, const QPointF &local, const QPointF &global)
+            : WindowSystemEvent(Enter), enter(enter), localPos(local), globalPos(global)
         { }
         QPointer<QWindow> enter;
+        const QPointF localPos;
+        const QPointF globalPos;
     };
 
     class LeaveEvent : public WindowSystemEvent {
@@ -288,10 +302,10 @@ public:
         TabletEvent(QWindow *w, ulong time, bool down, const QPointF &local, const QPointF &global,
                     int device, int pointerType, qreal pressure, int xTilt, int yTilt, qreal tpressure,
                     qreal rotation, int z, qint64 uid, Qt::KeyboardModifiers mods)
-            : InputEvent(w, time, Tablet, Qt::NoModifier),
+            : InputEvent(w, time, Tablet, mods),
               down(down), local(local), global(global), device(device), pointerType(pointerType),
               pressure(pressure), xTilt(xTilt), yTilt(yTilt), tangentialPressure(tpressure),
-              rotation(rotation), z(z), uid(uid), mods(mods) { }
+              rotation(rotation), z(z), uid(uid) { }
         bool down;
         QPointF local;
         QPointF global;
@@ -304,7 +318,6 @@ public:
         qreal rotation;
         int z;
         qint64 uid;
-        Qt::KeyboardModifiers mods;
     };
 
     class TabletEnterProximityEvent : public InputEvent {
@@ -361,6 +374,14 @@ public:
         { const QMutexLocker locker(&mutex); impl.prepend(e); }
         WindowSystemEvent *takeFirstOrReturnNull()
         { const QMutexLocker locker(&mutex); return impl.empty() ? 0 : impl.takeFirst(); }
+        WindowSystemEvent *takeFirstNonUserInputOrReturnNull()
+        {
+            const QMutexLocker locker(&mutex);
+            for (int i = 0; i < impl.size(); ++i)
+                if (!(impl.at(i)->type & QWindowSystemInterfacePrivate::UserInputEvent))
+                    return impl.takeAt(i);
+            return 0;
+        }
         void append(WindowSystemEvent *e)
         { const QMutexLocker locker(&mutex); impl.append(e); }
         int count() const
@@ -392,6 +413,7 @@ public:
 
     static int windowSystemEventsQueued();
     static WindowSystemEvent *getWindowSystemEvent();
+    static WindowSystemEvent *getNonUserInputWindowSystemEvent();
     static WindowSystemEvent *peekWindowSystemEvent(EventType t);
     static void removeWindowSystemEvent(WindowSystemEvent *event);
     static void handleWindowSystemEvent(WindowSystemEvent *ev);

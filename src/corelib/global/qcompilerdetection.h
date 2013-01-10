@@ -647,6 +647,13 @@
 #      define Q_COMPILER_TEMPLATE_ALIAS
 #      define Q_COMPILER_UDL
 #    endif
+#    if (__GNUC__ * 100 + __GNUC_MINOR__) >= 408
+#      define Q_COMPILER_ATTRIBUTES
+#      define Q_COMPILER_ALIGNAS
+#      define Q_COMPILER_ALIGNOF
+#      define Q_COMPILER_INHERITING_CONSTRUCTORS
+#      define Q_COMPILER_THREAD_LOCAL
+#    endif
 #  endif
 #endif
 
@@ -666,6 +673,7 @@
 #    endif
 #    if _MSC_VER >= 1600
        /* C++11 features supported in VC10 = VC2010: */
+#      define Q_COMPILER_AUTO_FUNCTION
 #      define Q_COMPILER_AUTO_TYPE
 #      define Q_COMPILER_LAMBDA
 #      define Q_COMPILER_DECLTYPE
@@ -686,7 +694,7 @@
 #endif /* Q_CC_MSVC */
 
 #ifdef __cplusplus
-# if defined(Q_OS_BLACKBERRY) || defined(Q_OS_QNX)
+# if defined(Q_OS_QNX)
 #  include <utility>
 #  if defined(_YVALS) || defined(_LIBCPP_VER)
 // QNX: libcpp (Dinkumware-based) doesn't have the <initializer_list>
@@ -695,9 +703,12 @@
 #    ifdef Q_COMPILER_INITIALIZER_LISTS
 #      undef Q_COMPILER_INITIALIZER_LISTS
 #    endif
+#    ifdef Q_COMPILER_RVALUE_REFS
+#      undef Q_COMPILER_RVALUE_REFS
+#    endif
 #  endif
 # endif
-#endif // Q_OS_BLACKBERRY || Q_OS_QNX
+#endif // Q_OS_QNX
 
 /*
  * C++11 keywords and expressions

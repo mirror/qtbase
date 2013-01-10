@@ -49,14 +49,13 @@ struct VertexData
     QVector2D texCoord;
 };
 
-GeometryEngine::GeometryEngine() : vboIds(new GLuint[2])
+GeometryEngine::GeometryEngine()
 {    
 }
 
 GeometryEngine::~GeometryEngine()
 {
     glDeleteBuffers(2, vboIds);
-    delete[] vboIds;
 }
 
 void GeometryEngine::init()
@@ -151,7 +150,7 @@ void GeometryEngine::drawCubeGeometry(QGLShaderProgram *program)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIds[1]);
 
     // Offset for position
-    int offset = 0;
+    quintptr offset = 0;
 
     // Tell OpenGL programmable pipeline how to locate vertex position data
     int vertexLocation = program->attributeLocation("a_position");

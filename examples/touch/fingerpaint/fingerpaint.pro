@@ -1,3 +1,6 @@
+QT += widgets
+qtHaveModule(printsupport): QT += printsupport
+
 HEADERS       = mainwindow.h \
                 scribblearea.h
 SOURCES       = main.cpp \
@@ -5,12 +8,7 @@ SOURCES       = main.cpp \
                 scribblearea.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/touch/fingerpaint
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS fingerpaint.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/touch/fingerpaint
-INSTALLS += target sources
-
-QT += widgets
-!isEmpty(QT.printsupport.name): QT += printsupport
+target.path = $$[QT_INSTALL_EXAMPLES]/touch/fingerpaint
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

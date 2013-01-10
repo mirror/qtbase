@@ -71,7 +71,6 @@ struct Match
 };
 
 Q_DECLARE_METATYPE(Match)
-Q_DECLARE_METATYPE(QList<Match>)
 
 bool operator==(const QRegularExpressionMatch &rem, const Match &m)
 {
@@ -127,8 +126,6 @@ bool operator!=(const Match &m, const QRegularExpressionMatch &rem)
 bool operator==(const QRegularExpressionMatchIterator &iterator, const QList<Match> &expectedMatchList)
 {
     QRegularExpressionMatchIterator i = iterator;
-    if (i.isValid() != (!expectedMatchList.isEmpty()))
-        return false;
 
     foreach (const Match &expectedMatch, expectedMatchList)
     {
@@ -694,11 +691,30 @@ void tst_QRegularExpression::normalMatch()
     QFETCH(QRegularExpression::MatchOptions, matchOptions);
     QFETCH(Match, match);
 
-    QRegularExpressionMatch m = regexp.match(subject, offset, QRegularExpression::NormalMatch, matchOptions);
-    consistencyCheck(m);
-    QVERIFY(m == match);
-}
+    {
+        QRegularExpressionMatch m = regexp.match(subject, offset, QRegularExpression::NormalMatch, matchOptions);
+        consistencyCheck(m);
+        QVERIFY(m == match);
+        QCOMPARE(m.regularExpression(), regexp);
+        QCOMPARE(m.matchType(), QRegularExpression::NormalMatch);
+        QCOMPARE(m.matchOptions(), matchOptions);
+    }
+    {
+        // ignore the expected results provided by the match object --
+        // we'll never get any result when testing the NoMatch type.
+        // Just check the validity of the match here.
+        Match realMatch;
+        realMatch.clear();
+        realMatch.isValid = match.isValid;
 
+        QRegularExpressionMatch m = regexp.match(subject, offset, QRegularExpression::NoMatch, matchOptions);
+        consistencyCheck(m);
+        QVERIFY(m == realMatch);
+        QCOMPARE(m.regularExpression(), regexp);
+        QCOMPARE(m.matchType(), QRegularExpression::NoMatch);
+        QCOMPARE(m.matchOptions(), matchOptions);
+    }
+}
 
 void tst_QRegularExpression::partialMatch_data()
 {
@@ -953,9 +969,29 @@ void tst_QRegularExpression::partialMatch()
     QFETCH(QRegularExpression::MatchOptions, matchOptions);
     QFETCH(Match, match);
 
-    QRegularExpressionMatch m = regexp.match(subject, offset, matchType, matchOptions);
-    consistencyCheck(m);
-    QVERIFY(m == match);
+    {
+        QRegularExpressionMatch m = regexp.match(subject, offset, matchType, matchOptions);
+        consistencyCheck(m);
+        QVERIFY(m == match);
+        QCOMPARE(m.regularExpression(), regexp);
+        QCOMPARE(m.matchType(), matchType);
+        QCOMPARE(m.matchOptions(), matchOptions);
+    }
+    {
+        // ignore the expected results provided by the match object --
+        // we'll never get any result when testing the NoMatch type.
+        // Just check the validity of the match here.
+        Match realMatch;
+        realMatch.clear();
+        realMatch.isValid = match.isValid;
+
+        QRegularExpressionMatch m = regexp.match(subject, offset, QRegularExpression::NoMatch, matchOptions);
+        consistencyCheck(m);
+        QVERIFY(m == realMatch);
+        QCOMPARE(m.regularExpression(), regexp);
+        QCOMPARE(m.matchType(), QRegularExpression::NoMatch);
+        QCOMPARE(m.matchOptions(), matchOptions);
+    }
 }
 
 void tst_QRegularExpression::globalMatch_data()
@@ -1224,10 +1260,28 @@ void tst_QRegularExpression::globalMatch()
     QFETCH(QRegularExpression::MatchType, matchType);
     QFETCH(QRegularExpression::MatchOptions, matchOptions);
     QFETCH(QList<Match>, matchList);
+    {
+        QRegularExpressionMatchIterator iterator = regexp.globalMatch(subject, offset, matchType, matchOptions);
+        consistencyCheck(iterator);
+        QVERIFY(iterator == matchList);
+        QCOMPARE(iterator.regularExpression(), regexp);
+        QCOMPARE(iterator.matchType(), matchType);
+        QCOMPARE(iterator.matchOptions(), matchOptions);
+    }
+    {
+        // ignore the expected results provided by the match object --
+        // we'll never get any result when testing the NoMatch type.
+        // Just check the validity of the match here.
+        QList<Match> realMatchList;
 
-    QRegularExpressionMatchIterator iterator = regexp.globalMatch(subject, offset, matchType, matchOptions);
-    consistencyCheck(iterator);
-    QVERIFY(iterator == matchList);
+        QRegularExpressionMatchIterator iterator = regexp.globalMatch(subject, offset, QRegularExpression::NoMatch, matchOptions);
+        consistencyCheck(iterator);
+        QVERIFY(iterator == realMatchList);
+        QCOMPARE(iterator.regularExpression(), regexp);
+        QCOMPARE(iterator.matchType(), QRegularExpression::NoMatch);
+        QCOMPARE(iterator.matchOptions(), matchOptions);
+    }
+
 }
 
 void tst_QRegularExpression::serialize_data()

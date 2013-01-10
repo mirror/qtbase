@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS	    =   mainwindow.h \
 		diagramitem.h \
 		diagramscene.h \
@@ -13,11 +15,7 @@ RESOURCES   =	diagramscene.qrc
 
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/diagramscene
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS diagramscene.pro images
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/diagramscene
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/graphicsview/diagramscene
+INSTALLS += target
 
-
-QT += widgets
 simulator: warning(This example might not fully work on Simulator platform)

@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QSqlRelationalDelegate
+    \inmodule QtSql
     \brief The QSqlRelationalDelegate class provides a delegate that is used to
     display and edit data from a QSqlRelationalTableModel.
 
@@ -53,9 +54,9 @@ QT_BEGIN_NAMESPACE
     use the class, simply call QAbstractItemView::setItemDelegate()
     on the view with an instance of QSqlRelationalDelegate:
 
-    \snippet sql/relationaltablemodel/relationaltablemodel.cpp 4
+    \snippet relationaltablemodel/relationaltablemodel.cpp 4
 
-    The \l{sql/relationaltablemodel}{Relational Table Model} example
+    The \l{relationaltablemodel}{Relational Table Model} example
     (shown below) illustrates how to use QSqlRelationalDelegate in
     conjunction with QSqlRelationalTableModel to provide tables with
     foreign key support.
@@ -84,11 +85,6 @@ QT_BEGIN_NAMESPACE
     \fn QWidget *QSqlRelationalDelegate::createEditor(QWidget *parent,
                                                       const QStyleOptionViewItem &option,
                                                       const QModelIndex &index) const
-    \reimp
-*/
-
-/*!
-    \fn void QSqlRelationalDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
     \reimp
 */
 

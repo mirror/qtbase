@@ -333,10 +333,7 @@ QSQLiteResult::~QSQLiteResult()
 
 void QSQLiteResult::virtual_hook(int id, void *data)
 {
-    switch (id) {
-    default:
-        QSqlCachedResult::virtual_hook(id, data);
-    }
+    QSqlCachedResult::virtual_hook(id, data);
 }
 
 bool QSQLiteResult::reset(const QString &query)
@@ -543,6 +540,7 @@ bool QSQLiteDriver::hasFeature(DriverFeature f) const
     case BatchOperations:
     case EventNotifications:
     case MultipleResultSets:
+    case CancelQuery:
         return false;
     }
     return false;

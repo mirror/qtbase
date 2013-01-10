@@ -1,23 +1,9 @@
 option(host_build)
-TEMPLATE = app
-TARGET = qdoc
 
-DESTDIR = ../../../bin
 DEFINES += QDOC2_COMPAT
 
-include(../bootstrap/bootstrap.pri)
-DEFINES -= QT_NO_CAST_FROM_ASCII
-DEFINES += QT_NO_TRANSLATION
-
 INCLUDEPATH += $$QT_SOURCE_TREE/src/tools/qdoc \
-               $$QT_SOURCE_TREE/src/tools/qdoc/qmlparser \
-               $$QT_BUILD_TREE/include/QtXml \
-               $$QT_BUILD_TREE/include/QtXml/$$QT_VERSION \
-               $$QT_BUILD_TREE/include/QtXml/$$QT_VERSION/QtXml
-
-DEPENDPATH += $$QT_SOURCE_TREE/src/tools/qdoc \
-              $$QT_SOURCE_TREE/src/tools/qdoc/qmlparser \
-              $$QT_SOURCE_TREE/src/xml
+               $$QT_SOURCE_TREE/src/tools/qdoc/qmlparser
 
 # Increase the stack size on MSVC to 4M to avoid a stack overflow
 win32-msvc*:{
@@ -79,9 +65,7 @@ SOURCES += atom.cpp \
            tokenizer.cpp \
            tree.cpp \
            yyindent.cpp \
-           ../../corelib/tools/qcryptographichash.cpp \
-           ../../xml/dom/qdom.cpp \
-           ../../xml/sax/qxml.cpp
+           ../../corelib/tools/qcryptographichash.cpp
 
 ### QML/JS Parser ###
 
@@ -121,7 +105,4 @@ qch-docs.CONFIG += no_check_exist directory
 
 QMAKE_EXTRA_TARGETS += html-docs qch-docs
 
-target.path = $$[QT_HOST_BINS]
-INSTALLS += target
-
-load(qt_targets)
+load(qt_tool)

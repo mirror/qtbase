@@ -57,6 +57,8 @@
 #include <link.h>
 #endif
 
+#include <algorithm>
+
 QT_BEGIN_NAMESPACE
 
 /*
@@ -292,6 +294,10 @@ DEFINEFUNC2(int, X509_STORE_add_cert, X509_STORE *a, a, X509 *b, b, return 0, re
 DEFINEFUNC(void, X509_STORE_CTX_free, X509_STORE_CTX *a, a, return, DUMMYARG)
 DEFINEFUNC4(int, X509_STORE_CTX_init, X509_STORE_CTX *a, a, X509_STORE *b, b, X509 *c, c, STACK_OF(X509) *d, d, return -1, return)
 DEFINEFUNC2(int, X509_STORE_CTX_set_purpose, X509_STORE_CTX *a, a, int b, b, return -1, return)
+DEFINEFUNC(int, X509_STORE_CTX_get_error, X509_STORE_CTX *a, a, return -1, return)
+DEFINEFUNC(int, X509_STORE_CTX_get_error_depth, X509_STORE_CTX *a, a, return -1, return)
+DEFINEFUNC(X509 *, X509_STORE_CTX_get_current_cert, X509_STORE_CTX *a, a, return 0, return)
+DEFINEFUNC(STACK_OF(X509) *, X509_STORE_CTX_get_chain, X509_STORE_CTX *a, a, return 0, return)
 DEFINEFUNC(X509_STORE_CTX *, X509_STORE_CTX_new, DUMMYARG, DUMMYARG, return 0, return)
 #ifdef SSLEAY_MACROS
 DEFINEFUNC2(int, i2d_DSAPrivateKey, const DSA *a, a, unsigned char **b, b, return -1, return)
@@ -410,7 +416,7 @@ static QStringList findAllLibSsl()
         QDir dir(path);
         QStringList entryList = dir.entryList(QStringList() << QLatin1String("libssl.*"), QDir::Files);
 
-        qSort(entryList.begin(), entryList.end(), libGreaterThan);
+        std::sort(entryList.begin(), entryList.end(), libGreaterThan);
         foreach (const QString &entry, entryList)
             foundSsls << path + QLatin1Char('/') + entry;
     }
@@ -427,7 +433,7 @@ static QStringList findAllLibCrypto()
         QDir dir(path);
         QStringList entryList = dir.entryList(QStringList() << QLatin1String("libcrypto.*"), QDir::Files);
 
-        qSort(entryList.begin(), entryList.end(), libGreaterThan);
+        std::sort(entryList.begin(), entryList.end(), libGreaterThan);
         foreach (const QString &entry, entryList)
             foundCryptos << path + QLatin1Char('/') + entry;
     }
@@ -712,6 +718,10 @@ bool q_resolveOpenSslSymbols()
     RESOLVEFUNC(X509_STORE_CTX_init)
     RESOLVEFUNC(X509_STORE_CTX_new)
     RESOLVEFUNC(X509_STORE_CTX_set_purpose)
+    RESOLVEFUNC(X509_STORE_CTX_get_error)
+    RESOLVEFUNC(X509_STORE_CTX_get_error_depth)
+    RESOLVEFUNC(X509_STORE_CTX_get_current_cert)
+    RESOLVEFUNC(X509_STORE_CTX_get_chain)
     RESOLVEFUNC(X509_cmp)
 #ifndef SSLEAY_MACROS
     RESOLVEFUNC(X509_dup)

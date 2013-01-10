@@ -171,7 +171,8 @@ QWindowsUser32DLL::QWindowsUser32DLL() :
     setLayeredWindowAttributes(0), updateLayeredWindow(0),
     updateLayeredWindowIndirect(0),
     isHungAppWindow(0),
-    registerTouchWindow(0), getTouchInputInfo(0), closeTouchInputHandle(0)
+    registerTouchWindow(0), unregisterTouchWindow(0),
+    getTouchInputInfo(0), closeTouchInputHandle(0)
 {
 }
 
@@ -192,9 +193,10 @@ bool QWindowsUser32DLL::initTouch()
 {
     QSystemLibrary library(QStringLiteral("user32"));
     registerTouchWindow = (RegisterTouchWindow)(library.resolve("RegisterTouchWindow"));
+    unregisterTouchWindow = (UnregisterTouchWindow)(library.resolve("UnregisterTouchWindow"));
     getTouchInputInfo = (GetTouchInputInfo)(library.resolve("GetTouchInputInfo"));
     closeTouchInputHandle = (CloseTouchInputHandle)(library.resolve("CloseTouchInputHandle"));
-    return registerTouchWindow && getTouchInputInfo && getTouchInputInfo;
+    return registerTouchWindow && unregisterTouchWindow && getTouchInputInfo && getTouchInputInfo;
 }
 
 /*!
@@ -374,7 +376,7 @@ void QWindowsContext::setKeyGrabber(QWindow *w)
 
 QString QWindowsContext::registerWindowClass(const QWindow *w, bool isGL)
 {
-    const Qt::WindowFlags flags = w ? w->windowFlags() : (Qt::WindowFlags)0;
+    const Qt::WindowFlags flags = w ? w->flags() : (Qt::WindowFlags)0;
     const Qt::WindowFlags type = flags & Qt::WindowType_Mask;
 
     uint style = 0;
@@ -781,7 +783,7 @@ bool QWindowsContext::windowsProc(HWND hwnd, UINT message,
             d->m_creationContext->obtainedGeometry.moveTo(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
             return true;
         case QtWindows::CalculateSize:
-            return false;
+            return QWindowsGeometryHint::handleCalculateSize(d->m_creationContext->customMargins, msg, result);
         default:
             break;
         }
@@ -816,12 +818,7 @@ bool QWindowsContext::windowsProc(HWND hwnd, UINT message,
         platformWindow->getSizeHints(reinterpret_cast<MINMAXINFO *>(lParam));
         return true;// maybe available on some SDKs revisit WM_NCCALCSIZE
     case QtWindows::CalculateSize:
-        // NCCALCSIZE_PARAMS structure if wParam==TRUE
-        if (wParam && QWindowsContext::verboseWindows) {
-            const NCCALCSIZE_PARAMS *ncp = reinterpret_cast<NCCALCSIZE_PARAMS *>(lParam);
-            qDebug() << platformWindow->window() << *ncp;
-        }
-        break;
+        return QWindowsGeometryHint::handleCalculateSize(platformWindow->customMargins(), msg, result);
 #endif
     case QtWindows::ExposeEvent:
         return platformWindow->handleWmPaint(hwnd, message, wParam, lParam);

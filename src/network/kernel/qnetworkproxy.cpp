@@ -49,6 +49,7 @@
 
     \reentrant
     \ingroup network
+    \ingroup shared
     \inmodule QtNetwork
 
     QNetworkProxy provides the method for configuring network layer
@@ -83,7 +84,7 @@
 
     \section1 SOCKS5
 
-    The SOCKS5 support in Qt 4 is based on \l{RFC 1928} and \l{RFC 1929}.
+    The SOCKS5 support in Qt 4 is based on \l{http://www.rfc-editor.org/rfc/rfc1928.txt}{RFC 1928} and \l{http://www.rfc-editor.org/rfc/rfc1929.txt}{RFC 1929}.
     The supported authentication methods are no authentication and
     username/password authentication.  Both IPv4 and IPv6 are
     supported. Domain names are resolved through the SOCKS5 server if
@@ -893,6 +894,7 @@ template<> void QSharedDataPointer<QNetworkProxyQueryPrivate>::detach()
 /*!
     \class QNetworkProxyQuery
     \since 4.5
+    \ingroup shared
     \inmodule QtNetwork
     \brief The QNetworkProxyQuery class is used to query the proxy
     settings for a socket.

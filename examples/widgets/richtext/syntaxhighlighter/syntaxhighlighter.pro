@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS         = highlighter.h \
                   mainwindow.h
 SOURCES         = highlighter.cpp \
@@ -5,10 +7,8 @@ SOURCES         = highlighter.cpp \
                   main.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/richtext/syntaxhighlighter
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS syntaxhighlighter.pro examples
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/richtext/syntaxhighlighter
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/syntaxhighlighter
+INSTALLS += target
 
 
 wince*: {
@@ -16,5 +16,3 @@ wince*: {
    addFiles.path = .
    DEPLOYMENT += addFiles
 }
-QT += widgets
-

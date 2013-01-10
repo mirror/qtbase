@@ -48,6 +48,10 @@
 #include <qpa/qplatformscreen.h>
 #include <private/qguiapplication_p.h>
 
+#ifndef QT_NO_WIDGETS
+#include <QtWidgets/QWidget>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 //
@@ -134,6 +138,8 @@ NSImage *qt_mac_cgimage_to_nsimage(CGImageRef image)
 
 NSImage *qt_mac_create_nsimage(const QPixmap &pm)
 {
+    if (pm.isNull())
+        return 0;
     QImage image = pm.toImage();
     CGImageRef cgImage = qt_mac_image_to_cgimage(image);
     NSImage *nsImage = qt_mac_cgimage_to_nsimage(cgImage);
@@ -551,6 +557,17 @@ void qt_mac_cleanUpMacColorSpaces()
     m_displayColorSpaceHash.clear();
 }
 
+CGColorSpaceRef qt_mac_colorSpaceForDeviceType(const QPaintDevice *paintDevice)
+{
+#ifdef QT_NO_WIDGETS
+    return qt_mac_displayColorSpace(0);
+#else
+    bool isWidget = (paintDevice->devType() == QInternal::Widget);
+    return qt_mac_displayColorSpace(isWidget ? static_cast<const QWidget *>(paintDevice): 0);
+#endif
+
+}
+
 QString qt_mac_applicationName()
 {
     QString appName;
@@ -597,11 +614,6 @@ InvalidImage:
 InvalidBounds:
 InvalidContext:
         return err;
-}
-
-CGFloat qt_mac_get_scalefactor()
-{
-    return [[NSScreen mainScreen] userSpaceScaleFactor];
 }
 
 Qt::MouseButton cocoaButton2QtButton(NSInteger buttonNum)
@@ -694,6 +706,137 @@ QString qt_mac_removeAmpersandEscapes(QString s)
         s.remove(i-1,1);
     }
     return s.trimmed();
+}
+
+/*! \internal
+
+ Returns the CoreGraphics CGContextRef of the paint device. 0 is
+ returned if it can't be obtained. It is the caller's responsibility to
+ CGContextRelease the context when finished using it.
+
+ \warning This function is only available on Mac OS X.
+ \warning This function is duplicated in qmacstyle_mac.mm
+ */
+CGContextRef qt_mac_cg_context(const QPaintDevice *pdev)
+{
+    if (pdev->devType() == QInternal::Pixmap) {
+        const QPixmap *pm = static_cast<const QPixmap*>(pdev);
+        CGColorSpaceRef colorspace = qt_mac_colorSpaceForDeviceType(pdev);
+        uint flags = kCGImageAlphaPremultipliedFirst;
+        flags |= kCGBitmapByteOrder32Host;
+        CGContextRef ret = 0;
+
+        QPlatformPixmap *data = const_cast<QPixmap *>(pm)->data_ptr().data();
+        if (data && data->classId() == QPlatformPixmap::RasterClass) {
+            QImage *image = data->buffer();
+            ret = CGBitmapContextCreate(image->bits(), image->width(), image->height(),
+                                        8, image->bytesPerLine(), colorspace, flags);
+        } else {
+            qDebug() << "qt_mac_cg_context: Unsupported pixmap class";
+        }
+
+        CGContextTranslateCTM(ret, 0, pm->height());
+        CGContextScaleCTM(ret, 1, -1);
+        return ret;
+    } else if (pdev->devType() == QInternal::Widget) {
+        //CGContextRef ret = static_cast<CGContextRef>(static_cast<const QWidget *>(pdev)->macCGHandle());
+        ///CGContextRetain(ret);
+        //return ret;
+        qDebug() << "qt_mac_cg_context: not implemented: Widget class";
+        return 0;
+    }
+    return 0;
+}
+
+CGImageRef qt_mac_toCGImage(const QImage &qImage, bool isMask, uchar **dataCopy)
+{
+    int width = qImage.width();
+    int height = qImage.height();
+
+    if (width <= 0 || height <= 0) {
+        qWarning() << Q_FUNC_INFO <<
+            "setting invalid size" << width << "x" << height << "for qnsview image";
+        return 0;
+    }
+
+    const uchar *imageData = qImage.bits();
+    if (dataCopy) {
+        delete[] *dataCopy;
+        *dataCopy = new uchar[qImage.byteCount()];
+        memcpy(*dataCopy, imageData, qImage.byteCount());
+    }
+    int bitDepth = qImage.depth();
+    int colorBufferSize = 8;
+    int bytesPrLine = qImage.bytesPerLine();
+
+    CGDataProviderRef cgDataProviderRef = CGDataProviderCreateWithData(
+                NULL,
+                dataCopy ? *dataCopy : imageData,
+                qImage.byteCount(),
+                NULL);
+
+    CGImageRef cgImage = 0;
+    if (isMask) {
+        cgImage = CGImageMaskCreate(width,
+                                    height,
+                                    colorBufferSize,
+                                    bitDepth,
+                                    bytesPrLine,
+                                    cgDataProviderRef,
+                                    NULL,
+                                    false);
+    } else {
+        // Try get a device color space. Using the device color space means
+        // that the CGImage can be drawn to screen without per-pixel color
+        // space conversion, at the cost of less color accuracy.
+        CGColorSpaceRef cgColourSpaceRef = 0;
+        CMProfileRef sysProfile;
+        if (CMGetSystemProfile(&sysProfile) == noErr)
+        {
+            cgColourSpaceRef = CGColorSpaceCreateWithPlatformColorSpace(sysProfile);
+            CMCloseProfile(sysProfile);
+        }
+
+        // Fall back to Generic RGB if a profile was not found.
+        if (!cgColourSpaceRef)
+            cgColourSpaceRef = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
+
+        // Create a CGBitmapInfo contiaining the image format.
+        // Support the 8-bit per component (A)RGB formats.
+        CGBitmapInfo bitmapInfo = kCGBitmapByteOrder32Little;
+        switch (qImage.format()) {
+            case QImage::Format_ARGB32_Premultiplied :
+                bitmapInfo |= kCGImageAlphaPremultipliedFirst;
+            break;
+            case QImage::Format_ARGB32 :
+                bitmapInfo |= kCGImageAlphaFirst;
+            break;
+            case QImage::Format_RGB32 :
+                bitmapInfo |= kCGImageAlphaNoneSkipFirst;
+            break;
+            case QImage::Format_RGB888 :
+                bitmapInfo |= kCGImageAlphaNone;
+            break;
+            default:
+                qWarning() << "qt_mac_toCGImage: Unsupported image format" << qImage.format();
+            break;
+        }
+
+        cgImage = CGImageCreate(width,
+                                height,
+                                colorBufferSize,
+                                bitDepth,
+                                bytesPrLine,
+                                cgColourSpaceRef,
+                                bitmapInfo,
+                                cgDataProviderRef,
+                                NULL,
+                                false,
+                                kCGRenderingIntentDefault);
+        CGColorSpaceRelease(cgColourSpaceRef);
+    }
+    CGDataProviderRelease(cgDataProviderRef);
+    return cgImage;
 }
 
 QT_END_NAMESPACE

@@ -553,6 +553,7 @@ private slots:
     void explicitOverrideControl();
     void autoPropertyMetaTypeRegistration();
     void autoMethodArgumentMetaTypeRegistration();
+    void autoSignalSpyMetaTypeRegistration();
     void parseDefines();
     void preprocessorOnly();
 
@@ -2388,6 +2389,7 @@ struct CustomObject8 {};
 struct CustomObject9 {};
 struct CustomObject10 {};
 struct CustomObject11 {};
+struct CustomObject12 {};
 
 Q_DECLARE_METATYPE(CustomObject3)
 Q_DECLARE_METATYPE(CustomObject4)
@@ -2398,6 +2400,7 @@ Q_DECLARE_METATYPE(CustomObject8)
 Q_DECLARE_METATYPE(CustomObject9)
 Q_DECLARE_METATYPE(CustomObject10)
 Q_DECLARE_METATYPE(CustomObject11)
+Q_DECLARE_METATYPE(CustomObject12)
 
 class AutoRegistrationObject : public QObject
 {
@@ -2520,6 +2523,9 @@ public slots:
     void ref2(QList<int>&) {}
     void ref3(CustomQObject2&) {}
     void ref4(QSharedPointer<CustomQObject2>&) {}
+
+signals:
+    void someSignal(CustomObject12);
 };
 
 void tst_Moc::autoPropertyMetaTypeRegistration()
@@ -2582,6 +2588,16 @@ void tst_Moc::autoMethodArgumentMetaTypeRegistration()
     const QMetaObject *metaObject = aro.metaObject();
 
     int i = metaObject->methodOffset(); // Start after QObject built-in slots;
+
+    while (i < metaObject->methodCount()) {
+        // Skip over signals so we start at the first slot.
+        const QMetaMethod method = metaObject->method(i);
+        if (method.methodType() == QMetaMethod::Signal)
+            ++i;
+        else
+            break;
+
+    }
 
 #define TYPE_LOOP(TYPE) \
     { \
@@ -2709,6 +2725,26 @@ void tst_Moc::autoMethodArgumentMetaTypeRegistration()
 
 }
 
+void tst_Moc::autoSignalSpyMetaTypeRegistration()
+{
+    AutoRegistrationObject aro;
+
+    QVector<int> methodArgMetaTypeIds;
+
+    const QMetaObject *metaObject = aro.metaObject();
+
+    int i = metaObject->indexOfSignal(QMetaObject::normalizedSignature("someSignal(CustomObject12)"));
+
+    QVERIFY(i > 0);
+
+    QCOMPARE(QMetaType::type("CustomObject12"), (int)QMetaType::UnknownType);
+
+    QSignalSpy spy(&aro, SIGNAL(someSignal(CustomObject12)));
+
+    QVERIFY(QMetaType::type("CustomObject12") != QMetaType::UnknownType);
+    QCOMPARE(QMetaType::type("CustomObject12"), qMetaTypeId<CustomObject12>());
+}
+
 void tst_Moc::parseDefines()
 {
     const QMetaObject *mo = &PD_NAMESPACE::PD_CLASSNAME::staticMetaObject;
@@ -2752,19 +2788,34 @@ void tst_Moc::parseDefines()
     QVERIFY(index != -1);
 #endif
 
+    index = mo->indexOfSlot("INNERFUNCTION(int)");
+    QVERIFY(index != -1);
+    index = mo->indexOfSlot("inner_expanded(int)");
+    QVERIFY(index != -1);
+    index = mo->indexOfSlot("expanded_method(int)");
+    QVERIFY(index != -1);
+
+    index = mo->indexOfSlot("conditionSlot()");
+    QVERIFY(index != -1);
+
     int count = 0;
     for (int i = 0; i < mo->classInfoCount(); ++i) {
         QMetaClassInfo mci = mo->classInfo(i);
         if (!qstrcmp(mci.name(), "TestString")) {
             ++count;
-            QVERIFY(!qstrcmp(mci.value(), "ParseDefine"));
+            QVERIFY(!qstrcmp(mci.value(), "PD_CLASSNAME"));
         }
         if (!qstrcmp(mci.name(), "TestString2")) {
+            ++count;
+            qDebug() << mci.value();
+            QVERIFY(!qstrcmp(mci.value(), "ParseDefine"));
+        }
+        if (!qstrcmp(mci.name(), "TestString3")) {
             ++count;
             QVERIFY(!qstrcmp(mci.value(), "TestValue"));
         }
     }
-    QVERIFY(count == 2);
+    QVERIFY(count == 3);
 }
 
 void tst_Moc::preprocessorOnly()

@@ -47,7 +47,6 @@
 #include <qtoolbutton.h>
 #include <qmenu.h>
 #include <qaction.h>
-#include <qwindowsstyle.h>
 #include <qstyleoption.h>
 
 class tst_QToolButton : public QObject
@@ -117,8 +116,6 @@ void tst_QToolButton::getSetCheck()
     QCOMPARE((QAction *)0, obj1.defaultAction());
     delete var4;
 }
-
-Q_DECLARE_METATYPE(QAction*)
 
 void tst_QToolButton::triggered()
 {

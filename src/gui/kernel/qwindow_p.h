@@ -42,6 +42,17 @@
 #ifndef QWINDOW_P_H
 #define QWINDOW_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtGui/qwindow.h>
 #include <qpa/qplatformwindow.h>
 
@@ -51,7 +62,6 @@
 QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
-
 
 #define QWINDOWSIZE_MAX ((1<<24)-1)
 
@@ -79,7 +89,7 @@ public:
         , receivedExpose(false)
         , positionPolicy(WindowFrameExclusive)
         , contentOrientation(Qt::PrimaryOrientation)
-        , windowOrientation(Qt::PrimaryOrientation)
+        , opacity(qreal(1.0))
         , minimumSize(0, 0)
         , maximumSize(QWINDOWSIZE_MAX, QWINDOWSIZE_MAX)
         , modality(Qt::NonModal)
@@ -104,9 +114,9 @@ public:
 
     QPoint globalPosition() const {
         Q_Q(const QWindow);
-        QPoint offset = q->pos();
+        QPoint offset = q->position();
         for (const QWindow *p = q->parent(); p; p = p->parent())
-            offset += p->pos();
+            offset += p->position();
         return offset;
     }
 
@@ -126,7 +136,7 @@ public:
     bool receivedExpose;
     PositionPolicy positionPolicy;
     Qt::ScreenOrientation contentOrientation;
-    Qt::ScreenOrientation windowOrientation;
+    qreal opacity;
 
     QSize minimumSize;
     QSize maximumSize;

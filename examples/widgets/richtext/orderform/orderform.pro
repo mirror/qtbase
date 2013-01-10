@@ -1,3 +1,6 @@
+QT += widgets
+qtHaveModule(printsupport): QT += printsupport
+
 HEADERS     = detailsdialog.h \
               mainwindow.h
 SOURCES     = detailsdialog.cpp \
@@ -5,10 +8,5 @@ SOURCES     = detailsdialog.cpp \
               mainwindow.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/richtext/orderform
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS orderform.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/richtext/orderform
-INSTALLS += target sources
-
-QT += widgets
-!isEmpty(QT.printsupport.name): QT += printsupport
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/richtext/orderform
+INSTALLS += target

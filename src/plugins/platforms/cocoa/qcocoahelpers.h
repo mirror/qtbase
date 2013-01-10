@@ -84,8 +84,6 @@ HIMutableShapeRef qt_mac_QRegionToHIMutableShape(const QRegion &region);
 
 OSStatus qt_mac_drawCGImage(CGContextRef inContext, const CGRect *inBounds, CGImageRef inImage);
 
-CGFloat qt_mac_get_scalefactor();
-
 QChar qt_mac_qtKey2CocoaKey(Qt::Key key);
 Qt::Key qt_mac_cocoaKey2QtKey(QChar keyCode);
 
@@ -99,6 +97,7 @@ void qt_mac_transformProccessToForegroundApplication();
 QString qt_mac_removeMnemonics(const QString &original);
 CGColorSpaceRef qt_mac_genericColorSpace();
 CGColorSpaceRef qt_mac_displayColorSpace(const QWidget *widget);
+CGColorSpaceRef qt_mac_colorSpaceForDeviceType(const QPaintDevice *paintDevice);
 QString qt_mac_applicationName();
 
 inline int qt_mac_flipYCoordinate(int y)
@@ -128,6 +127,37 @@ bool qt_mac_execute_apple_script(const QString &script, AEDesc *ret);
 // text - since menu text is sometimes decorated with these for Windows
 // accelerators.
 QString qt_mac_removeAmpersandEscapes(QString s);
+
+enum {
+    QtCocoaEventSubTypeWakeup       = SHRT_MAX,
+    QtCocoaEventSubTypePostMessage  = SHRT_MAX-1
+};
+
+class QCocoaPostMessageArgs {
+public:
+    id target;
+    SEL selector;
+    int argCount;
+    id arg1;
+    id arg2;
+    QCocoaPostMessageArgs(id target, SEL selector, int argCount=0, id arg1=0, id arg2=0)
+        : target(target), selector(selector), argCount(argCount), arg1(arg1), arg2(arg2)
+    {
+        [target retain];
+        [arg1 retain];
+        [arg2 retain];
+    }
+
+    ~QCocoaPostMessageArgs()
+    {
+        [arg2 release];
+        [arg1 release];
+        [target release];
+    }
+};
+
+CGContextRef qt_mac_cg_context(const QPaintDevice *pdev);
+CGImageRef qt_mac_toCGImage(const QImage &qImage, bool isMask, uchar **dataCopy);
 
 QT_END_NAMESPACE
 

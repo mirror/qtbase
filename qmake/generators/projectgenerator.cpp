@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Nokia Corporation and/or its subsidiary(-ies).
+** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -363,7 +363,6 @@ ProjectGenerator::writeMakefile(QTextStream &t)
         t << getWritableVar("TARGET_ASSIGN")
           << getWritableVar("CONFIG", false)
           << getWritableVar("CONFIG_REMOVE", false)
-          << getWritableVar("DEPENDPATH")
           << getWritableVar("INCLUDEPATH") << endl;
 
         t << "# Input" << "\n";

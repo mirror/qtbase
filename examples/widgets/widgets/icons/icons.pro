@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS       = iconpreviewarea.h \
                 iconsizespinbox.h \
                 imagedelegate.h \
@@ -8,11 +10,11 @@ SOURCES       = iconpreviewarea.cpp \
                 main.cpp \
                 mainwindow.cpp
 
+EXAMPLE_FILES = images/*
+
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/icons
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS icons.pro images
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/icons
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/icons
+INSTALLS += target
 
 
 wince*: {
@@ -24,6 +26,5 @@ wince*: {
     }
     DEPLOYMENT += imageFiles
 }
-QT += widgets
 
 simulator: warning(This example might not fully work on Simulator platform)

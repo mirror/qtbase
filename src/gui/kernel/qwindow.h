@@ -93,26 +93,25 @@ class Q_GUI_EXPORT QWindow : public QObject, public QSurface
     Q_OBJECT
     Q_DECLARE_PRIVATE(QWindow)
 
-    Q_PROPERTY(QString windowTitle READ windowTitle WRITE setWindowTitle)
-    Q_PROPERTY(QString windowFilePath READ windowFilePath WRITE setWindowFilePath)
-    Q_PROPERTY(QIcon windowIcon READ windowIcon WRITE setWindowIcon)
-    Q_PROPERTY(Qt::WindowModality windowModality READ windowModality WRITE setWindowModality NOTIFY windowModalityChanged)
+    // All properties which are declared here are inherited by QQuickWindow and therefore available in QML.
+    // So please think carefully about what it does to the QML namespace if you add any new ones,
+    // particularly the possible meanings these names might have in any specializations of Window.
+    // For example "state" (meaning windowState) is not a good property to declare, because it has
+    // a different meaning in QQuickItem, and users will tend to assume it is the same for Window.
+
+    Q_PROPERTY(QString title READ title WRITE setTitle)
+    Q_PROPERTY(Qt::WindowModality modality READ modality WRITE setModality NOTIFY modalityChanged)
+    Q_PROPERTY(Qt::WindowFlags flags READ flags WRITE setFlags)
     Q_PROPERTY(int x READ x WRITE setX NOTIFY xChanged)
     Q_PROPERTY(int y READ y WRITE setY NOTIFY yChanged)
     Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged)
     Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
-    Q_PROPERTY(QPoint pos READ pos WRITE setPos)
-    Q_PROPERTY(QSize size READ size WRITE resize)
-    Q_PROPERTY(QRect geometry READ geometry WRITE setGeometry)
     Q_PROPERTY(int minimumWidth READ minimumWidth WRITE setMinimumWidth NOTIFY minimumWidthChanged)
     Q_PROPERTY(int minimumHeight READ minimumHeight WRITE setMinimumHeight NOTIFY minimumHeightChanged)
     Q_PROPERTY(int maximumWidth READ maximumWidth WRITE setMaximumWidth NOTIFY maximumWidthChanged)
     Q_PROPERTY(int maximumHeight READ maximumHeight WRITE setMaximumHeight NOTIFY maximumHeightChanged)
     Q_PROPERTY(bool visible READ isVisible WRITE setVisible NOTIFY visibleChanged)
     Q_PROPERTY(Qt::ScreenOrientation contentOrientation READ contentOrientation WRITE reportContentOrientationChange NOTIFY contentOrientationChanged)
-#ifndef QT_NO_CURSOR
-    Q_PROPERTY(QCursor cursor READ cursor WRITE setCursor RESET unsetCursor)
-#endif
 
 public:
 
@@ -135,29 +134,28 @@ public:
     bool isTopLevel() const;
 
     bool isModal() const;
-    Qt::WindowModality windowModality() const;
-    void setWindowModality(Qt::WindowModality windowModality);
+    Qt::WindowModality modality() const;
+    void setModality(Qt::WindowModality modality);
 
     void setFormat(const QSurfaceFormat &format);
     QSurfaceFormat format() const;
     QSurfaceFormat requestedFormat() const;
 
-    void setWindowFlags(Qt::WindowFlags flags);
-    Qt::WindowFlags windowFlags() const;
-    Qt::WindowType windowType() const;
+    void setFlags(Qt::WindowFlags flags);
+    Qt::WindowFlags flags() const;
+    Qt::WindowType type() const;
 
-    QString windowTitle() const;
+    QString title() const;
 
     void setOpacity(qreal level);
-    void requestActivateWindow();
+    void requestActivate();
 
     bool isActive() const;
 
     void reportContentOrientationChange(Qt::ScreenOrientation orientation);
     Qt::ScreenOrientation contentOrientation() const;
 
-    bool requestWindowOrientation(Qt::ScreenOrientation orientation);
-    Qt::ScreenOrientation windowOrientation() const;
+    qreal devicePixelRatio() const;
 
     Qt::WindowState windowState() const;
     void setWindowState(Qt::WindowState state);
@@ -174,10 +172,10 @@ public:
 
     bool isExposed() const;
 
-    int minimumWidth() const { return minimumSize().width(); }
-    int minimumHeight() const { return minimumSize().height(); }
-    int maximumWidth() const { return maximumSize().width(); }
-    int maximumHeight() const { return maximumSize().height(); }
+    inline int minimumWidth() const { return minimumSize().width(); }
+    inline int minimumHeight() const { return minimumSize().height(); }
+    inline int maximumWidth() const { return maximumSize().width(); }
+    inline int maximumHeight() const { return maximumSize().height(); }
 
     QSize minimumSize() const;
     QSize maximumSize() const;
@@ -189,15 +187,15 @@ public:
     void setBaseSize(const QSize &size);
     void setSizeIncrement(const QSize &size);
 
-    void setGeometry(int posx, int posy, int w, int h) { setGeometry(QRect(posx, posy, w, h)); }
+    void setGeometry(int posx, int posy, int w, int h);
     void setGeometry(const QRect &rect);
     QRect geometry() const;
 
     QMargins frameMargins() const;
     QRect frameGeometry() const;
 
-    QPoint framePos() const;
-    void setFramePos(const QPoint &point);
+    QPoint framePosition() const;
+    void setFramePosition(const QPoint &point);
 
     inline int width() const { return geometry().width(); }
     inline int height() const { return geometry().height(); }
@@ -205,19 +203,19 @@ public:
     inline int y() const { return geometry().y(); }
 
     inline QSize size() const { return geometry().size(); }
-    inline QPoint pos() const { return geometry().topLeft(); }
+    inline QPoint position() const { return geometry().topLeft(); }
 
-    inline void setPos(const QPoint &pt) { setGeometry(QRect(pt, size())); }
-    inline void setPos(int posx, int posy) { setPos(QPoint(posx, posy)); }
+    void setPosition(const QPoint &pt);
+    void setPosition(int posx, int posy);
 
     void resize(const QSize &newSize);
-    inline void resize(int w, int h) { resize(QSize(w, h)); }
+    void resize(int w, int h);
 
-    void setWindowFilePath(const QString &filePath);
-    QString windowFilePath() const;
+    void setFilePath(const QString &filePath);
+    QString filePath() const;
 
-    void setWindowIcon(const QIcon &icon);
-    QIcon windowIcon() const;
+    void setIcon(const QIcon &icon);
+    QIcon icon() const;
 
     void destroy();
 
@@ -256,31 +254,12 @@ public Q_SLOTS:
     void raise();
     void lower();
 
-    void setWindowTitle(const QString &);
+    void setTitle(const QString &);
 
-    void setX(int arg)
-    {
-        if (x() != arg)
-            setGeometry(QRect(arg, y(), width(), height()));
-    }
-
-    void setY(int arg)
-    {
-        if (y() != arg)
-            setGeometry(QRect(x(), arg, width(), height()));
-    }
-
-    void setWidth(int arg)
-    {
-        if (width() != arg)
-            setGeometry(QRect(x(), y(), arg, height()));
-    }
-
-    void setHeight(int arg)
-    {
-        if (height() != arg)
-            setGeometry(QRect(x(), y(), width(), arg));
-    }
+    void setX(int arg);
+    void setY(int arg);
+    void setWidth(int arg);
+    void setHeight(int arg);
 
     void setMinimumWidth(int w);
     void setMinimumHeight(int h);
@@ -289,7 +268,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void screenChanged(QScreen *screen);
-    void windowModalityChanged(Qt::WindowModality windowModality);
+    void modalityChanged(Qt::WindowModality modality);
+    void windowStateChanged(Qt::WindowState windowState);
 
     void xChanged(int arg);
     void yChanged(int arg);

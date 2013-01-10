@@ -65,34 +65,45 @@ enum FindFlag {
     NonFunction = 0x4
 };
 
+struct TargetRec
+{
+  public:
+    enum Type { Unknown, Target, Keyword, Contents, Class, Function, Page, Subtitle };
+    TargetRec() : node_(0), priority_(INT_MAX), type_(Unknown) { }
+    bool isEmpty() const { return ref_.isEmpty(); }
+    //void debug(int idx, const QString& key);
+    Node* node_;
+    QString ref_;
+    int priority_;
+    Type type_;
+};
+typedef QMultiMap<QString, TargetRec> TargetRecMultiMap;
+
+
 class QDocDatabase
 {
-
-    struct Target
-    {
-      public:
-        Target() : node_(0), priority_(INT_MAX) { }
-        bool isEmpty() const { return ref_.isEmpty(); }
-        //void debug(int idx, const QString& key);
-        Node* node_;
-        QString ref_;
-        int priority_;
-    };
-    typedef QMultiMap<QString, Target> TargetMultiMap;
-
   public:
     static QDocDatabase* qdocDB();
     static void destroyQdocDB();
     ~QDocDatabase();
 
+    const DocNodeMap& groups() const { return groups_; }
     const DocNodeMap& modules() const { return modules_; }
     const DocNodeMap& qmlModules() const { return qmlModules_; }
+
+    DocNode* getGroup(const QString& name);
+    DocNode* findGroup(const QString& name);
+    DocNode* findModule(const QString& name);
+    DocNode* findQmlModule(const QString& name);
+
+    DocNode* addGroup(const QString& name);
     DocNode* addModule(const QString& name);
     DocNode* addQmlModule(const QString& name);
+
+    DocNode* addToGroup(const QString& name, Node* node);
     DocNode* addToModule(const QString& name, Node* node);
-    DocNode* addToQmlModule(const QString& moduleName, Node* node);
-    DocNode* findModule(const QString& qmlModuleName, bool addIfNotFound = false);
-    DocNode* findQmlModule(const QString& name, bool addIfNotFound = false);
+    DocNode* addToQmlModule(const QString& name, Node* node);
+
     QmlClassNode* findQmlType(const QString& qmid, const QString& name) const;
 
     void findAllClasses(const InnerNode *node);
@@ -112,16 +123,13 @@ class QDocDatabase
     NodeMap& getQmlTypes() { return qmlClasses_; }
     NodeMapMap& getFunctionIndex() { return funcIndex_; }
     TextToNodeMap& getLegaleseTexts() { return legaleseTexts_; }
-    const NodeMultiMap& groups() const { return tree_->groups(); }
-    const NodeList getGroup(const QString& name) const { return tree_->groups().values(name); }
-    void getGroup(const QString& name, NodeMap& group) const;
     const NodeMap& getClassMap(const QString& key) const;
     const NodeMap& getQmlTypeMap(const QString& key) const;
     const NodeMultiMap& getSinceMap(const QString& key) const;
 
     const Node* resolveTarget(const QString& target, const Node* relative, const Node* self=0);
     const Node* findNodeForTarget(const QString& target, const Node* relative);
-    void insertTarget(const QString& name, Node* node, int priority);
+    void insertTarget(const QString& name, TargetRec::Type type, Node* node, int priority);
 
     /* convenience functions
        Many of these will be either eliminated or replaced.
@@ -131,8 +139,6 @@ class QDocDatabase
     NamespaceNode* treeRoot() { return tree_->root(); }
     void resolveInheritance() { tree_->resolveInheritance(); }
     void resolveIssues();
-    void addToGroup(Node* node, const QString& group) { tree_->addToGroup(node, group); }
-    void addToPublicGroup(Node* node, const QString& group) { tree_->addToPublicGroup(node, group); }
     void fixInheritance() { tree_->fixInheritance(); }
     void resolveProperties() { tree_->resolveProperties(); }
 
@@ -140,7 +146,6 @@ class QDocDatabase
     ClassNode* findClassNode(const QStringList& path) { return tree_->findClassNode(path); }
     NamespaceNode* findNamespaceNode(const QStringList& path) { return tree_->findNamespaceNode(path); }
 
-    DocNode* findGroupNode(const QStringList& path) { return tree_->findGroupNode(path); }
     NameCollisionNode* findCollisionNode(const QString& name) const {
         return tree_->findCollisionNode(name);
     }
@@ -205,6 +210,7 @@ class QDocDatabase
     QString                 version_;
     QDocMultiMap            masterMap_;
     Tree*                   tree_;
+    DocNodeMap              groups_;
     DocNodeMap              modules_;
     DocNodeMap              qmlModules_;
     QmlTypeMap              qmlTypeMap_;
@@ -222,7 +228,7 @@ class QDocDatabase
     NodeMapMap              funcIndex_;
     TextToNodeMap           legaleseTexts_;
     DocNodeMultiMap         docNodesByTitle_;
-    TargetMultiMap          targetMultiMap_;
+    TargetRecMultiMap       targetRecMultiMap_;
 };
 
 QT_END_NAMESPACE

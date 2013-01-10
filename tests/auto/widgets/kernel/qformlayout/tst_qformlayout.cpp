@@ -44,16 +44,24 @@
 #include <qlayout.h>
 #include <qapplication.h>
 #include <qwidget.h>
-#include <qwindowsstyle.h>
+#include <qproxystyle.h>
 #include <qsizepolicy.h>
 
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
-#include <QtWidgets/QWindowsStyle>
 #include <QStyleFactory>
+#include <QSharedPointer>
 
 #include <qformlayout.h>
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QFormLayout : public QObject
 {
@@ -123,6 +131,8 @@ private slots:
     int heightForWidth(int width) const;
     Qt::Orientations expandingDirections() const;
 */
+
+    void taskQTBUG_27420_takeAtShouldUnparentLayout();
 
 };
 
@@ -268,11 +278,11 @@ void tst_QFormLayout::wrapping()
     delete w;
 }
 
-class CustomLayoutStyle : public QWindowsStyle
+class CustomLayoutStyle : public QProxyStyle
 {
     Q_OBJECT
 public:
-    CustomLayoutStyle()
+    CustomLayoutStyle() : QProxyStyle(QStyleFactory::create("windows"))
     {
         hspacing = 5;
         vspacing = 10;
@@ -297,7 +307,7 @@ int CustomLayoutStyle::pixelMetric(PixelMetric metric, const QStyleOption * opti
         default:
             break;
     }
-    return QWindowsStyle::pixelMetric(metric, option, widget);
+    return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
 void tst_QFormLayout::spacing()
@@ -343,6 +353,7 @@ void tst_QFormLayout::spacing()
 void tst_QFormLayout::contentsRect()
 {
     QWidget w;
+    setFrameless(&w);
     QFormLayout form;
     w.setLayout(&form);
     form.addRow("Label", new QPushButton(&w));
@@ -411,7 +422,7 @@ void tst_QFormLayout::setFormStyle()
     QVERIFY(layout.rowWrapPolicy() == QFormLayout::DontWrapRows);
 #endif
 
-    widget.setStyle(new QWindowsStyle());
+    widget.setStyle(QStyleFactory::create("windows"));
 
     QVERIFY(layout.labelAlignment() == Qt::AlignLeft);
     QVERIFY(layout.formAlignment() == (Qt::AlignLeft | Qt::AlignTop));
@@ -900,6 +911,27 @@ void tst_QFormLayout::layoutAlone()
     w.show();
     layout.activate();
     QTest::qWait(500);
+}
+
+void tst_QFormLayout::taskQTBUG_27420_takeAtShouldUnparentLayout()
+{
+    QSharedPointer<QFormLayout> outer(new QFormLayout);
+    QPointer<QFormLayout> inner = new QFormLayout;
+
+    outer->addRow(inner);
+    QCOMPARE(outer->count(), 1);
+    QCOMPARE(inner->parent(), outer.data());
+
+    QLayoutItem *item = outer->takeAt(0);
+    QCOMPARE(item->layout(), inner.data());
+    QVERIFY(!item->layout()->parent());
+
+    outer.reset();
+
+    if (inner)
+        delete item; // success: a taken item/layout should not be deleted when the old parent is deleted
+    else
+        QVERIFY(!inner.isNull());
 }
 
 QTEST_MAIN(tst_QFormLayout)

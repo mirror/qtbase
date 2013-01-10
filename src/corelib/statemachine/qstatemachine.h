@@ -153,8 +153,16 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
-    void started();
-    void stopped();
+    void started(
+#if !defined(Q_QDOC)
+      QPrivateSignal
+#endif
+    );
+    void stopped(
+#if !defined(Q_QDOC)
+      QPrivateSignal
+#endif
+    );
 
 protected:
     void onEntry(QEvent *event);

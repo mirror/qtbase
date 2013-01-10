@@ -1,3 +1,6 @@
+QT += widgets
+qtHaveModule(printsupport): QT += printsupport
+
 HEADERS       = mainwindow.h \
                 scribblearea.h
 SOURCES       = main.cpp \
@@ -5,10 +8,5 @@ SOURCES       = main.cpp \
                 scribblearea.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/scribble
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS scribble.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/scribble
-INSTALLS += target sources
-
-QT += widgets
-!isEmpty(QT.printsupport.name): QT += printsupport
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/scribble
+INSTALLS += target

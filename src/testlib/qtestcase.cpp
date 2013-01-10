@@ -93,10 +93,9 @@ QT_BEGIN_NAMESPACE
    \inmodule QtTest
 
    \brief The QTest namespace contains all the functions and
-   declarations that are related to the QTestLib tool.
+   declarations that are related to Qt Test.
 
-   Please refer to the \l{QTestLib Manual} documentation for information on
-   how to write unit tests.
+   See the \l{Qt Test Overview} for information about how to write unit tests.
 */
 
 /*! \macro QVERIFY(condition)
@@ -186,7 +185,7 @@ QT_BEGIN_NAMESPACE
 
    \relates QTest
 
-   Invokes QTRY_VERIFY_WITH_TIMEOUT() with a timeout of five seconds.
+   Checks the \a condition by invoking QTRY_VERIFY_WITH_TIMEOUT() with a timeout of five seconds.
 
    \note This macro can only be used in a test function that is invoked
    by the test framework.
@@ -216,7 +215,8 @@ QT_BEGIN_NAMESPACE
 
    \relates QTest
 
-   Invokes QTRY_COMPARE_WITH_TIMEOUT() with a timeout of five seconds.
+   Performs a comparison of the \a actual and \a expected values by
+   invoking QTRY_COMPARE_WITH_TIMEOUT() with a timeout of five seconds.
 
    \note This macro can only be used in a test function that is invoked
    by the test framework.
@@ -484,9 +484,9 @@ QT_BEGIN_NAMESPACE
 
     For example:
 
-    \snippet qtestlib/tutorial5/benchmarking.cpp 0
+    \snippet code/src_qtestlib_qtestcase.cpp 27
 
-    \sa {QTestLib Manual#Creating a Benchmark}{Creating a Benchmark},
+    \sa {Qt Test Overview#Creating a Benchmark}{Creating a Benchmark},
         {Chapter 5: Writing a Benchmark}{Writing a Benchmark}
 */
 
@@ -507,7 +507,7 @@ QT_BEGIN_NAMESPACE
     once. The elapsed time will be reported as "0" if it's to short to
     be measured by the selected backend. (Use)
 
-    \sa {QTestLib Manual#Creating a Benchmark}{Creating a Benchmark},
+    \sa {Qt Test Overview#Creating a Benchmark}{Creating a Benchmark},
     {Chapter 5: Writing a Benchmark}{Writing a Benchmark}
 */
 

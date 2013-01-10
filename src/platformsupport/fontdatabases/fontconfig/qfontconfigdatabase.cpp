@@ -75,20 +75,21 @@ static inline bool requiresOpenType(int writingSystem)
     return ((writingSystem >= QFontDatabase::Syriac && writingSystem <= QFontDatabase::Sinhala)
             || writingSystem == QFontDatabase::Khmer || writingSystem == QFontDatabase::Nko);
 }
+
 static inline bool scriptRequiresOpenType(int script)
 {
-    return ((script >= QUnicodeTables::Syriac && script <= QUnicodeTables::Sinhala)
-            || script == QUnicodeTables::Khmer || script == QUnicodeTables::Nko);
+    return ((script >= QChar::Script_Syriac && script <= QChar::Script_Sinhala)
+            || script == QChar::Script_Khmer || script == QChar::Script_Nko);
 }
 
 static int getFCWeight(int fc_weight)
 {
     int qtweight = QFont::Black;
-    if (fc_weight <= (FC_WEIGHT_LIGHT + FC_WEIGHT_MEDIUM) / 2)
+    if (fc_weight <= (FC_WEIGHT_LIGHT + FC_WEIGHT_REGULAR) / 2)
         qtweight = QFont::Light;
-    else if (fc_weight <= (FC_WEIGHT_MEDIUM + FC_WEIGHT_DEMIBOLD) / 2)
+    else if (fc_weight <= (FC_WEIGHT_REGULAR + FC_WEIGHT_MEDIUM) / 2)
         qtweight = QFont::Normal;
-    else if (fc_weight <= (FC_WEIGHT_DEMIBOLD + FC_WEIGHT_BOLD) / 2)
+    else if (fc_weight <= (FC_WEIGHT_MEDIUM + FC_WEIGHT_BOLD) / 2)
         qtweight = QFont::DemiBold;
     else if (fc_weight <= (FC_WEIGHT_BOLD + FC_WEIGHT_BLACK) / 2)
         qtweight = QFont::Bold;
@@ -97,14 +98,17 @@ static int getFCWeight(int fc_weight)
 }
 
 static const char *specialLanguages[] = {
-    "en", // Common
+    "", // Unknown
+    "", // Inherited
+    "", // Common
+    "en", // Latin
     "el", // Greek
     "ru", // Cyrillic
     "hy", // Armenian
     "he", // Hebrew
     "ar", // Arabic
     "syr", // Syriac
-    "div", // Thaana
+    "dv", // Thaana
     "hi", // Devanagari
     "bn", // Bengali
     "pa", // Gurmukhi
@@ -121,44 +125,84 @@ static const char *specialLanguages[] = {
     "my", // Myanmar
     "ka", // Georgian
     "ko", // Hangul
-    "", // Ogham
-    "", // Runic
+    "am", // Ethiopic
+    "chr", // Cherokee
+    "cr", // CanadianAboriginal
+    "sga", // Ogham
+    "non", // Runic
     "km", // Khmer
-    "" // N'Ko
+    "mn", // Mongolian
+    "ja", // Hiragana
+    "ja", // Katakana
+    "zh", // Bopomofo
+    "zh", // Han
+    "ii", // Yi
+    "ett", // OldItalic
+    "got", // Gothic
+    "en", // Deseret
+    "fil", // Tagalog
+    "hnn", // Hanunoo
+    "bku", // Buhid
+    "tbw", // Tagbanwa
+    "cop", // Coptic
+    "lif", // Limbu
+    "tdd", // TaiLe
+    "grc", // LinearB
+    "uga", // Ugaritic
+    "en", // Shavian
+    "so", // Osmanya
+    "grc", // Cypriot
+    "", // Braille
+    "bug", // Buginese
+    "khb", // NewTaiLue
+    "cu", // Glagolitic
+    "shi", // Tifinagh
+    "syl", // SylotiNagri
+    "peo", // OldPersian
+    "pra", // Kharoshthi
+    "ban", // Balinese
+    "akk", // Cuneiform
+    "phn", // Phoenician
+    "lzh", // PhagsPa
+    "man", // Nko
+    "su", // Sundanese
+    "lep", // Lepcha
+    "sat", // OlChiki
+    "vai", // Vai
+    "saz", // Saurashtra
+    "eky", // KayahLi
+    "rej", // Rejang
+    "xlc", // Lycian
+    "xcr", // Carian
+    "xld", // Lydian
+    "cjm", // Cham
+    "nod", // TaiTham
+    "blt", // TaiViet
+    "ae", // Avestan
+    "egy", // EgyptianHieroglyphs
+    "smp", // Samaritan
+    "lis", // Lisu
+    "bax", // Bamum
+    "jv", // Javanese
+    "mni", // MeeteiMayek
+    "arc", // ImperialAramaic
+    "xsa", // OldSouthArabian
+    "xpr", // InscriptionalParthian
+    "pal", // InscriptionalPahlavi
+    "otk", // OldTurkic
+    "bh", // Kaithi
+    "bbc", // Batak
+    "pra", // Brahmi
+    "myz", // Mandaic
+    "ccp", // Chakma
+    "xmr", // MeroiticCursive
+    "xmr", // MeroiticHieroglyphs
+    "hmd", // Miao
+    "sa", // Sharada
+    "srb", // SoraSompeng
+    "doi"  // Takri
 };
 enum { SpecialLanguageCount = sizeof(specialLanguages) / sizeof(const char *) };
-
-static const ushort specialChars[] = {
-    0, // English
-    0, // Greek
-    0, // Cyrillic
-    0, // Armenian
-    0, // Hebrew
-    0, // Arabic
-    0, // Syriac
-    0, // Thaana
-    0, // Devanagari
-    0, // Bengali
-    0, // Gurmukhi
-    0, // Gujarati
-    0, // Oriya
-    0, // Tamil
-    0xc15, // Telugu
-    0xc95, // Kannada
-    0xd15, // Malayalam
-    0xd9a, // Sinhala
-    0, // Thai
-    0, // Lao
-    0, // Tibetan
-    0x1000, // Myanmar
-    0, // Georgian
-    0, // Hangul
-    0x1681, // Ogham
-    0x16a0, // Runic
-    0,  // Khmer
-    0x7ca // N'Ko
-};
-enum { SpecialCharCount = sizeof(specialChars) / sizeof(ushort) };
 
 // this could become a list of all languages used for each writing
 // system, instead of using the single most common language.
@@ -194,9 +238,9 @@ static const char *languageForWritingSystem[] = {
     "ko",  // Korean
     "vi",  // Vietnamese
     0, // Symbol
-    0, // Ogham
-    0, // Runic
-    0 // N'Ko
+    "sga", // Ogham
+    "non", // Runic
+    "man" // N'Ko
 };
 enum { LanguageCount = sizeof(languageForWritingSystem) / sizeof(const char *) };
 
@@ -318,6 +362,7 @@ void QFontconfigDatabase::populateFontDatabase()
     FcChar8 *file_value;
     int indexValue;
     FcChar8 *foundry_value;
+    FcChar8 *style_value;
     FcBool scalable;
     FcBool antialias;
 
@@ -325,7 +370,7 @@ void QFontconfigDatabase::populateFontDatabase()
         FcObjectSet *os = FcObjectSetCreate();
         FcPattern *pattern = FcPatternCreate();
         const char *properties [] = {
-            FC_FAMILY, FC_WEIGHT, FC_SLANT,
+            FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_SLANT,
             FC_SPACING, FC_FILE, FC_INDEX,
             FC_LANG, FC_CHARSET, FC_FOUNDRY, FC_SCALABLE, FC_PIXEL_SIZE, FC_WEIGHT,
             FC_WIDTH,
@@ -350,7 +395,7 @@ void QFontconfigDatabase::populateFontDatabase()
         //         capitalize(value);
         familyName = QString::fromUtf8((const char *)value);
         slant_value = FC_SLANT_ROMAN;
-        weight_value = FC_WEIGHT_MEDIUM;
+        weight_value = FC_WEIGHT_REGULAR;
         spacing_value = FC_PROPORTIONAL;
         file_value = 0;
         indexValue = 0;
@@ -360,7 +405,7 @@ void QFontconfigDatabase::populateFontDatabase()
         if (FcPatternGetInteger (fonts->fonts[i], FC_SLANT, 0, &slant_value) != FcResultMatch)
             slant_value = FC_SLANT_ROMAN;
         if (FcPatternGetInteger (fonts->fonts[i], FC_WEIGHT, 0, &weight_value) != FcResultMatch)
-            weight_value = FC_WEIGHT_MEDIUM;
+            weight_value = FC_WEIGHT_REGULAR;
         if (FcPatternGetInteger (fonts->fonts[i], FC_SPACING, 0, &spacing_value) != FcResultMatch)
             spacing_value = FC_PROPORTIONAL;
         if (FcPatternGetString (fonts->fonts[i], FC_FILE, 0, &file_value) != FcResultMatch)
@@ -371,6 +416,8 @@ void QFontconfigDatabase::populateFontDatabase()
             scalable = FcTrue;
         if (FcPatternGetString(fonts->fonts[i], FC_FOUNDRY, 0, &foundry_value) != FcResultMatch)
             foundry_value = 0;
+        if (FcPatternGetString(fonts->fonts[i], FC_STYLE, 0, &style_value) != FcResultMatch)
+            style_value = 0;
         if(FcPatternGetBool(fonts->fonts[i],FC_ANTIALIAS,0,&antialias) != FcResultMatch)
             antialias = true;
 
@@ -399,7 +446,7 @@ void QFontconfigDatabase::populateFontDatabase()
             // some languages are not supported by FontConfig, we rather check the
             // charset to detect these
             for (int i = 1; i < SampleCharCount; ++i) {
-                if (!sampleCharForWritingSystem[i])
+                if (!sampleCharForWritingSystem[i] || writingSystems.supported(QFontDatabase::WritingSystem(i)))
                     continue;
                 if (FcCharSetHasChar(cs, sampleCharForWritingSystem[i]))
                     writingSystems.setSupported(QFontDatabase::WritingSystem(i));
@@ -438,7 +485,8 @@ void QFontconfigDatabase::populateFontDatabase()
 
         bool fixedPitch = spacing_value >= FC_MONO;
         QFont::Stretch stretch = QFont::Unstretched;
-        QPlatformFontDatabase::registerFont(familyName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,fixedPitch,writingSystems,fontFile);
+        QString styleName = style_value ? QString::fromUtf8((const char *) style_value) : QString();
+        QPlatformFontDatabase::registerFont(familyName,styleName,QLatin1String((const char *)foundry_value),weight,style,stretch,antialias,scalable,pixel_size,fixedPitch,writingSystems,fontFile);
 //        qDebug() << familyName << (const char *)foundry_value << weight << style << &writingSystems << scalable << true << pixel_size;
     }
 
@@ -462,9 +510,9 @@ void QFontconfigDatabase::populateFontDatabase()
 
     while (f->qtname) {
         QString familyQtName = QString::fromLatin1(f->qtname);
-        registerFont(familyQtName,QString(),QFont::Normal,QFont::StyleNormal,QFont::Unstretched,true,true,0,f->fixed,ws,0);
-        registerFont(familyQtName,QString(),QFont::Normal,QFont::StyleItalic,QFont::Unstretched,true,true,0,f->fixed,ws,0);
-        registerFont(familyQtName,QString(),QFont::Normal,QFont::StyleOblique,QFont::Unstretched,true,true,0,f->fixed,ws,0);
+        registerFont(familyQtName,QString(),QString(),QFont::Normal,QFont::StyleNormal,QFont::Unstretched,true,true,0,f->fixed,ws,0);
+        registerFont(familyQtName,QString(),QString(),QFont::Normal,QFont::StyleItalic,QFont::Unstretched,true,true,0,f->fixed,ws,0);
+        registerFont(familyQtName,QString(),QString(),QFont::Normal,QFont::StyleOblique,QFont::Unstretched,true,true,0,f->fixed,ws,0);
         ++f;
     }
 
@@ -477,13 +525,12 @@ void QFontconfigDatabase::populateFontDatabase()
 //    QApplication::setFont(font);
 }
 
-QFontEngineMulti *QFontconfigDatabase::fontEngineMulti(QFontEngine *fontEngine,
-                                                       QUnicodeTables::Script script)
+QFontEngineMulti *QFontconfigDatabase::fontEngineMulti(QFontEngine *fontEngine, QChar::Script script)
 {
     return new QFontEngineMultiFontConfig(fontEngine, script);
 }
 
-QFontEngine *QFontconfigDatabase::fontEngine(const QFontDef &f, QUnicodeTables::Script script, void *usrPtr)
+QFontEngine *QFontconfigDatabase::fontEngine(const QFontDef &f, QChar::Script script, void *usrPtr)
 {
     if (!usrPtr)
         return 0;
@@ -601,7 +648,7 @@ QFontEngine *QFontconfigDatabase::fontEngine(const QFontDef &f, QUnicodeTables::
     return engine;
 }
 
-QStringList QFontconfigDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
+QStringList QFontconfigDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
 {
     QStringList fallbackFamilies;
     FcPattern *pattern = FcPatternCreate();
@@ -621,8 +668,8 @@ QStringList QFontconfigDatabase::fallbacksForFamily(const QString family, const 
         slant_value = FC_SLANT_OBLIQUE;
     FcPatternAddInteger(pattern, FC_SLANT, slant_value);
 
-    if (script != QUnicodeTables::Common && *specialLanguages[script] != '\0') {
-        Q_ASSERT(script < QUnicodeTables::ScriptCount);
+    Q_ASSERT(uint(script) < SpecialLanguageCount);
+    if (*specialLanguages[script] != '\0') {
         FcLangSet *ls = FcLangSetCreate();
         FcLangSetAdd(ls, (const FcChar8*)specialLanguages[script]);
         FcPatternAddLangSet(pattern, FC_LANG, ls);

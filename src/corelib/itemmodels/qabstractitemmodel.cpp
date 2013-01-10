@@ -88,6 +88,7 @@ void QPersistentModelIndexData::destroy(QPersistentModelIndexData *data)
 /*!
   \class QPersistentModelIndex
   \inmodule QtCore
+  \ingroup shared
 
   \brief The QPersistentModelIndex class is used to locate data in a data model.
 
@@ -1436,7 +1437,7 @@ QAbstractItemModel::~QAbstractItemModel()
 
     For example:
 
-    \snippet itemviews/simpledommodel/dommodel.cpp 2
+    \snippet ../widgets/itemviews/simpledommodel/dommodel.cpp 2
 
     \note When implementing a table based model, columnCount() should return 0
     when the parent is valid.

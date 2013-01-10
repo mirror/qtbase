@@ -247,7 +247,12 @@ void QPlatformWindow::setParent(const QPlatformWindow *parent)
 }
 
 /*!
-  Reimplement to set the window title to \a title
+  Reimplement to set the window title to \a title.
+
+  The implementation might want to append the application display name to
+  the window title, like Windows and Linux do.
+
+  \sa QGuiApplication::applicationDisplayName()
 */
 void QPlatformWindow::setWindowTitle(const QString &title) { Q_UNUSED(title); }
 
@@ -331,28 +336,15 @@ void QPlatformWindow::handleContentOrientationChange(Qt::ScreenOrientation orien
 }
 
 /*!
-  Request a different orientation of the platform window.
+    Reimplement this function in subclass to return the device pixel ratio
+    for the window. This is the ratio between physical pixels
+    and device-independent pixels.
 
-  This tells the window manager how the window wants to be rotated in order
-  to be displayed, and how input events should be translated.
-
-  As an example, a portrait compositor might rotate the window by 90 degrees,
-  if the window is in landscape. It will also rotate input coordinates from
-  portrait to landscape such that top right in portrait gets mapped to top
-  left in landscape.
-
-  If the implementation doesn't support the requested orientation it should
-  signal this by returning an actual supported orientation.
-
-  If the implementation doesn't support rotating the window at all it should
-  return Qt::PrimaryOrientation, this is also the default value.
-
-  \sa QWindow::requestWindowOrientation()
+    \sa QPlatformWindow::devicePixelRatio();
 */
-Qt::ScreenOrientation QPlatformWindow::requestWindowOrientation(Qt::ScreenOrientation orientation)
+qreal QPlatformWindow::devicePixelRatio() const
 {
-    Q_UNUSED(orientation);
-    return Qt::PrimaryOrientation;
+    return 1.0;
 }
 
 bool QPlatformWindow::setKeyboardGrabEnabled(bool grab)
@@ -457,22 +449,25 @@ bool QPlatformWindow::frameStrutEventsEnabled() const
     QPlatformWindow is also the way QPA defines how native child windows should be supported
     through the setParent function.
 
-    The only way to retrieve a QPlatformOpenGLContext in QPA is by calling the glContext() function
-    on QPlatformWindow.
-
     \section1 Implementation Aspects
 
     \list 1
         \li Mouse grab: Qt expects windows to automatically grab the mouse if the user presses
             a button until the button is released.
             Automatic grab should be released if some window is explicitly grabbed.
-        \li Enter/Leave events: Enter and leave events should be sent independently of
-            explicit mouse grabs (\c{setMouseGrabEnabled()}). That is, if the mouse leaves
-            a window that has explicit mouse grab, a leave event should be sent and other
-            windows should get enter/leave events as well as the mouse traverses them.
-            For automatic mouse grab, however, a leave event should be sent when the
-            button is released.
-        \li Window positioning: When calling \c{QWindow::setFramePos()}, the flag
+        \li Enter/Leave events: If there is a window explicitly grabbing mouse events
+            (\c{setMouseGrabEnabled()}), enter and leave events should only be sent to the
+            grabbing window when mouse cursor passes over the grabbing window boundary.
+            Other windows will not receive enter or leave events while the grab is active.
+            While an automatic mouse grab caused by a mouse button press is active, no window
+            will receive enter or leave events. When the last mouse button is released, the
+            autograbbing window will receive leave event if mouse cursor is no longer within
+            the window boundary.
+            When any grab starts, the window under cursor will receive a leave event unless
+            it is the grabbing window.
+            When any grab ends, the window under cursor will receive an enter event unless it
+            was the grabbing window.
+        \li Window positioning: When calling \c{QWindow::setFramePosition()}, the flag
             \c{QWindowPrivate::positionPolicy} is set to \c{QWindowPrivate::WindowFrameInclusive}.
             This means the position includes the window frame, whose size is at this point
             unknown and the geometry's topleft point is the position of the window frame.

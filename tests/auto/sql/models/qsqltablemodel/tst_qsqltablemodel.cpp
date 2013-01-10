@@ -49,7 +49,6 @@ const QString test(qTableName("test", __FILE__)),
                    test2(qTableName("test2", __FILE__)),
                    test3(qTableName("test3", __FILE__));
 
-Q_DECLARE_METATYPE(QModelIndex)
 
 class tst_QSqlTableModel : public QObject
 {
@@ -152,7 +151,6 @@ private:
 
 tst_QSqlTableModel::tst_QSqlTableModel()
 {
-    qRegisterMetaType<QModelIndex>("QModelIndex");
     dbs.open();
 }
 
@@ -569,6 +567,7 @@ public:
     SetRecordReimplModel(QObject *parent, QSqlDatabase db):QSqlTableModel(parent, db) {}
     bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole)
     {
+        Q_UNUSED(value);
         return QSqlTableModel::setData(index, QString("Qt"), role);
     }
 };

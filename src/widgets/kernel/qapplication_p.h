@@ -113,7 +113,7 @@ class Q_WIDGETS_EXPORT QApplicationPrivate : public QApplicationPrivateBase
 {
     Q_DECLARE_PUBLIC(QApplication)
 public:
-    QApplicationPrivate(int &argc, char **argv, QApplication::Type type, int flags);
+    QApplicationPrivate(int &argc, char **argv, int flags);
     ~QApplicationPrivate();
 
     virtual void notifyLayoutDirectionChange();
@@ -135,7 +135,7 @@ public:
 
 
     void createEventDispatcher();
-    static void dispatchEnterLeave(QWidget *enter, QWidget *leave);
+    static void dispatchEnterLeave(QWidget *enter, QWidget *leave, const QPointF &globalPosF);
 
     //modality
     bool isWindowBlocked(QWindow *window, QWindow **blockingWindow = 0) const Q_DECL_OVERRIDE;
@@ -166,13 +166,6 @@ public:
     void openPopup(QWidget *popup);
     static void setFocusWidget(QWidget *focus, Qt::FocusReason reason);
     static QWidget *focusNextPrevChild_helper(QWidget *toplevel, bool next);
-
-#ifndef QT_NO_SESSIONMANAGER
-    QSessionManager *session_manager;
-    QString session_id;
-    QString session_key;
-    bool is_session_restored;
-#endif
 
 #ifndef QT_NO_GRAPHICSVIEW
     // Maintain a list of all scenes to ensure font and palette propagation to

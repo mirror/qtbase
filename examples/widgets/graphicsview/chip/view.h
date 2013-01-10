@@ -45,9 +45,11 @@
 #include <QFrame>
 #include <QGraphicsView>
 
-QT_FORWARD_DECLARE_CLASS(QLabel)
-QT_FORWARD_DECLARE_CLASS(QSlider)
-QT_FORWARD_DECLARE_CLASS(QToolButton)
+QT_BEGIN_NAMESPACE
+class QLabel;
+class QSlider;
+class QToolButton;
+QT_END_NAMESPACE
 
 class View;
 
@@ -58,7 +60,9 @@ public:
     GraphicsView(View *v) : QGraphicsView(), view(v) { }
 
 protected:
+#ifndef QT_NO_WHEELEVENT
     void wheelEvent(QWheelEvent *);
+#endif
 
 private:
     View *view;
@@ -101,4 +105,4 @@ private:
     QSlider *rotateSlider;
 };
 
-#endif
+#endif // VIEW_H

@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
     QGestureRecognizer::registerRecognizer().
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \section1 Gesture Properties
 
@@ -226,7 +226,7 @@ QGesture::GestureCancelPolicy QGesture::gestureCancelPolicy() const
     \image pangesture.png
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \sa QPinchGesture, QSwipeGesture
 */
@@ -295,6 +295,12 @@ QPanGesture::QPanGesture(QObject *parent)
     d_func()->gestureType = Qt::PanGesture;
 }
 
+/*!
+    Destructor.
+*/
+QPanGesture::~QPanGesture()
+{
+}
 
 QPointF QPanGesture::lastOffset() const
 {
@@ -346,7 +352,7 @@ void QPanGesture::setAcceleration(qreal value)
     of detail of the user interface.
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \image pinchgesture.png
 
@@ -486,6 +492,13 @@ QPinchGesture::QPinchGesture(QObject *parent)
     d_func()->gestureType = Qt::PinchGesture;
 }
 
+/*!
+    Destructor.
+*/
+QPinchGesture::~QPinchGesture()
+{
+}
+
 QPinchGesture::ChangeFlags QPinchGesture::totalChangeFlags() const
 {
     return d_func()->totalChangeFlags;
@@ -608,7 +621,7 @@ void QPinchGesture::setRotationAngle(qreal value)
     \image swipegesture.png
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \sa QPanGesture, QPinchGesture
 */
@@ -673,6 +686,13 @@ QSwipeGesture::QSwipeGesture(QObject *parent)
     d_func()->gestureType = Qt::SwipeGesture;
 }
 
+/*!
+    Destructor.
+*/
+QSwipeGesture::~QSwipeGesture()
+{
+}
+
 QSwipeGesture::SwipeDirection QSwipeGesture::horizontalDirection() const
 {
     Q_D(const QSwipeGesture);
@@ -713,7 +733,7 @@ void QSwipeGesture::setSwipeAngle(qreal value)
     \inmodule QtWidgets
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \sa QPanGesture, QPinchGesture
 */
@@ -730,6 +750,13 @@ QTapGesture::QTapGesture(QObject *parent)
     : QGesture(*new QTapGesturePrivate, parent)
 {
     d_func()->gestureType = Qt::TapGesture;
+}
+
+/*!
+    Destructor.
+*/
+QTapGesture::~QTapGesture()
+{
 }
 
 QPointF QTapGesture::position() const
@@ -750,7 +777,7 @@ void QTapGesture::setPosition(const QPointF &value)
     \inmodule QtWidgets
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \sa QPanGesture, QPinchGesture
 */
@@ -767,6 +794,13 @@ QTapAndHoldGesture::QTapAndHoldGesture(QObject *parent)
     : QGesture(*new QTapAndHoldGesturePrivate, parent)
 {
     d_func()->gestureType = Qt::TapAndHoldGesture;
+}
+
+/*!
+    Destructor.
+*/
+QTapAndHoldGesture::~QTapAndHoldGesture()
+{
 }
 
 QPointF QTapAndHoldGesture::position() const
@@ -836,7 +870,7 @@ int QTapAndHoldGesturePrivate::Timeout = 700; // in ms
     \section1 Further Reading
 
     For an overview of gesture handling in Qt and information on using gestures
-    in your applications, see the \l{Gestures Programming} document.
+    in your applications, see the \l{Gestures in Widgets and Graphics View} document.
 
     \sa QGesture, QGestureRecognizer,
         QWidget::grabGesture(), QGraphicsObject::grabGesture()

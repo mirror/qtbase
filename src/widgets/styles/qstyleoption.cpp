@@ -42,7 +42,7 @@
 #include "qstyleoption.h"
 #include "qapplication.h"
 #ifdef Q_OS_MAC
-# include "qmacstyle_mac.h"
+# include "qmacstyle_mac_p.h"
 #endif
 #include <qdebug.h>
 #include <QtCore/qmath.h>
@@ -578,6 +578,7 @@ QStyleOptionFrame::QStyleOptionFrame(int version)
 
     \value None Indicates a normal frame.
     \value Flat Indicates a flat frame.
+    \value Rounded Indicates a rounded frame.
 */
 
 /*!
@@ -3889,6 +3890,13 @@ QStyleHintReturnMask::QStyleHintReturnMask() : QStyleHintReturn(Version, Type)
 }
 
 /*!
+    Destructor.
+*/
+QStyleHintReturnMask::~QStyleHintReturnMask()
+{
+}
+
+/*!
     \enum QStyleHintReturnMask::StyleOptionType
 
     This enum is used to hold information about the type of the style option, and
@@ -3938,6 +3946,13 @@ QStyleHintReturnMask::QStyleHintReturnMask() : QStyleHintReturn(Version, Type)
     initialized to default values.
 */
 QStyleHintReturnVariant::QStyleHintReturnVariant() : QStyleHintReturn(Version, Type)
+{
+}
+
+/*!
+    Destructor.
+*/
+QStyleHintReturnVariant::~QStyleHintReturnVariant()
 {
 }
 

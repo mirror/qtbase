@@ -39,10 +39,11 @@
 **
 ****************************************************************************/
 
+#include <QtCore/qglobal.h>
+
 #ifndef QFLAGS_H
 #define QFLAGS_H
 
-#include <QtCore/qglobal.h>
 #include <QtCore/qtypeinfo.h>
 #include <QtCore/qtypetraits.h>
 
@@ -84,7 +85,7 @@ class QFlags
     struct Private;
     typedef int (Private::*Zero);
 public:
-#ifndef qdoc
+#ifndef Q_QDOC
     typedef typename QtPrivate::if_<
             QtPrivate::is_unsigned<Enum>::value,
             unsigned int,
@@ -93,7 +94,7 @@ public:
 #endif
     typedef Enum enum_type;
     // compiler-generated copy/move ctor/assignment operators are fine!
-#ifdef qdoc
+#ifdef Q_QDOC
     typedef int Int; // the real typedef above is too complex for qdoc
     inline QFlags(const QFlags &other);
     inline QFlags &operator=(const QFlags &other);

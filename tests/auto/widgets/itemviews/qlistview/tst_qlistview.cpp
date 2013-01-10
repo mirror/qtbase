@@ -56,10 +56,6 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QStyledItemDelegate>
 
-#if !defined(QT_NO_STYLE_WINDOWS)
-#include <qwindowsstyle.h>
-#endif // QT_NO_STYLE_WINDOWS
-
 #if defined(Q_OS_WIN) || defined(Q_OS_WINCE)
 #  include <windows.h>
 #  include <QtGui/QGuiApplication>
@@ -73,6 +69,16 @@ static inline HWND getHWNDForWidget(const QWidget *widget)
     return static_cast<HWND> (QGuiApplication::platformNativeInterface()->nativeResourceForWindow("handle", window));
 }
 #endif // Q_OS_WIN
+
+// Make a widget frameless to prevent size constraints of title bars
+// from interfering (Windows).
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QListView : public QObject
 {
@@ -646,8 +652,6 @@ void tst_QListView::clicked()
     model.rCount = 10;
     model.colCount = 2;
 
-    qRegisterMetaType<QModelIndex>("QModelIndex");
-
     QListView view;
     view.setModel(&model);
 
@@ -934,7 +938,6 @@ public:
 };
 
 typedef QList<int> IntList;
-Q_DECLARE_METATYPE(IntList)
 
 void tst_QListView::selection_data()
 {
@@ -1185,6 +1188,7 @@ void tst_QListView::selection()
 void tst_QListView::scrollTo()
 {
     QWidget topLevel;
+    setFrameless(&topLevel);
     QListView lv(&topLevel);
     QStringListModel model(&lv);
     QStringList list;
@@ -1849,6 +1853,7 @@ void tst_QListView::taskQTBUG_2233_scrollHiddenItems()
     const int rowCount = 200;
 
     QWidget topLevel;
+    setFrameless(&topLevel);
     QListView view(&topLevel);
     QStringListModel model(&view);
     QStringList list;
@@ -2000,6 +2005,7 @@ void tst_QListView::taskQTBUG_9455_wrongScrollbarRanges()
 
     QStringListModel model(list);
     ListView_9455 w;
+    setFrameless(&w);
     w.setModel(&model);
     w.setViewMode(QListView::IconMode);
     w.resize(116, 132);
@@ -2196,11 +2202,6 @@ void tst_QListView::taskQTBUG_21804_hiddenItemsAndScrollingWithKeys()
 
     // create listview
     QListView lv;
-#if !defined(QT_NO_STYLE_WINDOWS)
-    // The test fails on Fusion style
-    // See https://bugreports.qt-project.org/browse/QTBUG-27675
-    lv.setStyle(new QWindowsStyle());
-#endif
     lv.setFlow(static_cast<QListView::Flow>(flow));
     lv.setSpacing(spacing);
     lv.setModel(&model);

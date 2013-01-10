@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#include "qwindowsmobilestyle.h"
 #include "qwindowsmobilestyle_p.h"
+#include "qwindowsmobilestyle_p_p.h"
 
 #if !defined(QT_NO_STYLE_WINDOWSMOBILE) || defined(QT_PLUGIN)
 
@@ -4513,6 +4513,10 @@ QWindowsMobileStyle::QWindowsMobileStyle(QWindowsMobileStylePrivate &dd) : QWind
 QWindowsMobileStyle::QWindowsMobileStyle() : QWindowsStyle(*new QWindowsMobileStylePrivate) {
     qApp->setEffectEnabled(Qt::UI_FadeMenu, false);
     qApp->setEffectEnabled(Qt::UI_AnimateMenu, false);
+}
+
+QWindowsMobileStyle::~QWindowsMobileStyle()
+{
 }
 
 QWindowsMobileStylePrivate::QWindowsMobileStylePrivate() :QWindowsStylePrivate() {

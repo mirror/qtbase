@@ -67,11 +67,7 @@
 #include <float.h>
 #include <QStyleHints>
 
-Q_DECLARE_METATYPE(QList<int>)
-Q_DECLARE_METATYPE(QList<QRectF>)
 Q_DECLARE_METATYPE(QPainterPath)
-Q_DECLARE_METATYPE(QPointF)
-Q_DECLARE_METATYPE(QRectF)
 
 #include "../../../qtest-config.h"
 
@@ -424,10 +420,11 @@ private slots:
     void setGraphicsEffect();
     void panel();
     void addPanelToActiveScene();
-    void panelWithFocusItem();
+    void panelWithFocusItems();
     void activate();
     void setActivePanelOnInactiveScene();
     void activationOnShowHide();
+    void deactivateInactivePanel();
     void moveWhileDeleting();
     void ensureDirtySceneTransform();
     void focusScope();
@@ -2207,7 +2204,6 @@ void tst_QGraphicsItem::sceneMatrix()
 void tst_QGraphicsItem::setMatrix()
 {
     QGraphicsScene scene;
-    qRegisterMetaType<QList<QRectF> >("QList<QRectF>");
     QSignalSpy spy(&scene, SIGNAL(changed(QList<QRectF>)));
     QRectF unrotatedRect(-12, -34, 56, 78);
     QGraphicsRectItem item(unrotatedRect, 0);
@@ -7893,6 +7889,7 @@ void tst_QGraphicsItem::itemUsesExtendedStyleOption()
     scene.addItem(rect);
     rect->setPos(200, 200);
     QWidget topLevel;
+    topLevel.resize(200, 200);
     QGraphicsView view(&scene, &topLevel);
     topLevel.setWindowFlags(Qt::X11BypassWindowManagerHint);
     rect->startTrack = false;
@@ -8485,7 +8482,9 @@ void tst_QGraphicsItem::focusProxyDeletion()
 
     rect2 = new QGraphicsRectItem;
     rect->setFocusProxy(rect2);
+    QGraphicsItem **danglingFocusProxyRef = &rect->d_ptr->focusProxy;
     delete rect; // don't crash
+    QVERIFY(!rect2->d_ptr->focusProxyRefs.contains(danglingFocusProxyRef));
 
     rect = new QGraphicsRectItem;
     rect->setFocusProxy(rect2);
@@ -8721,52 +8720,97 @@ void tst_QGraphicsItem::panel()
     QVERIFY(!panel1->isActive());
 }
 
-void tst_QGraphicsItem::panelWithFocusItem()
+void tst_QGraphicsItem::panelWithFocusItems()
 {
-    QGraphicsScene scene;
-    QEvent activate(QEvent::WindowActivate);
-    QApplication::sendEvent(&scene, &activate);
+    for (int i = 0; i < 2; ++i)
+    {
+        QGraphicsScene scene;
+        QEvent activate(QEvent::WindowActivate);
+        QApplication::sendEvent(&scene, &activate);
 
-    QGraphicsRectItem *parentPanel = new QGraphicsRectItem;
-    QGraphicsRectItem *parentPanelFocusItem = new QGraphicsRectItem(parentPanel);
-    parentPanel->setFlag(QGraphicsItem::ItemIsPanel);
-    parentPanelFocusItem->setFlag(QGraphicsItem::ItemIsFocusable);
-    parentPanelFocusItem->setFocus();
-    scene.addItem(parentPanel);
+        bool widget = (i == 1);
+        QGraphicsItem *parentPanel = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        QGraphicsItem *parentPanelFocusItem = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        QGraphicsItem *parentPanelFocusItemSibling = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        parentPanel->setFlag(QGraphicsItem::ItemIsPanel);
+        parentPanelFocusItem->setFlag(QGraphicsItem::ItemIsFocusable);
+        parentPanelFocusItemSibling->setFlag(QGraphicsItem::ItemIsFocusable);
+        if (widget) {
+            static_cast<QGraphicsWidget *>(parentPanelFocusItem)->setFocusPolicy(Qt::StrongFocus);
+            static_cast<QGraphicsWidget *>(parentPanelFocusItemSibling)->setFocusPolicy(Qt::StrongFocus);
+        }
+        parentPanelFocusItem->setParentItem(parentPanel);
+        parentPanelFocusItemSibling->setParentItem(parentPanel);
+        parentPanelFocusItem->setFocus();
+        scene.addItem(parentPanel);
 
-    QVERIFY(parentPanel->isActive());
-    QVERIFY(parentPanelFocusItem->hasFocus());
-    QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
-    QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QVERIFY(parentPanel->isActive());
+        QVERIFY(parentPanelFocusItem->hasFocus());
+        QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
 
-    QGraphicsRectItem *childPanel = new QGraphicsRectItem;
-    QGraphicsRectItem *childPanelFocusItem = new QGraphicsRectItem(childPanel);
-    childPanel->setFlag(QGraphicsItem::ItemIsPanel);
-    childPanelFocusItem->setFlag(QGraphicsItem::ItemIsFocusable);
-    childPanelFocusItem->setFocus();
+        QGraphicsItem *childPanel = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        QGraphicsItem *childPanelFocusItem = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        QGraphicsItem *grandChildPanelFocusItem = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
+        QGraphicsItem *grandChildPanelFocusItem2 = widget ? (QGraphicsItem *)new QGraphicsWidget : (QGraphicsItem *)new QGraphicsRectItem;
 
-    QVERIFY(!childPanelFocusItem->hasFocus());
-    QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)childPanelFocusItem);
-    QCOMPARE(childPanelFocusItem->focusItem(), (QGraphicsItem *)childPanelFocusItem);
+        childPanel->setFlag(QGraphicsItem::ItemIsPanel);
+        childPanelFocusItem->setFlag(QGraphicsItem::ItemIsFocusable);
+        grandChildPanelFocusItem->setFlag(QGraphicsItem::ItemIsFocusable);
+        grandChildPanelFocusItem2->setFlag(QGraphicsItem::ItemIsFocusable);
 
-    childPanel->setParentItem(parentPanel);
+        if (widget)
+        {
+            static_cast<QGraphicsWidget *>(childPanelFocusItem)->setFocusPolicy(Qt::StrongFocus);
+            static_cast<QGraphicsWidget *>(grandChildPanelFocusItem)->setFocusPolicy(Qt::StrongFocus);
+            static_cast<QGraphicsWidget *>(grandChildPanelFocusItem2)->setFocusPolicy(Qt::StrongFocus);
+        }
+        grandChildPanelFocusItem->setParentItem(childPanelFocusItem);
+        grandChildPanelFocusItem2->setParentItem(childPanelFocusItem);
+        childPanelFocusItem->setParentItem(childPanel);
+        grandChildPanelFocusItem->setFocus();
 
-    QVERIFY(!parentPanel->isActive());
-    QVERIFY(!parentPanelFocusItem->hasFocus());
-    QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
-    QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QVERIFY(!grandChildPanelFocusItem->hasFocus());
+        QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QCOMPARE(childPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QCOMPARE(grandChildPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
 
-    QVERIFY(childPanel->isActive());
-    QVERIFY(childPanelFocusItem->hasFocus());
-    QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)childPanelFocusItem);
-    QCOMPARE(childPanelFocusItem->focusItem(), (QGraphicsItem *)childPanelFocusItem);
+        childPanel->setParentItem(parentPanel);
 
-    childPanel->hide();
+        QVERIFY(!parentPanel->isActive());
+        QVERIFY(!parentPanelFocusItem->hasFocus());
+        QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
 
-    QVERIFY(parentPanel->isActive());
-    QVERIFY(parentPanelFocusItem->hasFocus());
-    QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
-    QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QVERIFY(childPanel->isActive());
+        QVERIFY(!childPanelFocusItem->hasFocus());
+        QVERIFY(grandChildPanelFocusItem->hasFocus());
+        QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QCOMPARE(childPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+
+        childPanel->hide();
+        QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QVERIFY(!childPanel->focusItem()->hasFocus());
+        QVERIFY(parentPanel->isActive());
+        QVERIFY(parentPanelFocusItem->hasFocus());
+        QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QCOMPARE(grandChildPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+
+        childPanel->show();
+        QVERIFY(childPanel->isActive());
+        QVERIFY(grandChildPanelFocusItem->hasFocus());
+        QCOMPARE(childPanel->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QCOMPARE(childPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+        QCOMPARE(grandChildPanelFocusItem->focusItem(), (QGraphicsItem *)grandChildPanelFocusItem);
+
+        childPanel->hide();
+
+        QVERIFY(parentPanel->isActive());
+        QVERIFY(parentPanelFocusItem->hasFocus());
+        QCOMPARE(parentPanel->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+        QCOMPARE(parentPanelFocusItem->focusItem(), (QGraphicsItem *)parentPanelFocusItem);
+    }
 }
 
 void tst_QGraphicsItem::addPanelToActiveScene()
@@ -8985,6 +9029,40 @@ public:
     }
 };
 
+void tst_QGraphicsItem::deactivateInactivePanel()
+{
+    QGraphicsScene scene;
+    QGraphicsItem *panel1 = scene.addRect(QRectF(0, 0, 10, 10));
+    panel1->setFlag(QGraphicsItem::ItemIsPanel);
+
+    QGraphicsItem *panel2 = scene.addRect(QRectF(0, 0, 10, 10));
+    panel2->setFlag(QGraphicsItem::ItemIsPanel);
+
+    QEvent event(QEvent::WindowActivate);
+    qApp->sendEvent(&scene, &event);
+
+    panel1->setActive(true);
+    QVERIFY(scene.isActive());
+    QVERIFY(panel1->isActive());
+    QVERIFY(!panel2->isActive());
+    QCOMPARE(scene.activePanel(), panel1);
+
+    panel2->setActive(true);
+    QVERIFY(panel2->isActive());
+    QVERIFY(!panel1->isActive());
+    QCOMPARE(scene.activePanel(), panel2);
+
+    panel2->setActive(false);
+    QVERIFY(panel1->isActive());
+    QVERIFY(!panel2->isActive());
+    QCOMPARE(scene.activePanel(), panel1);
+
+    panel2->setActive(false);
+    QVERIFY(panel1->isActive());
+    QVERIFY(!panel2->isActive());
+    QCOMPARE(scene.activePanel(), panel1);
+}
+
 void tst_QGraphicsItem::moveWhileDeleting()
 {
     QGraphicsScene scene;
@@ -9181,6 +9259,45 @@ void tst_QGraphicsItem::focusScope()
     scope2->setFocus();
     QVERIFY(scope2->hasFocus());
     scope3->setFocus();
+    QVERIFY(scope3->hasFocus());
+
+    // clearFocus() on a focus scope will remove focus from its children.
+    scope1->clearFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
+    QVERIFY(!scope3->hasFocus());
+
+    scope1->setFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
+    QVERIFY(scope3->hasFocus());
+
+    scope2->clearFocus();
+    QVERIFY(scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
+    QVERIFY(!scope3->hasFocus());
+
+    scope2->setFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
+    QVERIFY(scope3->hasFocus());
+
+    // Focus cleared while a parent doesn't have focus remains cleared
+    // when the parent regains focus.
+    scope1->clearFocus();
+    scope3->clearFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
+    QVERIFY(!scope3->hasFocus());
+
+    scope1->setFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(scope2->hasFocus());
+    QVERIFY(!scope3->hasFocus());
+
+    scope3->setFocus();
+    QVERIFY(!scope1->hasFocus());
+    QVERIFY(!scope2->hasFocus());
     QVERIFY(scope3->hasFocus());
 
     QGraphicsRectItem *rect4 = new QGraphicsRectItem;
@@ -10193,23 +10310,24 @@ void tst_QGraphicsItem::modality_clickFocus()
     EventSpy2 rect1Spy(&scene, rect1);
     EventSpy2 rect2Spy(&scene, rect2);
 
-    // activate rect1, it should not get focus
+    // activate rect1, it should get focus
     rect1->setActive(true);
-    QCOMPARE(scene.focusItem(), (QGraphicsItem *) 0);
+    QCOMPARE(scene.focusItem(), (QGraphicsItem *) rect1);
 
-    // focus stays unset when rect2 becomes modal
+    // focus stays when rect2 becomes modal
     rect2->setPanelModality(QGraphicsItem::SceneModal);
-    QCOMPARE(scene.focusItem(), (QGraphicsItem *) 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 0);
+    QCOMPARE(scene.focusItem(), (QGraphicsItem *) rect1);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 1);
     QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 0);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 0);
 
     // clicking on rect1 should not set it's focus item
+    rect1->clearFocus();
     sendMouseClick(&scene, QPointF(-25, -25));
     QCOMPARE(rect1->focusItem(), (QGraphicsItem *) 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 1);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 0);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 0);
 
@@ -10217,33 +10335,34 @@ void tst_QGraphicsItem::modality_clickFocus()
     rect2->setActive(true);
     sendMouseClick(&scene, QPointF(75, 75));
     QCOMPARE(scene.focusItem(), (QGraphicsItem *) rect2);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 1);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 0);
 
     // clicking on rect1 does *not* give it focus
     rect1->setActive(true);
+    rect1->clearFocus();
     sendMouseClick(&scene, QPointF(-25, -25));
     QCOMPARE(scene.focusItem(), (QGraphicsItem *) 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 2);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 2);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 1);
 
     // focus doesn't change when leaving modality either
     rect2->setPanelModality(QGraphicsItem::NonModal);
     QCOMPARE(scene.focusItem(), (QGraphicsItem *) 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 0);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 2);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 2);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 1);
 
     // click on rect1, it should get focus now
     sendMouseClick(&scene, QPointF(-25, -25));
     QCOMPARE(scene.focusItem(), (QGraphicsItem *) rect1);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 1);
-    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 0);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusIn], 3);
+    QCOMPARE(rect1Spy.counts[QEvent::FocusOut], 2);
     QCOMPARE(rect2Spy.counts[QEvent::FocusIn], 1);
     QCOMPARE(rect2Spy.counts[QEvent::FocusOut], 1);
 }

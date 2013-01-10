@@ -81,10 +81,6 @@
 #include <qfontdatabase.h>
 
 Q_DECLARE_METATYPE(QGradientStops)
-Q_DECLARE_METATYPE(QLine)
-Q_DECLARE_METATYPE(QRect)
-Q_DECLARE_METATYPE(QSize)
-Q_DECLARE_METATYPE(QPoint)
 Q_DECLARE_METATYPE(QPainterPath)
 
 class tst_QPainter : public QObject
@@ -113,6 +109,7 @@ private slots:
     void drawBorderPixmap();
 #endif
     void drawPixmapFragments();
+    void drawPixmapNegativeScale();
 
     void drawLine_data();
     void drawLine();
@@ -228,6 +225,7 @@ private slots:
     void drawImage_task217400();
     void drawImage_1x1();
     void drawImage_task258776();
+    void drawImage_QTBUG28324();
     void drawRect_task215378();
     void drawRect_task247505();
 
@@ -363,13 +361,6 @@ void tst_QPainter::getSetCheck()
     QCOMPARE(true, obj1.viewTransformEnabled());
 }
 
-Q_DECLARE_METATYPE(QPixmap)
-Q_DECLARE_METATYPE(QPolygon)
-Q_DECLARE_METATYPE(QBrush)
-Q_DECLARE_METATYPE(QPen)
-Q_DECLARE_METATYPE(QFont)
-Q_DECLARE_METATYPE(QColor)
-Q_DECLARE_METATYPE(QRegion)
 
 tst_QPainter::tst_QPainter()
 {
@@ -801,6 +792,40 @@ void tst_QPainter::drawPixmapFragments()
     QVERIFY(fragment.scaleY == 1);
     QVERIFY(fragment.rotation == 0);
     QVERIFY(fragment.opacity == 1);
+}
+
+void tst_QPainter::drawPixmapNegativeScale()
+{
+    // basePixmap is a 16x16 opaque white square ...
+    QPixmap basePixmap(16, 16);
+    basePixmap.fill(QColor(255, 255, 255, 255));
+    // ... with an opaque black 8x16 left strip
+    QPainter p(&basePixmap);
+    p.setCompositionMode(QPainter::CompositionMode_Source);
+    p.fillRect(QRect(0, 0, 8, 16), QColor(0, 0, 0, 255));
+    p.end();
+
+    // verify one pixel value for each strip
+    QImage baseImage = basePixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(baseImage.pixel(4, 8) == qRgba(0, 0, 0, 255));
+    QVERIFY(baseImage.pixel(12, 8) == qRgba(255, 255, 255, 255));
+
+    // resultPixmap is a 16x16 square
+    QPixmap resultPixmap(16, 16);
+
+    // draw basePixmap over resultPixmap using x=-1.0 y=-1.0
+    // scaling factors (i.e. 180° rotation)
+    QPainter p2(&resultPixmap);
+    p2.setCompositionMode(QPainter::CompositionMode_Source);
+    p2.scale(qreal(-1.0), qreal(-1.0));
+    p2.translate(-resultPixmap.width(), -resultPixmap.height());
+    p2.drawPixmap(resultPixmap.rect(), basePixmap);
+    p2.end();
+
+    // check result
+    QImage resultImage = resultPixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(resultImage.pixel(4, 8) == qRgba(255, 255, 255, 255)); // left strip is now white
+    QVERIFY(resultImage.pixel(12, 8) == qRgba(0, 0, 0, 255)); // and right strip is now black
 }
 
 void tst_QPainter::drawLine_data()
@@ -3196,6 +3221,25 @@ void tst_QPainter::drawImage_task258776()
     dest.save("dest.png");
     expected.save("expected.png");
     QCOMPARE(dest, expected);
+}
+
+void tst_QPainter::drawImage_QTBUG28324()
+{
+    QImage dest(512, 512, QImage::Format_ARGB32_Premultiplied);
+    dest.fill(0x0);
+
+    int x = 263; int y = 89; int w = 61; int h = 39;
+
+    QImage source(w, h, QImage::Format_ARGB32_Premultiplied);
+    quint32 *b = (quint32 *)source.bits();
+    for (int j = 0; j < w * h; ++j)
+        b[j] = 0x7f7f7f7f;
+
+    // nothing to test here since the bug is about
+    // an invalid memory read, which valgrind
+    // would complain about
+    QPainter p(&dest);
+    p.drawImage(x, y, source);
 }
 
 void tst_QPainter::clipRectSaveRestore()

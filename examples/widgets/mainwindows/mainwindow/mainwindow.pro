@@ -1,4 +1,6 @@
 TEMPLATE = app
+QT += widgets
+
 HEADERS += colorswatch.h mainwindow.h toolbar.h
 SOURCES += colorswatch.cpp mainwindow.cpp toolbar.cpp main.cpp
 build_all:!build_pass {
@@ -9,9 +11,5 @@ build_all:!build_pass {
 RESOURCES += mainwindow.qrc
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/mainwindows/mainwindow
-sources.files = $$SOURCES $$HEADERS $$FORMS $$RESOURCES *.png *.jpg *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/mainwindows/mainwindow
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/mainwindows/mainwindow
+INSTALLS += target

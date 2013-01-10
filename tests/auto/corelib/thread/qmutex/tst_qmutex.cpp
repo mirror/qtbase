@@ -57,6 +57,8 @@ private slots:
     void stressTest();
     void tryLockRace();
     void tryLockDeadlock();
+    void tryLockNegative_data();
+    void tryLockNegative();
     void moreStress();
 };
 
@@ -132,6 +134,14 @@ void tst_QMutex::tryLock()
                 normalMutex.unlock();
                 testsTurn.release();
 
+                // TEST 7 overflow: thread can acquire lock, timeout = 3000 (QTBUG-24795)
+                threadsTurn.acquire();
+                timer.start();
+                QVERIFY(normalMutex.tryLock(3000));
+                QVERIFY(timer.elapsed() < 3000);
+                normalMutex.unlock();
+                testsTurn.release();
+
                 threadsTurn.acquire();
             }
         };
@@ -174,6 +184,13 @@ void tst_QMutex::tryLock()
         QVERIFY(lockCount.testAndSetRelaxed(1, 0));
         normalMutex.unlock();
         threadsTurn.release();
+
+        // TEST 7: thread can acquire lock, timeout = 3000   (QTBUG-24795)
+        testsTurn.acquire();
+        normalMutex.lock();
+        threadsTurn.release();
+        QThread::msleep(100);
+        normalMutex.unlock();
 
         // wait for thread to finish
         testsTurn.acquire();
@@ -562,6 +579,55 @@ void tst_QMutex::tryLockDeadlock()
     t2.wait();
     t3.wait();
     QCOMPARE(tryLockDeadlockFailureCount, 0);
+}
+
+void tst_QMutex::tryLockNegative_data()
+{
+    QTest::addColumn<int>("timeout");
+    QTest::newRow("-1") << -1;
+    QTest::newRow("-2") << -2;
+    QTest::newRow("INT_MIN/2") << INT_MIN/2;
+    QTest::newRow("INT_MIN") << INT_MIN;
+}
+
+void tst_QMutex::tryLockNegative()
+{
+    // the documentation says tryLock() with a negative number is the same as lock()
+    struct TrylockThread : QThread {
+        TrylockThread(QMutex &mut, int timeout)
+            : mut(mut), timeout(timeout), tryLockResult(-1)
+        {}
+        QMutex &mut;
+        int timeout;
+        int tryLockResult;
+        void run() {
+            tryLockResult = mut.tryLock(timeout);
+            mut.unlock();
+        }
+    };
+
+    QFETCH(int, timeout);
+
+    QMutex mutex;
+    TrylockThread thr(mutex, timeout);
+    QSignalSpy spy(&thr, SIGNAL(started()));
+    mutex.lock();
+    thr.start();
+
+    // the thread should have stopped in tryLock(), waiting for us to unlock
+    // the mutex. The following test can be falsely positive due to timing:
+    // tryLock may still fail but hasn't failed yet. But it certainly cannot be
+    // a false negative: if wait() returns, tryLock failed.
+    QVERIFY(!thr.wait(200));
+
+    // after we unlock the mutex, the thread should succeed in locking, then
+    // unlock and exit. Do this before more tests to avoid deadlocking due to
+    // ~QThread waiting forever on a thread that won't exit.
+    mutex.unlock();
+
+    QCOMPARE(spy.count(), 1);
+    QVERIFY(thr.wait());
+    QCOMPARE(thr.tryLockResult, 1);
 }
 
 

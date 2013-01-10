@@ -161,6 +161,8 @@ private slots:
     void lastInsertId();
     void lastQuery_data() { generic_data(); }
     void lastQuery();
+    void bindBool_data() { generic_data(); }
+    void bindBool();
     void bindWithDoubleColonCastOperator_data() { generic_data(); }
     void bindWithDoubleColonCastOperator();
     void queryOnInvalidDatabase_data() { generic_data(); }
@@ -573,6 +575,39 @@ void tst_QSqlQuery::mysqlOutValues()
     QCOMPARE( q.value( 0 ).toInt(), 42 );
 
     QVERIFY_SQL( q, exec( "drop procedure " + qtestproc ) );
+}
+
+void tst_QSqlQuery::bindBool()
+{
+    // QTBUG-27763: bool value got converted to int 127 by mysql driver because sizeof(bool) < sizeof(int).
+    // The problem was the way the bool value from the application was handled. It doesn't matter
+    // whether the table column type is BOOL or INT. Use INT here because all DBMSs have it and all
+    // should pass this test.
+    QFETCH( QString, dbName );
+    QSqlDatabase db = QSqlDatabase::database( dbName );
+    CHECK_DATABASE( db );
+    QSqlQuery q(db);
+
+    const QString tableName(qTableName( "bindBool", __FILE__ ));
+    q.exec("DROP TABLE " + tableName);
+    QVERIFY_SQL(q, exec("CREATE TABLE " + tableName + " (id INT, flag INT NOT NULL, PRIMARY KEY(id))"));
+
+    for (int i = 0; i < 2; ++i) {
+        bool flag = i;
+        q.prepare("INSERT INTO " + tableName + " (id, flag) VALUES(:id, :flag)");
+        q.bindValue(":id", i);
+        q.bindValue(":flag", flag);
+        QVERIFY_SQL(q, exec());
+    }
+
+    QVERIFY_SQL(q, exec("SELECT id, flag FROM " + tableName));
+    for (int i = 0; i < 2; ++i) {
+        bool flag = i;
+        QVERIFY_SQL(q, next());
+        QCOMPARE(q.value(0).toInt(), i);
+        QCOMPARE(q.value(1).toBool(), flag);
+    }
+    QVERIFY_SQL(q, exec("DROP TABLE " + tableName));
 }
 
 void tst_QSqlQuery::oraOutValues()
@@ -3371,7 +3406,7 @@ void tst_QSqlQuery::QTBUG_2192()
         tst_Databases::safeDropTable( db, tableName );
 
         QSqlQuery q(db);
-        QVERIFY_SQL(q, exec("CREATE TABLE " + tableName + " (dt DATETIME)"));
+        QVERIFY_SQL(q, exec(QString("CREATE TABLE " + tableName + " (dt %1)").arg(tst_Databases::dateTimeTypeName(db))));
 
         QVERIFY_SQL(q, prepare("INSERT INTO " + tableName + " (dt) VALUES (?)"));
         q.bindValue(0, QVariant(QDateTime(QDate(2012, 7, 4), QTime(23, 59, 59, 999))));
@@ -3543,6 +3578,10 @@ void tst_QSqlQuery::aggregateFunctionTypes()
     QFETCH(QString, dbName);
     QSqlDatabase db = QSqlDatabase::database(dbName);
     CHECK_DATABASE(db);
+    QVariant::Type intType = QVariant::Int;
+    // QPSQL uses LongLong for manipulation of integers
+    if (db.driverName().startsWith("QPSQL"))
+        intType = QVariant::LongLong;
     {
         const QString tableName(qTableName("numericFunctionsWithIntValues", __FILE__));
         tst_Databases::safeDropTable( db, tableName );
@@ -3556,7 +3595,7 @@ void tst_QSqlQuery::aggregateFunctionTypes()
         if (db.driverName().startsWith("QSQLITE"))
             QCOMPARE(q.record().field(0).type(), QVariant::Invalid);
         else
-            QCOMPARE(q.record().field(0).type(), QVariant::Int);
+            QCOMPARE(q.record().field(0).type(), intType);
 
         QVERIFY_SQL(q, exec("INSERT INTO " + tableName + " (id) VALUES (1)"));
         QVERIFY_SQL(q, exec("INSERT INTO " + tableName + " (id) VALUES (2)"));
@@ -3564,11 +3603,11 @@ void tst_QSqlQuery::aggregateFunctionTypes()
         QVERIFY_SQL(q, exec("SELECT SUM(id) FROM " + tableName));
         QVERIFY(q.next());
         QCOMPARE(q.value(0).toInt(), 3);
-        QCOMPARE(q.record().field(0).type(), QVariant::Int);
+        QCOMPARE(q.record().field(0).type(), intType);
 
         QVERIFY_SQL(q, exec("SELECT AVG(id) FROM " + tableName));
         QVERIFY(q.next());
-        if (db.driverName().startsWith("QSQLITE")) {
+        if (db.driverName().startsWith("QSQLITE") || db.driverName().startsWith("QPSQL")) {
             QCOMPARE(q.value(0).toDouble(), 1.5);
             QCOMPARE(q.record().field(0).type(), QVariant::Double);
         } else {
@@ -3579,7 +3618,7 @@ void tst_QSqlQuery::aggregateFunctionTypes()
         QVERIFY_SQL(q, exec("SELECT COUNT(id) FROM " + tableName));
         QVERIFY(q.next());
         QCOMPARE(q.value(0).toInt(), 2);
-        QCOMPARE(q.record().field(0).type(), QVariant::Int);
+        QCOMPARE(q.record().field(0).type(), intType);
 
         QVERIFY_SQL(q, exec("SELECT MIN(id) FROM " + tableName));
         QVERIFY(q.next());
@@ -3622,7 +3661,7 @@ void tst_QSqlQuery::aggregateFunctionTypes()
         QVERIFY_SQL(q, exec("SELECT COUNT(id) FROM " + tableName));
         QVERIFY(q.next());
         QCOMPARE(q.value(0).toInt(), 2);
-        QCOMPARE(q.record().field(0).type(), QVariant::Int);
+        QCOMPARE(q.record().field(0).type(), intType);
 
         QVERIFY_SQL(q, exec("SELECT MIN(id) FROM " + tableName));
         QVERIFY(q.next());
@@ -3634,15 +3673,18 @@ void tst_QSqlQuery::aggregateFunctionTypes()
         QCOMPARE(q.value(0).toDouble(), 2.5);
         QCOMPARE(q.record().field(0).type(), QVariant::Double);
 
-        QVERIFY_SQL(q, exec("SELECT ROUND(id, 1) FROM " + tableName + " WHERE id=1.5"));
-        QVERIFY(q.next());
-        QCOMPARE(q.value(0).toDouble(), 1.5);
-        QCOMPARE(q.record().field(0).type(), QVariant::Double);
+        // PSQL does not have support for the round() function
+        if (!db.driverName().startsWith("QPSQL")) {
+            QVERIFY_SQL(q, exec("SELECT ROUND(id, 1) FROM " + tableName + " WHERE id=1.5"));
+            QVERIFY(q.next());
+            QCOMPARE(q.value(0).toDouble(), 1.5);
+            QCOMPARE(q.record().field(0).type(), QVariant::Double);
 
-        QVERIFY_SQL(q, exec("SELECT ROUND(id, 0) FROM " + tableName + " WHERE id=2.5"));
-        QVERIFY(q.next());
-        QCOMPARE(q.value(0).toDouble(), 3.0);
-        QCOMPARE(q.record().field(0).type(), QVariant::Double);
+            QVERIFY_SQL(q, exec("SELECT ROUND(id, 0) FROM " + tableName + " WHERE id=2.5"));
+            QVERIFY(q.next());
+            QCOMPARE(q.value(0).toDouble(), 3.0);
+            QCOMPARE(q.record().field(0).type(), QVariant::Double);
+        }
     }
     {
         const QString tableName(qTableName("stringFunctions", __FILE__));

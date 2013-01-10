@@ -49,6 +49,7 @@
 #include "qcocoaclipboard.h"
 #include "qcocoadrag.h"
 #include "qcocoaservices.h"
+#include "qcocoakeymapper.h"
 
 #include <QtCore/QScopedPointer>
 #include <qpa/qplatformintegration.h>
@@ -68,6 +69,7 @@ public:
     QRect availableGeometry() const { return m_availableGeometry; }
     int depth() const { return m_depth; }
     QImage::Format format() const { return m_format; }
+    qreal devicePixelRatio() const;
     QSizeF physicalSize() const { return m_physicalSize; }
     QDpi logicalDpi() const { return m_logicalDpi; }
     qreal refreshRate() const { return m_refreshRate; }
@@ -78,11 +80,11 @@ public:
     // ----------------------------------------------------
     // Additional methods
     void setVirtualSiblings(QList<QPlatformScreen *> siblings) { m_siblings = siblings; }
-    NSScreen *osScreen() const { return m_screen; }
+    NSScreen *osScreen() const;
     void updateGeometry();
 
 public:
-    NSScreen *m_screen;
+    int m_screenIndex;
     QRect m_geometry;
     QRect m_availableGeometry;
     QDpi m_logicalDpi;
@@ -120,6 +122,8 @@ public:
     QPlatformServices *services() const;
     QVariant styleHint(StyleHint hint) const;
 
+    QList<int> possibleKeys(const QKeyEvent *event) const;
+
     void updateScreens();
 
 private:
@@ -128,7 +132,7 @@ private:
     QAbstractEventDispatcher *mEventDispatcher;
 
     QScopedPointer<QPlatformInputContext> mInputContext;
-#ifndef QT_NO_ACCESSIBILITY
+#ifndef QT_NO_COCOA_ACCESSIBILITY
     QScopedPointer<QPlatformAccessibility> mAccessibility;
 #endif
     QScopedPointer<QPlatformTheme> mPlatformTheme;
@@ -137,6 +141,7 @@ private:
     QScopedPointer<QCocoaDrag> mCocoaDrag;
     QScopedPointer<QPlatformNativeInterface> mNativeInterface;
     QScopedPointer<QCocoaServices> mServices;
+    QScopedPointer<QCocoaKeyMapper> mKeyboardMapper;
 };
 
 QT_END_NAMESPACE

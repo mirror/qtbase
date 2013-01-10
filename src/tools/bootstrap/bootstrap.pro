@@ -1,18 +1,16 @@
 option(host_build)
-TEMPLATE = lib
-TARGET = bootstrap
-CONFIG += static
 
-CONFIG += console qtinc 
-CONFIG -= qt
-CONFIG += exceptions_off
-!build_pass:contains(QT_CONFIG, build_all):CONFIG += release
-mac:CONFIG -= app_bundle incremental
+TARGET = QtBootstrap
+QT =
+CONFIG += no_module_headers internal_module
+!build_pass: CONFIG += release
 
-DEFINES += \
+# otherwise mingw headers do not declare common functions like putenv
+win32-g++*:QMAKE_CXXFLAGS_CXX11 = -std=gnu++0x
+
+MODULE_DEFINES = \
         QT_BOOTSTRAPPED \
         QT_LITE_UNICODE \
-        QT_NO_CAST_FROM_ASCII \
         QT_NO_CAST_TO_ASCII \
         QT_NO_CODECS \
         QT_NO_DATASTREAM \
@@ -23,21 +21,25 @@ DEFINES += \
         QT_NO_UNICODETABLES \
         QT_NO_USING_NAMESPACE \
         QT_NO_DEPRECATED \
+        QT_NO_TRANSLATION \
         QT_QMAKE_LOCATION=\\\"$$QMAKE_QMAKE\\\"
 
-INCLUDEPATH += $$QT_BUILD_TREE/include \
-            $$QT_BUILD_TREE/include/QtCore \
-            $$QT_BUILD_TREE/include/QtCore/$$QT_VERSION \
-            $$QT_BUILD_TREE/include/QtCore/$$QT_VERSION/QtCore \
-            $$QT_BUILD_TREE/src/corelib/global
+DEFINES += \
+    $$MODULE_DEFINES \
+    QT_NO_CAST_FROM_ASCII
 
-DEPENDPATH += $$INCLUDEPATH \
-              ../../corelib/global \
-              ../../corelib/kernel \
-              ../../corelib/tools \
-              ../../corelib/io \
-              ../../corelib/codecs \
-              ../../corelib/json
+MODULE_PRIVATE_INCLUDES = \
+    \$\$QT_MODULE_INCLUDE_BASE \
+    \$\$QT_MODULE_INCLUDE_BASE/QtCore \
+    \$\$QT_MODULE_INCLUDE_BASE/QtCore/$$QT_VERSION \
+    \$\$QT_MODULE_INCLUDE_BASE/QtCore/$$QT_VERSION/QtCore \
+    \$\$QT_MODULE_INCLUDE_BASE/QtXml \
+    \$\$QT_MODULE_INCLUDE_BASE/QtXml/$$QT_VERSION \
+    \$\$QT_MODULE_INCLUDE_BASE/QtXml/$$QT_VERSION/QtXml
+
+load(qt_module)
+
+INCLUDEPATH += $$QT_BUILD_TREE/src/corelib/global
 
 SOURCES += \
            ../../corelib/codecs/qlatincodec.cpp \
@@ -76,6 +78,7 @@ SOURCES += \
            ../../corelib/tools/qdatetime.cpp \
            ../../corelib/tools/qhash.cpp \
            ../../corelib/tools/qlist.cpp \
+           ../../corelib/tools/qlinkedlist.cpp \
            ../../corelib/tools/qlocale.cpp \
            ../../corelib/tools/qlocale_tools.cpp \
            ../../corelib/tools/qmap.cpp \
@@ -96,7 +99,9 @@ SOURCES += \
            ../../corelib/json/qjsonarray.cpp \
            ../../corelib/json/qjsonvalue.cpp \
            ../../corelib/json/qjsonparser.cpp \
-           ../../corelib/json/qjsonwriter.cpp
+           ../../corelib/json/qjsonwriter.cpp \
+           ../../xml/dom/qdom.cpp \
+           ../../xml/sax/qxml.cpp
 
 unix:SOURCES += ../../corelib/io/qfilesystemengine_unix.cpp \
                 ../../corelib/io/qfilesystemiterator_unix.cpp \
@@ -119,28 +124,23 @@ macx: {
 if(contains(QT_CONFIG, zlib)|cross_compile):include(../../3rdparty/zlib.pri)
 else:include(../../3rdparty/zlib_dependency.pri)
 
+win32:LIBS += -luser32 -lole32 -ladvapi32
+
 lib.CONFIG = dummy_install
 INSTALLS += lib
 
-# Make dummy "sis" and "freeze" target to keep recursive "make sis/freeze" working.
-sis_target.target = sis
-sis_target.commands =
-sis_target.depends = first
-QMAKE_EXTRA_TARGETS += sis_target
-freeze_target.target = freeze
-freeze_target.commands =
-freeze_target.depends = first
-QMAKE_EXTRA_TARGETS += freeze_target
-
-# We need the forwarding headers before their respective modules are built,
-# so do a minimal syncqt run.
-qtPrepareTool(QMAKE_SYNCQT, syncqt)
-QTDIR = $$[QT_HOST_PREFIX]
-exists($$QTDIR/.qmake.cache): \
-    mod_component_base = $$QTDIR
-else: \
-    mod_component_base = $$dirname(_QMAKE_CACHE_)
-QMAKE_SYNCQT += -minimal -module QtCore -module QtDBus -module QtXml \
-    -mkspecsdir $$[QT_HOST_DATA/get]/mkspecs -outdir $$mod_component_base $$dirname(_QMAKE_CONF_)
-!silent:message($$QMAKE_SYNCQT)
-system($$QMAKE_SYNCQT)|error("Failed to run: $$QMAKE_SYNCQT")
+!build_pass {
+    # We need the forwarding headers before their respective modules are built,
+    # so do a minimal syncqt run.
+    qtPrepareTool(QMAKE_SYNCQT, syncqt)
+    QTDIR = $$[QT_HOST_PREFIX]
+    exists($$QTDIR/.qmake.cache): \
+        mod_component_base = $$QTDIR
+    else: \
+        mod_component_base = $$dirname(_QMAKE_CACHE_)
+    QMAKE_SYNCQT += -minimal -module QtCore -module QtDBus -module QtXml \
+        -mkspecsdir $$[QT_HOST_DATA/get]/mkspecs -outdir $$mod_component_base $$dirname(_QMAKE_CONF_)
+    contains(QT_CONFIG, zlib):QMAKE_SYNCQT += -module QtZlib
+    !silent:message($$QMAKE_SYNCQT)
+    system($$QMAKE_SYNCQT)|error("Failed to run: $$QMAKE_SYNCQT")
+}

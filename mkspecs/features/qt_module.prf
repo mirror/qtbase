@@ -1,3 +1,14 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
 !no_qt_module_warning:!contains(QMAKE_INTERNAL_INCLUDED_FILES, .*qmodule\\.pri) {
     QMAKE_ACTUAL_PRO_FILE = $$basename(_PRO_FILE_)
     isEmpty(QMAKE_ACTUAL_PRO_FILE): QMAKE_ACTUAL_PRO_FILE=.pro
@@ -12,8 +23,8 @@ isEmpty(MODULE):MODULE = $$section($$list($$basename(_PRO_FILE_)), ., 0, 0)
 isEmpty(VERSION):VERSION = $$QT_VERSION
 
 # Compile as shared/DLL or static according to the option given to configure
-# unless overridden
-staticlib: CONFIG += static
+# unless overridden. Host builds are always static
+host_build|staticlib: CONFIG += static
 !static:!shared {
     contains(QT_CONFIG, static): \
         CONFIG += static
@@ -22,6 +33,8 @@ staticlib: CONFIG += static
 }
 
 ucmodule = $$upper($$MODULE)
+
+isEmpty(MODULE_INCNAME): MODULE_INCNAME = $$TARGET
 
 MODULE_DEPENDS = $$replace(QT, -private$, )
 MODULE_DEPENDS = $$unique(MODULE_DEPENDS)
@@ -33,19 +46,15 @@ else: \
 MODULE_DEFINES = $$MODULE_DEFINE $$MODULE_DEFINES
 
 load(qt_build_paths)
-
-# This check will be removed soon. Weird indentation to avoid reindenting the code later.
-!isEmpty(MODULE_PRI) {
-    !build_pass:warning("$$_PRO_FILE_ still sets MODULE_PRI. Not auto-generating module .pri file.")
-    MODULE_PRI = $$absolute_path($$MODULE_PRI, $$_PRO_FILE_PWD_)
-    exists($$MODULE_PRI)|error("Specified module pri file $$MODULE_PRI does not exist.")
-} else {
-
 MODULE_PRI = $$MODULE_QMAKE_OUTDIR/mkspecs/modules-inst/qt_lib_$${MODULE}.pri
 
 !build_pass {
 
     # Create a module .pri file
+    unix:!static: \
+        module_rpath = "QT.$${MODULE}.rpath = $$[QT_INSTALL_LIBS/raw]"
+    else: \
+        module_rpath =
     !isEmpty(QT_FOR_PRIVATE) {
         contains(QT_FOR_PRIVATE, .*-private$):error("QT_FOR_PRIVATE may not contain *-private.")
         module_privdep = "QT.$${MODULE}.private_depends = $$QT_FOR_PRIVATE"
@@ -62,6 +71,11 @@ MODULE_PRI = $$MODULE_QMAKE_OUTDIR/mkspecs/modules-inst/qt_lib_$${MODULE}.pri
         module_config = "QT.$${MODULE}.CONFIG = $$MODULE_CONFIG"
     else: \
         module_config =
+    !no_module_headers {
+        MODULE_INCLUDES = "\$\$QT_MODULE_INCLUDE_BASE \$\$QT_MODULE_INCLUDE_BASE/$$MODULE_INCNAME"
+        MODULE_PRIVATE_INCLUDES = "\$\$QT_MODULE_INCLUDE_BASE/$$MODULE_INCNAME/$$VERSION \
+                                   \$\$QT_MODULE_INCLUDE_BASE/$$MODULE_INCNAME/$$VERSION/$$MODULE_INCNAME"
+    }
     MODULE_PRI_CONT = \
         "QT.$${MODULE}.VERSION = $${VERSION}" \
         "QT.$${MODULE}.MAJOR_VERSION = $$section(VERSION, ., 0, 0)" \
@@ -70,13 +84,14 @@ MODULE_PRI = $$MODULE_QMAKE_OUTDIR/mkspecs/modules-inst/qt_lib_$${MODULE}.pri
         "" \
         "QT.$${MODULE}.name = $$TARGET" \
         "QT.$${MODULE}.bins = \$\$QT_MODULE_BIN_BASE" \
-        "QT.$${MODULE}.includes = \$\$QT_MODULE_INCLUDE_BASE \$\$QT_MODULE_INCLUDE_BASE/$$TARGET" \
-        "QT.$${MODULE}.private_includes = \$\$QT_MODULE_INCLUDE_BASE/$$TARGET/\$\$QT.$${MODULE}.VERSION \
-                                          \$\$QT_MODULE_INCLUDE_BASE/$$TARGET/\$\$QT.$${MODULE}.VERSION/$$TARGET" \
-        "QT.$${MODULE}.sources = $$val_escape(_PRO_FILE_PWD_)" \
+        "QT.$${MODULE}.includes = $$MODULE_INCLUDES" \
+        "QT.$${MODULE}.private_includes = $$MODULE_PRIVATE_INCLUDES" \
         "QT.$${MODULE}.libs = \$\$QT_MODULE_LIB_BASE" \
+        "QT.$${MODULE}.libexecs = \$\$QT_MODULE_LIBEXEC_BASE" \
+        $$module_rpath \
         "QT.$${MODULE}.plugins = \$\$QT_MODULE_PLUGIN_BASE" \
-        "QT.$${MODULE}.imports = \$\$QT_MODULE_IMPORT_BASE$$MODULE_IMPORT_SUFFIX" \
+        "QT.$${MODULE}.imports = \$\$QT_MODULE_IMPORT_BASE" \
+        "QT.$${MODULE}.qml = \$\$QT_MODULE_QML_BASE" \
         "QT.$${MODULE}.depends =$$join(MODULE_DEPENDS, " ", " ")" \
         $$module_privdep \
         $$module_build_type \
@@ -88,35 +103,24 @@ MODULE_PRI = $$MODULE_QMAKE_OUTDIR/mkspecs/modules-inst/qt_lib_$${MODULE}.pri
 
 } # !build_pass
 
-} # isEmpty(MODULE_PRI)
-
 load(qt_module_fwdpri)
 
 INCLUDEPATH *= $$eval(QT.$${MODULE}.includes) $$eval(QT.$${MODULE}.private_includes)
 
-load(qt_module_headers)
+!no_module_headers: load(qt_module_headers)
 
 #other
 TEMPLATE         = lib
 DESTDIR          = $$eval(QT.$${MODULE}.libs)
 win32:!wince*:exists($$[QT_INSTALL_PREFIX]/.qmake.cache): DLLDESTDIR = $$eval(QT.$${MODULE}.bins)
 
-CONFIG          += qt warn_on depend_includepath
 CONFIG          += qmake_cache target_qt
 
-!isEmpty(QMAKE_DOCS) {
-    doc_subdir = doc
-
-    unset(QMAKE_DOCS_INDEX)
-    QMAKE_DOCS_OUTPUTDIR = $$MODULE_BASE_OUTDIR/$$doc_subdir/qt$${MODULE}
-    for(qmod, QMAKEMODULES): \
-        QMAKE_DOCS_INDEX += $$section(qmod, /, 0, -3)/$$doc_subdir
-
-    CONFIG += qt_install_module_docs
-}
+QMAKE_DOCS_TARGETDIR = qt$${MODULE}
 
 # If Qt was configured with -debug-and-release then build the module the same way
-if(win32|mac):!macx-xcode {
+# - unless this is a host library
+!host_build:if(win32|mac):!macx-xcode {
     contains(QT_CONFIG, debug_and_release):CONFIG += debug_and_release
     contains(QT_CONFIG, build_all):CONFIG += build_all
 }
@@ -166,6 +170,7 @@ mac {
 DEFINES += QT_BUILDING_QT
 win32 {
     INCLUDEPATH += tmp
+    CONFIG += skip_target_version_ext
 }
 
 aix-g++* {
@@ -179,21 +184,22 @@ load(qt_installs)
 unix|win32-g++* {
    CONFIG += create_pc
    QMAKE_PKGCONFIG_LIBDIR = $$[QT_INSTALL_LIBS/raw]
-   QMAKE_PKGCONFIG_INCDIR = $$[QT_INSTALL_HEADERS/raw]/$$TARGET
-   QMAKE_PKGCONFIG_CFLAGS = -I$$[QT_INSTALL_HEADERS/raw]
+   QMAKE_PKGCONFIG_INCDIR = $$[QT_INSTALL_HEADERS/raw]
+   QMAKE_PKGCONFIG_CFLAGS = -I${includedir}/$$MODULE_INCNAME
    QMAKE_PKGCONFIG_DESTDIR = pkgconfig
-   include_replace.match = $$[QT_INSTALL_HEADERS/get]
+   !isEmpty(_QMAKE_SUPER_CACHE_): \
+      rplbase = $$dirname(_QMAKE_SUPER_CACHE_)/[^/][^/]*
+   else: \
+      rplbase = $$[QT_INSTALL_PREFIX/get]
+   include_replace.match = $$rplbase/include
    include_replace.replace = $$[QT_INSTALL_HEADERS/raw]
-   lib_replace.match = $$[QT_INSTALL_LIBS/get]
+   lib_replace.match = $$rplbase/lib
    lib_replace.replace = $$[QT_INSTALL_LIBS/raw]
-   prefix_replace.match = $$QT_BUILD_TREE
-   prefix_replace.replace = $$[QT_INSTALL_PREFIX/raw]
-   QMAKE_PKGCONFIG_INSTALL_REPLACE += include_replace lib_replace prefix_replace
+   QMAKE_PKGCONFIG_INSTALL_REPLACE += include_replace lib_replace
 }
 
 unix {
    CONFIG += create_libtool explicitlib
-   QMAKE_PRL_LIBDIR = $$[QT_INSTALL_LIBS/raw] ### XXX
    QMAKE_PRL_INSTALL_REPLACE += include_replace lib_replace
    QMAKE_LIBTOOL_LIBDIR = $$[QT_INSTALL_LIBS/raw]
    QMAKE_LIBTOOL_INSTALL_REPLACE += include_replace lib_replace

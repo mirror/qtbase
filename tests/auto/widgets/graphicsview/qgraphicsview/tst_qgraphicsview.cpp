@@ -52,9 +52,8 @@
 #include <math.h>
 
 #include <QtWidgets/QLabel>
-#if !defined(QT_NO_STYLE_WINDOWS)
-#include <QtWidgets/QWindowsStyle>
-#endif
+#include <QtWidgets/QStyleFactory>
+#include <QtWidgets/QCommonStyle>
 #include <QtGui/QPainterPath>
 #include <QtWidgets/QRubberBand>
 #include <QtWidgets/QScrollBar>
@@ -70,13 +69,7 @@
 
 #include "../../../qtest-config.h"
 
-Q_DECLARE_METATYPE(QList<int>)
-Q_DECLARE_METATYPE(QList<QRectF>)
-Q_DECLARE_METATYPE(QMatrix)
 Q_DECLARE_METATYPE(QPainterPath)
-Q_DECLARE_METATYPE(QPointF)
-Q_DECLARE_METATYPE(QPolygonF)
-Q_DECLARE_METATYPE(QRectF)
 Q_DECLARE_METATYPE(Qt::ScrollBarPolicy)
 
 #ifdef Q_OS_MAC
@@ -139,6 +132,14 @@ class FriendlyGraphicsScene : public QGraphicsScene
     Q_DECLARE_PRIVATE(QGraphicsScene);
 };
 #endif
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QGraphicsView : public QObject
 {
@@ -373,6 +374,7 @@ void tst_QGraphicsView::alignment()
     scene.addRect(QRectF(-10, -10, 20, 20));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.show();
     QVERIFY(QTest::qWaitForWindowExposed(&view));
 
@@ -656,6 +658,7 @@ void tst_QGraphicsView::dragMode_scrollHand()
 {
     for (int j = 0; j < 2; ++j) {
         QGraphicsView view;
+        setFrameless(&view);
         QCOMPARE(view.dragMode(), QGraphicsView::NoDrag);
 
         view.setSceneRect(-1000, -1000, 2000, 2000);
@@ -882,6 +885,7 @@ void tst_QGraphicsView::dragMode_rubberBand()
 void tst_QGraphicsView::rubberBandSelectionMode()
 {
     QWidget toplevel;
+    setFrameless(&toplevel);
 
     QGraphicsScene scene;
     QGraphicsRectItem *rect = scene.addRect(QRectF(10, 10, 80, 80));
@@ -1101,6 +1105,7 @@ void tst_QGraphicsView::matrix_combine()
 void tst_QGraphicsView::centerOnPoint()
 {
     QWidget toplevel;
+    setFrameless(&toplevel);
 
     QGraphicsScene scene;
     scene.addEllipse(QRectF(-100, -100, 50, 50));
@@ -1764,6 +1769,7 @@ void tst_QGraphicsView::mapToScenePoint()
 {
     QGraphicsScene scene;
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.rotate(90);
     view.setFixedSize(117, 117);
     view.show();
@@ -1823,6 +1829,7 @@ void tst_QGraphicsView::mapToScenePoly()
 {
     QGraphicsScene scene;
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.translate(100, 100);
     view.setFixedSize(117, 117);
     view.show();
@@ -2204,6 +2211,7 @@ void tst_QGraphicsView::transformationAnchor()
     scene.addRect(QRectF(-50, -50, 100, 100), QPen(Qt::black), QBrush(Qt::blue));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     for (int i = 0; i < 2; ++i) {
         view.resize(100, 100);
@@ -2242,6 +2250,7 @@ void tst_QGraphicsView::resizeAnchor()
     scene.addRect(QRectF(-50, -50, 100, 100), QPen(Qt::black), QBrush(Qt::blue));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     for (int i = 0; i < 2; ++i) {
         view.resize(100, 100);
@@ -2770,7 +2779,7 @@ void tst_QGraphicsView::scrollBarRanges()
         view.setStyle(new FauxMotifStyle);
     } else {
 #if !defined(QT_NO_STYLE_WINDOWS)
-        view.setStyle(new QWindowsStyle);
+        view.setStyle(QStyleFactory::create("windows"));
 #endif
     }
     view.setStyleSheet(" "); // enables style propagation ;-)
@@ -3182,6 +3191,7 @@ void tst_QGraphicsView::task239047_fitInViewSmallViewport()
     // Ensure that with a small viewport, fitInView doesn't mirror the
     // scene.
     QWidget widget;
+    setFrameless(&widget);
     QGraphicsScene scene;
     QGraphicsView *view = new QGraphicsView(&scene, &widget);
     view->resize(3, 3);
@@ -3282,15 +3292,11 @@ void tst_QGraphicsView::scrollAfterResize_data()
     QTest::addColumn<QTransform>("x2");
     QTest::addColumn<QTransform>("x3");
 
-#if !defined(QT_NO_STYLE_WINDOWS)
-    QWindowsStyle style;
-#else
-    QCommonStyle style;
-#endif
+    QStyle *style = QStyleFactory::create("windows");
 
-    int frameWidth = style.pixelMetric(QStyle::PM_DefaultFrameWidth);
-    int extent = style.pixelMetric(QStyle::PM_ScrollBarExtent);
-    int inside = style.styleHint(QStyle::SH_ScrollView_FrameOnlyAroundContents);
+    int frameWidth = style->pixelMetric(QStyle::PM_DefaultFrameWidth);
+    int extent = style->pixelMetric(QStyle::PM_ScrollBarExtent);
+    int inside = style->styleHint(QStyle::SH_ScrollView_FrameOnlyAroundContents);
     int viewportWidth = 300;
     int scrollBarIndent = viewportWidth - extent - (inside ? 4 : 2)*frameWidth;
 
@@ -3302,6 +3308,7 @@ void tst_QGraphicsView::scrollAfterResize_data()
                              << QTransform().translate(scrollBarIndent, 0)
                              << QTransform().translate(scrollBarIndent + 100, 0)
                              << QTransform().translate(scrollBarIndent + 110, 0);
+    delete style;
 }
 
 void tst_QGraphicsView::scrollAfterResize()
@@ -3311,15 +3318,11 @@ void tst_QGraphicsView::scrollAfterResize()
     QFETCH(QTransform, x2);
     QFETCH(QTransform, x3);
 
-#if !defined(QT_NO_STYLE_WINDOWS)
-    QWindowsStyle style;
-#else
-    QCommonStyle style;
-#endif
+    QStyle *style = QStyleFactory::create("windows");
     QWidget toplevel;
 
     QGraphicsView view(&toplevel);
-    view.setStyle(&style);
+    view.setStyle(style);
     if (reverse)
         view.setLayoutDirection(Qt::RightToLeft);
 
@@ -3334,6 +3337,7 @@ void tst_QGraphicsView::scrollAfterResize()
     QCOMPARE(view.viewportTransform(), x2);
     view.horizontalScrollBar()->setValue(10);
     QCOMPARE(view.viewportTransform(), x3);
+    delete style;
 }
 
 void tst_QGraphicsView::moveItemWhileScrolling_data()
@@ -4447,6 +4451,7 @@ void tst_QGraphicsView::QTBUG_4151_clipAndIgnore()
     scene.addItem(ignore);
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.setFrameStyle(0);
     view.resize(75, 75);
     view.show();
@@ -4605,6 +4610,7 @@ void tst_QGraphicsView::QTBUG_16063_microFocusRect()
     scene.addItem(item);
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     view.setFixedSize(40, 40);
     view.show();

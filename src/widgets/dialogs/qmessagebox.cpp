@@ -240,7 +240,7 @@ void QMessageBoxPrivate::init(const QString &title, const QString &text)
     label->setTextInteractionFlags(Qt::TextInteractionFlags(q->style()->styleHint(QStyle::SH_MessageBox_TextInteractionFlags, 0, q)));
     label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
     label->setOpenExternalLinks(true);
-#if defined(Q_WS_MAC)
+#if defined(Q_OS_MAC)
     label->setContentsMargins(16, 0, 0, 0);
 #else
     label->setContentsMargins(2, 0, 0, 0);
@@ -258,7 +258,7 @@ void QMessageBoxPrivate::init(const QString &title, const QString &text)
                      q, SLOT(_q_buttonClicked(QAbstractButton*)));
 
     QGridLayout *grid = new QGridLayout;
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
     grid->addWidget(iconLabel, 0, 0, 2, 1, Qt::AlignTop);
     grid->addWidget(label, 0, 1, 1, 1);
     // -- leave space for information label --
@@ -285,7 +285,7 @@ void QMessageBoxPrivate::init(const QString &title, const QString &text)
     }
     q->setModal(true);
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     QFont f = q->font();
     f.setBold(true);
     label->setFont(f);
@@ -316,7 +316,7 @@ void QMessageBoxPrivate::updateSize()
     if (screenSize.width() <= 1024)
         hardLimit = screenSize.width();
 #endif
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     int softLimit = qMin(screenSize.width()/2, 420);
 #else
     // note: ideally on windows, hard and soft limits but it breaks compat
@@ -1225,6 +1225,30 @@ void QMessageBox::setTextFormat(Qt::TextFormat format)
 }
 
 /*!
+    \property QMessageBox::textInteractionFlags
+    \since 5.1
+
+    Specifies how the label of the message box should interact with user
+    input.
+
+    The default value depends on the style.
+
+    \sa QStyle::SH_MessageBox_TextInteractionFlags
+*/
+
+Qt::TextInteractionFlags QMessageBox::textInteractionFlags() const
+{
+    Q_D(const QMessageBox);
+    return d->label->textInteractionFlags();
+}
+
+void QMessageBox::setTextInteractionFlags(Qt::TextInteractionFlags flags)
+{
+    Q_D(QMessageBox);
+    d->label->setTextInteractionFlags(flags);
+}
+
+/*!
     \reimp
 */
 bool QMessageBox::event(QEvent *e)
@@ -1304,7 +1328,7 @@ void QMessageBox::changeEvent(QEvent *ev)
     }
     case QEvent::FontChange:
     case QEvent::ApplicationFontChange:
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     {
         QFont f = font();
         f.setBold(true);
@@ -1324,12 +1348,12 @@ void QMessageBox::keyPressEvent(QKeyEvent *e)
 {
     Q_D(QMessageBox);
     if (e->key() == Qt::Key_Escape
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
         || (e->modifiers() == Qt::ControlModifier && e->key() == Qt::Key_Period)
 #endif
         ) {
             if (d->detectedEscapeButton) {
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
                 d->detectedEscapeButton->animateClick();
 #else
                 d->detectedEscapeButton->click();
@@ -1663,7 +1687,7 @@ QMessageBox::StandardButton QMessageBox::critical(QWidget *parent, const QString
 */
 void QMessageBox::about(QWidget *parent, const QString &title, const QString &text)
 {
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     static QPointer<QMessageBox> oldMsgBox;
 
     if (oldMsgBox && oldMsgBox->text() == text) {
@@ -1675,7 +1699,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
 #endif
 
     QMessageBox *msgBox = new QMessageBox(title, text, Information, 0, 0, 0, parent
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
                                           , Qt::WindowTitleHint | Qt::WindowSystemMenuHint
 #endif
     );
@@ -1685,7 +1709,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
     msgBox->setIconPixmap(icon.pixmap(size));
 
     // should perhaps be a style hint
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     oldMsgBox = msgBox;
 #if 0
     // ### doesn't work until close button is enabled in title bar
@@ -1716,7 +1740,7 @@ void QMessageBox::about(QWidget *parent, const QString &title, const QString &te
 */
 void QMessageBox::aboutQt(QWidget *parent, const QString &title)
 {
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     static QPointer<QMessageBox> oldMsgBox;
 
     if (oldMsgBox) {
@@ -1736,10 +1760,9 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
     translatedTextAboutQtText = QMessageBox::tr(
         "<p>Qt is a C++ toolkit for cross-platform application "
         "development.</p>"
-        "<p>Qt provides single-source portability across MS&nbsp;Windows, "
-        "Mac&nbsp;OS&nbsp;X, Linux, and all major commercial Unix variants. "
-        "Qt is also available for embedded devices as Qt for Embedded Linux "
-        "and Qt for Windows CE.</p>"
+        "<p>Qt provides single-source portability across all major desktop "
+        "operating systems. It is also available for embedded Linux and other "
+        "embedded and mobile operating systems.</p>"
         "<p>Qt is available under three different licensing options designed "
         "to accommodate the needs of our various users.</p>"
         "<p>Qt licensed under our commercial license agreement is appropriate "
@@ -1748,9 +1771,8 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
         "comply with the terms of the GNU LGPL version 2.1 or GNU GPL version "
         "3.0.</p>"
         "<p>Qt licensed under the GNU LGPL version 2.1 is appropriate for the "
-        "development of Qt applications (proprietary or open source) provided "
-        "you can comply with the terms and conditions of the GNU LGPL version "
-        "2.1.</p>"
+        "development of Qt applications provided you can comply with the terms "
+        "and conditions of the GNU LGPL version 2.1.</p>"
         "<p>Qt licensed under the GNU General Public License version 3.0 is "
         "appropriate for the development of Qt applications where you wish to "
         "use such applications in combination with software subject to the "
@@ -1758,7 +1780,11 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
         "to comply with the terms of the GNU GPL version 3.0.</p>"
         "<p>Please see <a href=\"http://qt.digia.com/Product/Licensing/\">qt.digia.com/Product/Licensing</a> "
         "for an overview of Qt licensing.</p>"
-        "<p>Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).</p>"
+        "<p>Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies) and other "
+        "contributors.</p>"
+        "<p>Qt and the Qt logo are trademarks of Digia Plc and/or its subsidiary(-ies).</p>"
+        "<p>Qt is developed as an open source project on "
+        "<a href=\"http://qt-project.org/\">qt-project.org</a>.</p>"
         "<p>Qt is a Digia product. See <a href=\"http://qt.digia.com/\">qt.digia.com</a> "
         "for more information.</p>"
         );
@@ -1776,7 +1802,7 @@ void QMessageBox::aboutQt(QWidget *parent, const QString &title)
 #endif
 
     // should perhaps be a style hint
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     oldMsgBox = msgBox;
 #if 0
     // ### doesn't work until close button is enabled in title bar
@@ -2441,7 +2467,7 @@ void QMessageBox::setInformativeText(const QString &text)
         layout()->removeWidget(d->informativeLabel);
         delete d->informativeLabel;
         d->informativeLabel = 0;
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
         d->label->setContentsMargins(2, 0, 0, 0);
 #endif
         d->updateSize();
@@ -2455,7 +2481,7 @@ void QMessageBox::setInformativeText(const QString &text)
         label->setAlignment(Qt::AlignTop | Qt::AlignLeft);
         label->setOpenExternalLinks(true);
         label->setWordWrap(true);
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
         d->label->setContentsMargins(2, 0, 0, 0);
         label->setContentsMargins(2, 0, 0, 6);
         label->setIndent(9);
@@ -2485,7 +2511,7 @@ void QMessageBox::setInformativeText(const QString &text)
 void QMessageBox::setWindowTitle(const QString &title)
 {
     // Message boxes on the mac do not have a title
-#ifndef Q_WS_MAC
+#ifndef Q_OS_MAC
     QDialog::setWindowTitle(title);
 #else
     Q_UNUSED(title);

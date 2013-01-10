@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_PROCESS
 
-#if !defined(Q_OS_WIN) || defined(qdoc)
+#if !defined(Q_OS_WIN) || defined(Q_QDOC)
 typedef qint64 Q_PID;
 #else
 QT_END_NAMESPACE
@@ -210,14 +210,30 @@ public Q_SLOTS:
     void kill();
 
 Q_SIGNALS:
-    void started();
+    void started(
+#if !defined(Q_QDOC)
+        QPrivateSignal
+#endif
+    );
     void finished(int exitCode);
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
     void error(QProcess::ProcessError error);
-    void stateChanged(QProcess::ProcessState state);
+    void stateChanged(QProcess::ProcessState state
+#if !defined(Q_QDOC)
+        , QPrivateSignal
+#endif
+    );
 
-    void readyReadStandardOutput();
-    void readyReadStandardError();
+    void readyReadStandardOutput(
+#if !defined(Q_QDOC)
+        QPrivateSignal
+#endif
+    );
+    void readyReadStandardError(
+#if !defined(Q_QDOC)
+        QPrivateSignal
+#endif
+    );
 
 protected:
     void setProcessState(ProcessState state);

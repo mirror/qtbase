@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS     = slidersgroup.h \
               window.h
 SOURCES     = main.cpp \
@@ -5,11 +7,7 @@ SOURCES     = main.cpp \
               window.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/sliders
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS sliders.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/sliders
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/sliders
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

@@ -124,6 +124,10 @@ QAbstractProxyModel::~QAbstractProxyModel()
 
 /*!
     Sets the given \a sourceModel to be processed by the proxy model.
+
+    Subclasses should call beginResetModel() at the beginning of the method,
+    disconnect from the old model, call this method, connect to the new model,
+    and call endResetModel().
 */
 void QAbstractProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
@@ -139,7 +143,7 @@ void QAbstractProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
             d->model = QAbstractItemModelPrivate::staticEmptyModel();
         }
         d->roleNames = d->model->roleNames();
-        emit sourceModelChanged();
+        emit sourceModelChanged(QPrivateSignal());
     }
 }
 
@@ -366,7 +370,7 @@ bool QAbstractProxyModel::hasChildren(const QModelIndex &parent) const
 QModelIndex QAbstractProxyModel::sibling(int row, int column, const QModelIndex &idx) const
 {
     Q_D(const QAbstractProxyModel);
-    return d->model->sibling(row, column, mapToSource(idx));
+    return mapFromSource(d->model->sibling(row, column, mapToSource(idx)));
 }
 
 /*!

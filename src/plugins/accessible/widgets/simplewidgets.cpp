@@ -433,8 +433,8 @@ QAccessibleDisplay::relations(QAccessible::Relation match /*= QAccessible::AllRe
 #ifndef QT_NO_SHORTCUT
         if (QLabel *label = qobject_cast<QLabel*>(object())) {
             relatedObjects.append(label->buddy());
-#endif
         }
+#endif
         for (int i = 0; i < relatedObjects.count(); ++i) {
             const QAccessible::Relation rel = QAccessible::Labelled;
             QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(relatedObjects.at(i));
@@ -830,6 +830,14 @@ QVariant QAccessibleProgressBar::maximumValue() const
 QVariant QAccessibleProgressBar::minimumValue() const
 {
     return progressBar()->minimum();
+}
+
+QVariant QAccessibleProgressBar::minimumStepSize() const
+{
+    // This is arbitrary since any value between min and max is valid.
+    // Some screen readers (orca use it to calculate how many digits to display though,
+    // so it makes sense to return a "sensible" value. Providing 100 increments seems ok.
+    return (progressBar()->maximum() - progressBar()->minimum()) / 100.0;
 }
 
 QProgressBar *QAccessibleProgressBar::progressBar() const

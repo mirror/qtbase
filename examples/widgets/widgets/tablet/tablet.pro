@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS	    =	mainwindow.h \
 		tabletcanvas.h \
 		tabletapplication.h
@@ -7,11 +9,7 @@ SOURCES	    =	mainwindow.cpp \
 		tabletapplication.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/tablet
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS tablet.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/tablet
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/tablet
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

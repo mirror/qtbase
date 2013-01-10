@@ -58,6 +58,7 @@
 #include <QTimer>
 #include <QByteArray>
 
+#include <dlfcn.h>
 #include <stdio.h>
 #include <errno.h>
 #include <xcb/shm.h>
@@ -70,6 +71,11 @@
 #include <X11/Xlibint.h>
 #endif
 
+#if defined(XCB_USE_XINPUT2) || defined(XCB_USE_XINPUT2_MAEMO)
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/XI2proto.h>
+#endif
+
 #ifdef XCB_USE_RENDER
 #include <xcb/render.h>
 #endif
@@ -80,11 +86,6 @@
 
 #ifdef XCB_USE_EGL //don't pull in eglext prototypes
 #include <EGL/egl.h>
-#endif
-
-#if defined(XCB_USE_XINPUT2) || defined(XCB_USE_XINPUT2_MAEMO)
-#include <X11/extensions/XInput2.h>
-#include <X11/extensions/XI2proto.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -256,6 +257,7 @@ QXcbConnection::QXcbConnection(QXcbNativeInterface *nativeInterface, const char 
     , has_shape_extension(false)
     , has_randr_extension(false)
     , has_input_shape(false)
+    , m_buttons(0)
 {
 #ifdef XCB_USE_XLIB
     Display *dpy = XOpenDisplay(m_displayName.constData());
@@ -281,18 +283,16 @@ QXcbConnection::QXcbConnection(QXcbNativeInterface *nativeInterface, const char 
         qFatal("QXcbConnection: Could not connect to display %s", m_displayName.constData());
 
     m_reader = new QXcbEventReader(this);
-#ifdef XCB_POLL_FOR_QUEUED_EVENT
     connect(m_reader, SIGNAL(eventPending()), this, SLOT(processXcbEvents()), Qt::QueuedConnection);
     connect(m_reader, SIGNAL(finished()), this, SLOT(processXcbEvents()));
-    m_reader->start();
-#else
-    QSocketNotifier *notifier = new QSocketNotifier(xcb_get_file_descriptor(xcb_connection()), QSocketNotifier::Read, this);
-    connect(notifier, SIGNAL(activated(int)), this, SLOT(processXcbEvents()));
+    if (!m_reader->startThread()) {
+        QSocketNotifier *notifier = new QSocketNotifier(xcb_get_file_descriptor(xcb_connection()), QSocketNotifier::Read, this);
+        connect(notifier, SIGNAL(activated(int)), this, SLOT(processXcbEvents()));
 
-    QAbstractEventDispatcher *dispatcher = QGuiApplicationPrivate::eventDispatcher;
-    connect(dispatcher, SIGNAL(aboutToBlock()), this, SLOT(processXcbEvents()));
-    connect(dispatcher, SIGNAL(awake()), this, SLOT(processXcbEvents()));
-#endif
+        QAbstractEventDispatcher *dispatcher = QGuiApplicationPrivate::eventDispatcher;
+        connect(dispatcher, SIGNAL(aboutToBlock()), this, SLOT(processXcbEvents()));
+        connect(dispatcher, SIGNAL(awake()), this, SLOT(processXcbEvents()));
+    }
 
     xcb_extension_t *extensions[] = {
         &xcb_shm_id, &xcb_xfixes_id, &xcb_randr_id, &xcb_shape_id, &xcb_sync_id,
@@ -313,6 +313,7 @@ QXcbConnection::QXcbConnection(QXcbNativeInterface *nativeInterface, const char 
     initializeAllAtoms();
 
     m_time = XCB_CURRENT_TIME;
+    m_netWmUserTime = XCB_CURRENT_TIME;
 
     initializeXRandr();
     updateScreens();
@@ -364,10 +365,11 @@ QXcbConnection::~QXcbConnection()
     finalizeXInput2();
 #endif
 
-#ifdef XCB_POLL_FOR_QUEUED_EVENT
-    sendConnectionEvent(QXcbAtom::_QT_CLOSE_CONNECTION);
-    m_reader->wait();
-#endif
+    if (m_reader->isRunning()) {
+        sendConnectionEvent(QXcbAtom::_QT_CLOSE_CONNECTION);
+        m_reader->wait();
+    }
+
     delete m_reader;
 
 #ifdef XCB_USE_EGL
@@ -662,6 +664,73 @@ void QXcbConnection::handleXcbError(xcb_generic_error_t *error)
 #endif
 }
 
+static Qt::MouseButtons translateMouseButtons(int s)
+{
+    Qt::MouseButtons ret = 0;
+    if (s & XCB_BUTTON_MASK_1)
+        ret |= Qt::LeftButton;
+    if (s & XCB_BUTTON_MASK_2)
+        ret |= Qt::MidButton;
+    if (s & XCB_BUTTON_MASK_3)
+        ret |= Qt::RightButton;
+    return ret;
+}
+
+static Qt::MouseButton translateMouseButton(xcb_button_t s)
+{
+    switch (s) {
+    case 1: return Qt::LeftButton;
+    case 2: return Qt::MidButton;
+    case 3: return Qt::RightButton;
+    // Button values 4-7 were already handled as Wheel events, and won't occur here.
+    case 8: return Qt::BackButton;      // Also known as Qt::ExtraButton1
+    case 9: return Qt::ForwardButton;   // Also known as Qt::ExtraButton2
+    case 10: return Qt::ExtraButton3;
+    case 11: return Qt::ExtraButton4;
+    case 12: return Qt::ExtraButton5;
+    case 13: return Qt::ExtraButton6;
+    case 14: return Qt::ExtraButton7;
+    case 15: return Qt::ExtraButton8;
+    case 16: return Qt::ExtraButton9;
+    case 17: return Qt::ExtraButton10;
+    case 18: return Qt::ExtraButton11;
+    case 19: return Qt::ExtraButton12;
+    case 20: return Qt::ExtraButton13;
+    case 21: return Qt::ExtraButton14;
+    case 22: return Qt::ExtraButton15;
+    case 23: return Qt::ExtraButton16;
+    case 24: return Qt::ExtraButton17;
+    case 25: return Qt::ExtraButton18;
+    case 26: return Qt::ExtraButton19;
+    case 27: return Qt::ExtraButton20;
+    case 28: return Qt::ExtraButton21;
+    case 29: return Qt::ExtraButton22;
+    case 30: return Qt::ExtraButton23;
+    case 31: return Qt::ExtraButton24;
+    default: return Qt::NoButton;
+    }
+}
+
+void QXcbConnection::handleButtonPress(xcb_generic_event_t *ev)
+{
+    xcb_button_press_event_t *event = (xcb_button_press_event_t *)ev;
+
+    // the event explicitly contains the state of the three first buttons,
+    // the rest we need to manage ourselves
+    m_buttons = (m_buttons & ~0x7) | translateMouseButtons(event->state);
+    m_buttons |= translateMouseButton(event->detail);
+}
+
+void QXcbConnection::handleButtonRelease(xcb_generic_event_t *ev)
+{
+    xcb_button_release_event_t *event = (xcb_button_release_event_t *)ev;
+
+    // the event explicitly contains the state of the three first buttons,
+    // the rest we need to manage ourselves
+    m_buttons = (m_buttons & ~0x7) | translateMouseButtons(event->state);
+    m_buttons &= ~translateMouseButton(event->detail);
+}
+
 void QXcbConnection::handleXcbEvent(xcb_generic_event_t *event)
 {
 #ifdef Q_XCB_DEBUG
@@ -686,8 +755,10 @@ void QXcbConnection::handleXcbEvent(xcb_generic_event_t *event)
         case XCB_EXPOSE:
             HANDLE_PLATFORM_WINDOW_EVENT(xcb_expose_event_t, window, handleExposeEvent);
         case XCB_BUTTON_PRESS:
+            handleButtonPress(event);
             HANDLE_PLATFORM_WINDOW_EVENT(xcb_button_press_event_t, event, handleButtonPressEvent);
         case XCB_BUTTON_RELEASE:
+            handleButtonRelease(event);
             HANDLE_PLATFORM_WINDOW_EVENT(xcb_button_release_event_t, event, handleButtonReleaseEvent);
         case XCB_MOTION_NOTIFY:
             HANDLE_PLATFORM_WINDOW_EVENT(xcb_motion_notify_event_t, event, handleMotionNotifyEvent);
@@ -808,14 +879,37 @@ void QXcbConnection::addPeekFunc(PeekFunc f)
     m_peekFuncs.append(f);
 }
 
-#ifdef XCB_POLL_FOR_QUEUED_EVENT
+QXcbEventReader::QXcbEventReader(QXcbConnection *connection)
+    : m_connection(connection)
+    , m_xcb_poll_for_queued_event(0)
+{
+#ifdef RTLD_DEFAULT
+    m_xcb_poll_for_queued_event = (XcbPollForQueuedEventFunctionPointer)dlsym(RTLD_DEFAULT, "xcb_poll_for_queued_event");
+#endif
+
+#ifdef Q_XCB_DEBUG
+    if (m_xcb_poll_for_queued_event)
+        qDebug("Using threaded event reader with xcb_poll_for_queued_event");
+#endif
+}
+
+bool QXcbEventReader::startThread()
+{
+    if (m_xcb_poll_for_queued_event) {
+        QThread::start();
+        return true;
+    }
+
+    return false;
+}
+
 void QXcbEventReader::run()
 {
     xcb_generic_event_t *event;
     while (m_connection && (event = xcb_wait_for_event(m_connection->xcb_connection()))) {
         m_mutex.lock();
         addEvent(event);
-        while (m_connection && (event = xcb_poll_for_queued_event(m_connection->xcb_connection())))
+        while (m_connection && (event = m_xcb_poll_for_queued_event(m_connection->xcb_connection())))
             addEvent(event);
         m_mutex.unlock();
         emit eventPending();
@@ -824,7 +918,6 @@ void QXcbEventReader::run()
     for (int i = 0; i < m_events.size(); ++i)
         free(m_events.at(i));
 }
-#endif
 
 void QXcbEventReader::addEvent(xcb_generic_event_t *event)
 {
@@ -837,10 +930,10 @@ void QXcbEventReader::addEvent(xcb_generic_event_t *event)
 QXcbEventArray *QXcbEventReader::lock()
 {
     m_mutex.lock();
-#ifndef XCB_POLL_FOR_QUEUED_EVENT
-    while (xcb_generic_event_t *event = xcb_poll_for_event(m_connection->xcb_connection()))
-        m_events << event;
-#endif
+    if (!m_xcb_poll_for_queued_event) {
+        while (xcb_generic_event_t *event = xcb_poll_for_event(m_connection->xcb_connection()))
+            m_events << event;
+    }
     return &m_events;
 }
 
@@ -905,7 +998,7 @@ xcb_timestamp_t QXcbConnection::getTimestamp()
     // to add the new set of events to its event queue
     while (true) {
         connection()->sync();
-        if (event = checkEvent(checker))
+        if ((event = checkEvent(checker)))
             break;
     }
 
@@ -939,6 +1032,30 @@ void QXcbConnection::processXcbEvents()
         if (!response_type) {
             handleXcbError((xcb_generic_error_t *)event);
         } else {
+            if (response_type == XCB_MOTION_NOTIFY) {
+                // compress multiple motion notify events in a row
+                // to avoid swamping the event queue
+                xcb_generic_event_t *next = eventqueue->value(i+1, 0);
+                if (next && (next->response_type & ~0x80) == XCB_MOTION_NOTIFY)
+                    continue;
+            }
+
+            if (response_type == XCB_CONFIGURE_NOTIFY) {
+                // compress multiple configure notify events for the same window
+                bool found = false;
+                for (int j = i; j < eventqueue->size(); ++j) {
+                    xcb_generic_event_t *other = eventqueue->at(j);
+                    if (other && (other->response_type & ~0x80) == XCB_CONFIGURE_NOTIFY
+                        && ((xcb_configure_notify_event_t *)other)->event == ((xcb_configure_notify_event_t *)event)->event)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    continue;
+            }
+
             QVector<PeekFunc>::iterator it = m_peekFuncs.begin();
             while (it != m_peekFuncs.end()) {
                 // These callbacks return true if the event is what they were

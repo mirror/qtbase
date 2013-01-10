@@ -165,6 +165,8 @@ QAccessibleInterface *QAccessibleObject::childAt(int x, int y) const
         Q_ASSERT(childIface);
         if (childIface->rect().contains(x,y)) {
             return childIface;
+        } else {
+            delete childIface;
         }
     }
     return 0;
@@ -201,7 +203,7 @@ static QObjectList topLevelObjects()
     const QWindowList tlw(QGuiApplication::topLevelWindows());
     for (int i = 0; i < tlw.count(); ++i) {
         QWindow *w = tlw.at(i);
-        if (w->windowType() != Qt::Popup && w->windowType() != Qt::Desktop) {
+        if (w->type() != Qt::Popup && w->type() != Qt::Desktop) {
             if (QAccessibleInterface *root = w->accessibleRoot()) {
                 if (root->object())
                     list.append(root->object());

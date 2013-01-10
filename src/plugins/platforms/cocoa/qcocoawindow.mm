@@ -39,6 +39,7 @@
 **
 ****************************************************************************/
 #include "qcocoawindow.h"
+#include "qcocoaintegration.h"
 #include "qnswindowdelegate.h"
 #include "qcocoaautoreleasepool.h"
 #include "qcocoaeventdispatcher.h"
@@ -48,6 +49,7 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/private/qcore_mac_p.h>
 #include <qwindow.h>
+#include <private/qwindow_p.h>
 #include <qpa/qwindowsysteminterface.h>
 #include <qpa/qplatformscreen.h>
 
@@ -148,12 +150,10 @@ static bool isMouseEvent(NSEvent *ev)
 
 - (BOOL)canBecomeKeyWindow
 {
-    // Most panels can be come the key window. Exceptions are:
-    if (m_cocoaPlatformWindow->window()->windowType() == Qt::ToolTip)
-        return NO;
-    if (m_cocoaPlatformWindow->window()->windowType() == Qt::SplashScreen)
-        return NO;
-    return YES;
+    // Only tool or dialog windows should become key:
+    if (m_cocoaPlatformWindow->window()->type() == Qt::Tool || m_cocoaPlatformWindow->window()->type() == Qt::Dialog)
+        return YES;
+    return NO;
 }
 
 - (void) sendEvent: (NSEvent*) theEvent
@@ -186,6 +186,7 @@ static bool isMouseEvent(NSEvent *ev)
 QCocoaWindow::QCocoaWindow(QWindow *tlw)
     : QPlatformWindow(tlw)
     , m_nsWindow(0)
+    , m_nsWindowDelegate(0)
     , m_synchedWindowState(Qt::WindowActive)
     , m_windowModality(Qt::NonModal)
     , m_inConstructor(true)
@@ -215,8 +216,11 @@ QCocoaWindow::~QCocoaWindow()
 
     QCocoaAutoReleasePool pool;
     clearNSWindow(m_nsWindow);
+    if (parent())
+        [m_contentView removeFromSuperview];
     [m_contentView release];
     [m_nsWindow release];
+    [m_nsWindowDelegate release];
 }
 
 void QCocoaWindow::setGeometry(const QRect &rect)
@@ -250,7 +254,7 @@ void QCocoaWindow::setVisible(bool visible)
 #endif
     if (visible) {
         // We need to recreate if the modality has changed as the style mask will need updating
-        if (m_windowModality != window()->windowModality())
+        if (m_windowModality != window()->modality())
             recreateWindow(parent());
         QCocoaWindow *parentCocoaWindow = 0;
         if (window()->transientParent()) {
@@ -262,8 +266,8 @@ void QCocoaWindow::setVisible(bool visible)
 
             // Register popup windows so that the parent window can
             // close them when needed.
-            if (window()->windowType() == Qt::Popup) {
-                // qDebug() << "transientParent and popup" << window()->windowType() << Qt::Popup << (window()->windowType() & Qt::Popup);
+            if (window()->type() == Qt::Popup) {
+                // qDebug() << "transientParent and popup" << window()->type() << Qt::Popup << (window()->type() & Qt::Popup);
                 parentCocoaWindow->m_activePopupWindow = window();
             }
 
@@ -279,12 +283,12 @@ void QCocoaWindow::setVisible(bool visible)
             syncWindowState(window()->windowState());
 
             if (window()->windowState() != Qt::WindowMinimized) {
-                if ((window()->windowModality() == Qt::WindowModal
-                     || window()->windowType() == Qt::Sheet)
+                if ((window()->modality() == Qt::WindowModal
+                     || window()->type() == Qt::Sheet)
                         && parentCocoaWindow) {
                     // show the window as a sheet
                     [NSApp beginSheet:m_nsWindow modalForWindow:parentCocoaWindow->m_nsWindow modalDelegate:nil didEndSelector:nil contextInfo:nil];
-                } else if (window()->windowModality() != Qt::NonModal) {
+                } else if (window()->modality() != Qt::NonModal) {
                     // show the window as application modal
                     QCocoaEventDispatcher *cocoaEventDispatcher = qobject_cast<QCocoaEventDispatcher *>(QGuiApplication::instance()->eventDispatcher());
                     Q_ASSERT(cocoaEventDispatcher != 0);
@@ -297,10 +301,12 @@ void QCocoaWindow::setVisible(bool visible)
                     [m_nsWindow orderFront: nil];
                 }
 
-                // We want the events to properly reach the popup
-                if (window()->windowType() == Qt::Popup)
+                // We want the events to properly reach the popup and dialog
+                if (window()->type() == Qt::Popup || window()->type() == Qt::Dialog)
                     [(NSPanel *)m_nsWindow setWorksWhenModal:YES];
             }
+        } else {
+            [m_contentView setHidden:NO];
         }
     } else {
         // qDebug() << "close" << this;
@@ -316,6 +322,8 @@ void QCocoaWindow::setVisible(bool visible)
                     [NSApp endSheet:m_nsWindow];
             }
             [m_nsWindow orderOut:m_nsWindow];
+        } else {
+            [m_contentView setHidden:YES];
         }
         if (!QCoreApplication::closingDown())
             QWindowSystemInterface::handleExposeEvent(window(), QRegion());
@@ -364,10 +372,10 @@ NSUInteger QCocoaWindow::windowStyleMask(Qt::WindowFlags flags)
                  Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
         if (flags == Qt::Window) {
             styleMask = (NSResizableWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask | NSTitledWindowMask);
-        } else if ((flags & Qt::Dialog) && (window()->windowModality() != Qt::NonModal)) {
-            styleMask = NSTitledWindowMask;
+        } else if ((flags & Qt::Dialog) && (window()->modality() != Qt::NonModal)) {
+            styleMask = NSResizableWindowMask | NSTitledWindowMask;
         } else if (!(flags & Qt::FramelessWindowHint)) {
-            if (flags & Qt::WindowMaximizeButtonHint)
+            if ((flags & Qt::Dialog) || (flags & Qt::WindowMaximizeButtonHint))
                 styleMask |= NSResizableWindowMask;
             if (flags & Qt::WindowTitleHint)
                 styleMask |= NSTitledWindowMask;
@@ -378,6 +386,9 @@ NSUInteger QCocoaWindow::windowStyleMask(Qt::WindowFlags flags)
         }
     }
 
+#ifdef QT_COCOA_ENABLE_WINDOW_DEBUG
+    qDebug("windowStyleMask of '%s': flags %X -> styleMask %lX", qPrintable(window()->title()), (int)flags, styleMask);
+#endif
     return styleMask;
 }
 
@@ -433,7 +444,7 @@ void QCocoaWindow::setWindowIcon(const QIcon &icon)
 
     NSButton *iconButton = [m_nsWindow standardWindowButton:NSWindowDocumentIconButton];
     if (iconButton == nil) {
-        NSString *title = QCFString::toNSString(window()->windowTitle());
+        NSString *title = QCFString::toNSString(window()->title());
         [m_nsWindow setRepresentedURL:[NSURL fileURLWithPath:title]];
         iconButton = [m_nsWindow standardWindowButton:NSWindowDocumentIconButton];
     }
@@ -580,9 +591,7 @@ void QCocoaWindow::windowDidResize()
     if (!m_nsWindow)
         return;
 
-    NSRect rect = [[m_nsWindow contentView]frame];
-    // Call setFrameSize which will trigger a frameDidChangeNotification on QNSView.
-    [[m_nsWindow contentView] setFrameSize:rect.size];
+    [m_contentView updateGeometry];
 }
 
 void QCocoaWindow::windowWillClose()
@@ -594,7 +603,7 @@ void QCocoaWindow::windowWillClose()
 bool QCocoaWindow::windowIsPopupType(Qt::WindowType type) const
 {
     if (type == Qt::Widget)
-        type = window()->windowType();
+        type = window()->type();
     if (type == Qt::Tool)
         return false; // Qt::Tool has the Popup bit set but isn't, at least on Mac.
 
@@ -619,6 +628,8 @@ void QCocoaWindow::recreateWindow(const QPlatformWindow *parentWindow)
         [m_nsWindow close];
         [m_nsWindow release];
         m_nsWindow = 0;
+        [m_nsWindowDelegate release];
+        m_nsWindowDelegate = 0;
     }
 
     if (!parentWindow) {
@@ -628,14 +639,21 @@ void QCocoaWindow::recreateWindow(const QPlatformWindow *parentWindow)
 
         // QPlatformWindow subclasses must sync up with QWindow on creation:
         propagateSizeHints();
-        setWindowFlags(window()->windowFlags());
-        setWindowTitle(window()->windowTitle());
+        setWindowFlags(window()->flags());
+        setWindowTitle(window()->title());
         setWindowState(window()->windowState());
     } else {
         // Child windows have no NSWindow, link the NSViews instead.
         const QCocoaWindow *parentCococaWindow = static_cast<const QCocoaWindow *>(parentWindow);
         [parentCococaWindow->m_contentView addSubview : m_contentView];
+        QRect rect = window()->geometry();
+        NSRect frame = NSMakeRect(rect.x(), rect.y(), rect.width(), rect.height());
+        [m_contentView setFrame:frame];
     }
+
+    const qreal opacity = qt_window_private(window())->opacity;
+    if (!qFuzzyCompare(opacity, qreal(1.0)))
+        setOpacity(opacity);
 }
 
 NSWindow * QCocoaWindow::createNSWindow()
@@ -644,21 +662,25 @@ NSWindow * QCocoaWindow::createNSWindow()
 
     NSRect frame = qt_mac_flipRect(window()->geometry(), window());
 
-    Qt::WindowType type = window()->windowType();
-    Qt::WindowFlags flags = window()->windowFlags();
+    Qt::WindowType type = window()->type();
+    Qt::WindowFlags flags = window()->flags();
 
     NSUInteger styleMask = windowStyleMask(flags);
     NSWindow *createdWindow = 0;
 
     // Use NSPanel for popup-type windows. (Popup, Tool, ToolTip, SplashScreen)
-    if ((type & Qt::Popup) == Qt::Popup) {
+    // and dialogs
+    if ((type & Qt::Popup) == Qt::Popup || (type & Qt::Dialog) == Qt::Dialog) {
         QNSPanel *window;
         window  = [[QNSPanel alloc] initWithContentRect:frame
                                          styleMask: styleMask
                                          backing:NSBackingStoreBuffered
                                          defer:NO]; // Deferring window creation breaks OpenGL (the GL context is set up
                                                     // before the window is shown and needs a proper window.).
-        [window setHasShadow:YES];
+        if ((type & Qt::Popup) == Qt::Popup)
+            [window setHasShadow:YES];
+        else
+             setWindowShadow(flags);
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
         if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
@@ -679,11 +701,10 @@ NSWindow * QCocoaWindow::createNSWindow()
         setWindowShadow(flags);
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
-        // All windows with the WindowMaximizeButtonHint set also get a full-screen button.
-        if (flags & Qt::WindowMaximizeButtonHint)
-            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-    }
+        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
+            if (flags & Qt::WindowFullscreenButtonHint)
+                [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+        }
 #endif
 
         createdWindow = window;
@@ -691,14 +712,14 @@ NSWindow * QCocoaWindow::createNSWindow()
 
     NSInteger level = windowLevel(flags);
     [createdWindow setLevel:level];
-    m_windowModality = window()->windowModality();
+    m_windowModality = window()->modality();
     return createdWindow;
 }
 
 void QCocoaWindow::setNSWindow(NSWindow *window)
 {
-    QNSWindowDelegate *delegate = [[QNSWindowDelegate alloc] initWithQCocoaWindow:this];
-    [window setDelegate:delegate];
+    m_nsWindowDelegate = [[QNSWindowDelegate alloc] initWithQCocoaWindow:this];
+    [window setDelegate:m_nsWindowDelegate];
     [window setAcceptsMouseMovedEvents:YES];
 
     // Prevent Cocoa from releasing the window on close. Qt
@@ -713,7 +734,9 @@ void QCocoaWindow::setNSWindow(NSWindow *window)
                                           name:nil // Get all notifications
                                           object:m_nsWindow];
 
+    [m_contentView setPostsFrameChangedNotifications: NO];
     [window setContentView:m_contentView];
+    [m_contentView setPostsFrameChangedNotifications: YES];
 }
 
 void QCocoaWindow::clearNSWindow(NSWindow *window)
@@ -803,6 +826,20 @@ void QCocoaWindow::setMenubar(QCocoaMenuBar *mb)
 QCocoaMenuBar *QCocoaWindow::menubar() const
 {
     return m_menubar;
+}
+
+qreal QCocoaWindow::devicePixelRatio() const
+{
+    if (!m_nsWindow)
+        return 1.0;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
+        return qreal([m_nsWindow backingScaleFactor]);
+    } else
+#endif
+    {
+        return 1.0;
+    }
 }
 
 QMargins QCocoaWindow::frameMargins() const

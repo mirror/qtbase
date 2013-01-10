@@ -130,6 +130,7 @@ QQnxIntegration::QQnxIntegration()
 #if !defined(QT_NO_CLIPBOARD)
     , m_clipboard(0)
 #endif
+    , m_navigator(0)
 #if !defined(QT_NO_DRAGANDDROP)
     , m_drag(new QSimpleDrag())
 #endif
@@ -405,7 +406,7 @@ QPlatformTheme *QQnxIntegration::createPlatformTheme(const QString &name) const
 {
     qIntegrationDebug() << Q_FUNC_INFO << "name =" << name;
     if (name == QQnxTheme::name())
-        return new QQnxTheme(m_fontDatabase, m_bpsEventFilter);
+        return new QQnxTheme(this);
     return QPlatformIntegration::createPlatformTheme(name);
 }
 #endif
@@ -515,6 +516,12 @@ QQnxScreen *QQnxIntegration::screenForNative(screen_display_t qnxScreen) const
 QQnxScreen *QQnxIntegration::primaryDisplay() const
 {
     return m_screens.first();
+}
+
+bool QQnxIntegration::supportsNavigatorEvents() const
+{
+    // If QQNX_PPS or Q_OS_BLACKBERRY is defined then we have navigator
+    return m_navigator != 0;
 }
 
 QT_END_NAMESPACE

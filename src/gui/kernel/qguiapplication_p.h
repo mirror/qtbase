@@ -42,6 +42,17 @@
 #ifndef QGUIAPPLICATION_P_H
 #define QGUIAPPLICATION_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
 #include <QtGui/qguiapplication.h>
 
 #include <QtCore/QPointF>
@@ -209,11 +220,22 @@ public:
 
     QStyleHints *styleHints;
     static bool obey_desktop_settings;
+    static bool noGrab;
     QInputMethod *inputMethod;
 
     static QList<QObject *> generic_plugin_list;
 #ifndef QT_NO_SHORTCUT
     QShortcutMap shortcutMap;
+#endif
+
+#ifndef QT_NO_SESSIONMANAGER
+    QSessionManager *session_manager;
+    QString session_id;
+    QString session_key;
+    bool is_session_restored;
+    bool is_saving_session;
+    void commitData(QSessionManager& sm);
+    void saveState(QSessionManager& sm);
 #endif
 
     struct ActiveTouchPointsKey {

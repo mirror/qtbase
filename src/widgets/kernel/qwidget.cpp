@@ -1080,16 +1080,16 @@ void QWidgetPrivate::adjustFlags(Qt::WindowFlags &flags, QWidget *w)
     else if (type == Qt::Tool)
         flags |= Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint;
     else
-        flags |= Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint;
-
+        flags |= Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinimizeButtonHint |
+                Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint | Qt::WindowFullscreenButtonHint;
 
 }
 
 void QWidgetPrivate::init(QWidget *parentWidget, Qt::WindowFlags f)
 {
     Q_Q(QWidget);
-    if (QApplication::type() == QApplication::Tty)
-        qFatal("QWidget: Cannot create a QWidget when no GUI is being used");
+    if (!qobject_cast<QApplication *>(QCoreApplication::instance()))
+        qFatal("QWidget: Cannot create a QWidget without QApplication");
 
     Q_ASSERT(allWidgets);
     if (allWidgets)
@@ -1429,10 +1429,28 @@ QWidget::~QWidget()
     delete d->needsFlush;
     d->needsFlush = 0;
 
+    // The next 20 lines are duplicated from QObject, but required here
+    // since QWidget deletes is children itself
+    bool blocked = d->blockSig;
+    d->blockSig = 0; // unblock signals so we always emit destroyed()
+
+    if (d->isSignalConnected(0)) {
+        QT_TRY {
+            emit destroyed(this);
+        } QT_CATCH(...) {
+            // all the signal/slots connections are still in place - if we don't
+            // quit now, we will crash pretty soon.
+            qWarning("Detected an unexpected exception in ~QWidget while emitting destroyed().");
+            QT_RETHROW;
+        }
+    }
+
     if (d->declarativeData) {
         QAbstractDeclarativeData::destroyed(d->declarativeData, this);
         d->declarativeData = 0;                 // don't activate again in ~QObject
     }
+
+    d->blockSig = blocked;
 
 #ifdef Q_WS_MAC
     // QCocoaView holds a pointer back to this widget. Clear it now
@@ -1774,6 +1792,23 @@ QRegion QWidgetPrivate::clipRegion() const
         }
     }
     return r;
+}
+
+void QWidgetPrivate::setSystemClip(QPaintDevice *paintDevice, const QRegion &region)
+{
+// Transform the system clip region from device-independent pixels to device pixels
+// Qt 5.0.0: This is a Mac-only code path for now, can be made cross-platform once
+// it has been tested.
+    QPaintEngine *paintEngine = paintDevice->paintEngine();
+#ifdef Q_OS_MAC
+    const qreal devicePixelRatio = (paintDevice->physicalDpiX() == 0 || paintDevice->logicalDpiX() == 0) ?
+                                    1.0 : (paintDevice->physicalDpiX() / paintDevice->logicalDpiX());
+    QTransform scaleTransform;
+    scaleTransform.scale(devicePixelRatio, devicePixelRatio);
+    paintEngine->d_func()->systemClip = scaleTransform.map(region);
+#else
+    paintEngine->d_func()->systemClip = region;
+#endif
 }
 
 #ifndef QT_NO_GRAPHICSEFFECT
@@ -3034,11 +3069,13 @@ void QWidgetPrivate::setEnabled_helper(bool enable)
         qt_x11_enforce_cursor(q);
     }
 #endif
+#ifndef QT_NO_CURSOR
     if (q->testAttribute(Qt::WA_SetCursor) || q->isWindow()) {
         // enforce the windows behavior of clearing the cursor on
         // disabled widgets
         qt_qpa_set_cursor(q, false);
     }
+#endif
 #if defined(Q_WS_MAC)
     setEnabled_helper_sys(enable);
 #endif
@@ -4980,13 +5017,12 @@ void QWidgetPrivate::drawWidget(QPaintDevice *pdev, const QRegion &rgn, const QP
             QWidgetPaintContext context(pdev, rgn, offset, flags, sharedPainter, backingStore);
             sourced->context = &context;
             if (!sharedPainter) {
-                QPaintEngine *paintEngine = pdev->paintEngine();
-                paintEngine->d_func()->systemClip = rgn.translated(offset);
+                setSystemClip(pdev, rgn.translated(offset));
                 QPainter p(pdev);
                 p.translate(offset);
                 context.painter = &p;
                 graphicsEffect->draw(&p);
-                paintEngine->d_func()->systemClip = QRegion();
+                setSystemClip(pdev, QRegion());
             } else {
                 context.painter = sharedPainter;
                 if (sharedPainter->worldTransform() != sourced->lastEffectTransform) {
@@ -5043,7 +5079,7 @@ void QWidgetPrivate::drawWidget(QPaintDevice *pdev, const QRegion &rgn, const QP
 
 #endif
                 if (sharedPainter)
-                    paintEngine->d_func()->systemClip = toBePainted;
+                    setSystemClip(pdev, toBePainted);
                 else
                     paintEngine->d_func()->systemRect = q->data->crect;
 
@@ -5055,7 +5091,7 @@ void QWidgetPrivate::drawWidget(QPaintDevice *pdev, const QRegion &rgn, const QP
                 }
 
                 if (!sharedPainter)
-                    paintEngine->d_func()->systemClip = toBePainted.translated(offset);
+                    setSystemClip(pdev, toBePainted.translated(offset));
 
                 if (!onScreen && !asRoot && !isOpaque && q->testAttribute(Qt::WA_TintedBackground)) {
                     QPainter p(q);
@@ -5090,7 +5126,8 @@ void QWidgetPrivate::drawWidget(QPaintDevice *pdev, const QRegion &rgn, const QP
                     paintEngine->d_func()->systemRect = QRect();
                 else
                     paintEngine->d_func()->currentClipDevice = 0;
-                paintEngine->d_func()->systemClip = QRegion();
+
+                setSystemClip(pdev, QRegion());
             }
             q->setAttribute(Qt::WA_WState_InPaintEvent, false);
             if (q->paintingActive())
@@ -5437,18 +5474,6 @@ void QWidget::unsetLocale()
     d->resolveLocale();
 }
 
-static QString constructWindowTitleFromFilePath(const QString &filePath)
-{
-    QFileInfo fi(filePath);
-    QString windowTitle = fi.fileName() + QLatin1String("[*]");
-#ifndef Q_WS_MAC
-    QString appName = QApplication::applicationName();
-    if (!appName.isEmpty())
-        windowTitle += QLatin1Char(' ') + QChar(0x2014) + QLatin1Char(' ') + appName;
-#endif
-    return windowTitle;
-}
-
 /*!
     \property QWidget::windowTitle
     \brief the window title (caption)
@@ -5465,6 +5490,11 @@ static QString constructWindowTitleFromFilePath(const QString &filePath)
     windowModified property is false (the default), the placeholder
     is simply removed.
 
+    On some desktop platforms (including Windows and Unix), the application name
+    (from QGuiApplication::applicationDisplayName) is added at the end of the
+    window title, if set. This is done by the QPA plugin, so it is shown to the
+    user, but isn't part of the \l windowTitle string.
+
     \sa windowIcon, windowIconText, windowModified, windowFilePath
 */
 QString QWidget::windowTitle() const
@@ -5474,7 +5504,7 @@ QString QWidget::windowTitle() const
         if (!d->extra->topextra->caption.isEmpty())
             return d->extra->topextra->caption;
         if (!d->extra->topextra->filePath.isEmpty())
-            return constructWindowTitleFromFilePath(d->extra->topextra->filePath);
+            return QFileInfo(d->extra->topextra->filePath).fileName() + QLatin1String("[*]");
     }
     return QString();
 }
@@ -5646,24 +5676,8 @@ QString QWidget::windowIconText() const
 
     This property only makes sense for windows. It associates a file path with
     a window. If you set the file path, but have not set the window title, Qt
-    sets the window title to contain a string created using the following
-    components.
-
-    On Mac OS X:
-
-    \list
-    \li The file name of the specified path, obtained using QFileInfo::fileName().
-    \endlist
-
-    On Windows and X11:
-
-    \list
-    \li The file name of the specified path, obtained using QFileInfo::fileName().
-    \li An optional \c{*} character, if the \l windowModified property is set.
-    \li The \c{0x2014} unicode character, padded either side by spaces.
-    \li The application name, obtained from the application's
-    \l{QCoreApplication::}{applicationName} property.
-    \endlist
+    sets the window title to the file name of the specified path, obtained using
+    QFileInfo::fileName().
 
     If the window title is set at any point, then the window title takes precedence and
     will be shown instead of the file path string.
@@ -5860,7 +5874,7 @@ bool QWidget::hasFocus() const
 
     \sa hasFocus(), clearFocus(), focusInEvent(), focusOutEvent(),
     setFocusPolicy(), focusWidget(), QApplication::focusWidget(), grabKeyboard(),
-    grabMouse(), {Keyboard Focus}, QEvent::RequestSoftwareInputPanel
+    grabMouse(), {Keyboard Focus in Widgets}, QEvent::RequestSoftwareInputPanel
 */
 
 void QWidget::setFocus(Qt::FocusReason reason)
@@ -6222,7 +6236,7 @@ bool QWidget::isActiveWindow() const
     If \a first or \a second has a focus proxy, setTabOrder()
     correctly substitutes the proxy.
 
-    \sa setFocusPolicy(), setFocusProxy(), {Keyboard Focus}
+    \sa setFocusPolicy(), setFocusProxy(), {Keyboard Focus in Widgets}
 */
 void QWidget::setTabOrder(QWidget* first, QWidget *second)
 {
@@ -7907,8 +7921,8 @@ bool QWidget::event(QEvent *event)
                 }
             }
             query->accept();
-            break;
         }
+        break;
 
     case QEvent::PolishRequest:
         ensurePolished();
@@ -8563,6 +8577,8 @@ void QWidget::enterEvent(QEvent *)
 {
 }
 
+// ### Qt 6: void QWidget::enterEvent(QEnterEvent *).
+
 /*!
     \fn void QWidget::leaveEvent(QEvent *event)
 
@@ -9063,7 +9079,7 @@ QLayout *QWidget::layout() const
     existing layout manager (returned by layout()) before you can
     call setLayout() with the new layout.
 
-    If \a layout is the layout manger on a different widget, setLayout()
+    If \a layout is the layout manager on a different widget, setLayout()
     will reparent the layout and make it the layout manager for this widget.
 
     Example:
@@ -10227,6 +10243,7 @@ void QWidget::setWindowOpacity(qreal opacity)
     QTLWExtra *extra = d->topData();
     extra->opacity = uint(opacity * 255);
     setAttribute(Qt::WA_WState_WindowOpacitySet);
+    d->setWindowOpacity_sys(opacity);
 
     if (!testAttribute(Qt::WA_WState_Created))
         return;
@@ -10241,8 +10258,6 @@ void QWidget::setWindowOpacity(qreal opacity)
         return;
     }
 #endif
-
-    d->setWindowOpacity_sys(opacity);
 }
 
 /*!

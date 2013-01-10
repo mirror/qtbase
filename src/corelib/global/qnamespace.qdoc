@@ -406,7 +406,7 @@
     \value BevelJoin  The triangular notch between the two lines is filled.
     \value RoundJoin  A circular arc between the two lines is filled.
     \value SvgMiterJoin A miter join corresponding to the definition of
-           a miter join in the \l{SVG 1.2 Tiny} specification.
+           a miter join in the \l{http://www.w3.org/TR/SVGMobile12/}{SVG 1.2 Tiny} specification.
     \omitvalue MPenJoinStyle
 
     \sa QPen
@@ -1721,7 +1721,9 @@
 
     \value ScrollBarAlwaysOff QAbstractScrollArea never shows a scroll bar.
 
-    \value ScrollBarAlwaysOn  QAbstractScrollArea always shows a scroll bar.
+    \value ScrollBarAlwaysOn  QAbstractScrollArea always shows a scroll bar. This
+    property is ignored on systems with transient scroll bars (e.g., on Mac from
+    version 10.7).
 
     (The modes for the horizontal and vertical scroll bars are
     independent.)
@@ -1759,7 +1761,7 @@
 
     \omitvalue NoFocusReason
 
-    \sa {Keyboard Focus}
+    \sa {Keyboard Focus in Widgets}
 */
 
 /*!
@@ -1991,6 +1993,8 @@
     \value MacWindowToolBarButtonHint On Mac OS X adds a tool bar button (i.e.,
            the oblong button that is on the top right of windows that have toolbars).
 
+    \value WindowFullscreenButtonHint On Mac OS X adds a fullscreen button.
+
     \value BypassGraphicsProxyWidget Prevents the window and its children from
            automatically embedding themselves into a QGraphicsProxyWidget if the
            parent widget is already embedded. You can set this flag if you
@@ -2154,7 +2158,8 @@
         string.
 
     \value RichText The text string is interpreted as a rich text
-        string.
+        string. See \l {Supported HTML Subset} for the definition
+        of rich text.
 
     \value AutoText The text string is interpreted as for
         Qt::RichText if Qt::mightBeRichText() returns true, otherwise

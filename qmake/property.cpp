@@ -56,14 +56,17 @@ static const struct {
 } propList[] = {
     { "QT_SYSROOT", QLibraryInfo::SysrootPath, true },
     { "QT_INSTALL_PREFIX", QLibraryInfo::PrefixPath, false },
+    { "QT_INSTALL_ARCHDATA", QLibraryInfo::ArchDataPath, false },
     { "QT_INSTALL_DATA", QLibraryInfo::DataPath, false },
     { "QT_INSTALL_DOCS", QLibraryInfo::DocumentationPath, false },
     { "QT_INSTALL_HEADERS", QLibraryInfo::HeadersPath, false },
     { "QT_INSTALL_LIBS", QLibraryInfo::LibrariesPath, false },
+    { "QT_INSTALL_LIBEXECS", QLibraryInfo::LibraryExecutablesPath, false },
     { "QT_INSTALL_BINS", QLibraryInfo::BinariesPath, false },
     { "QT_INSTALL_TESTS", QLibraryInfo::TestsPath, false },
     { "QT_INSTALL_PLUGINS", QLibraryInfo::PluginsPath, false },
     { "QT_INSTALL_IMPORTS", QLibraryInfo::ImportsPath, false },
+    { "QT_INSTALL_QML", QLibraryInfo::Qml2ImportsPath, false },
     { "QT_INSTALL_TRANSLATIONS", QLibraryInfo::TranslationsPath, false },
     { "QT_INSTALL_CONFIGURATION", QLibraryInfo::SettingsPath, false },
     { "QT_INSTALL_EXAMPLES", QLibraryInfo::ExamplesPath, false },
@@ -102,7 +105,7 @@ QMakeProperty::~QMakeProperty()
 void QMakeProperty::initSettings()
 {
     if(!settings) {
-        settings = new QSettings(QSettings::UserScope, "Trolltech", "QMake");
+        settings = new QSettings(QSettings::UserScope, "QtProject", "QMake");
         settings->setFallbacksEnabled(false);
     }
 }

@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS += \
 	coloritem.h \
 	robot.h
@@ -12,11 +14,7 @@ RESOURCES += \
 
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/dragdroprobot
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS dragdroprobot.pro images
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/dragdroprobot
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/graphicsview/dragdroprobot
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

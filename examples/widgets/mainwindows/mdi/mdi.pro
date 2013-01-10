@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS       = mainwindow.h \
                 mdichild.h
 SOURCES       = main.cpp \
@@ -6,11 +8,7 @@ SOURCES       = main.cpp \
 RESOURCES     = mdi.qrc
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/mainwindows/mdi
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS mdi.pro images
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/mainwindows/mdi
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/mainwindows/mdi
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

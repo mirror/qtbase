@@ -52,15 +52,15 @@ int main(int argc, char **argv)
     QGuiApplication app(argc, argv);
 
     Window a;
-    a.setFramePos(QPoint(10, 10));
-    a.setWindowTitle(QStringLiteral("Window A"));
-    a.setObjectName(a.windowTitle());
+    a.setFramePosition(QPoint(10, 10));
+    a.setTitle(QStringLiteral("Window A"));
+    a.setObjectName(a.title());
     a.setVisible(true);
 
     Window b;
-    b.setFramePos(QPoint(100, 100));
-    b.setWindowTitle(QStringLiteral("Window B"));
-    b.setObjectName(b.windowTitle());
+    b.setFramePosition(QPoint(100, 100));
+    b.setTitle(QStringLiteral("Window B"));
+    b.setObjectName(b.title());
     b.setVisible(true);
 
     Window child(&b);
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
         geometry.moveCenter(screen->availableGeometry().center());
         window->setGeometry(geometry);
         window->setVisible(true);
-        window->setWindowTitle(screen->name());
-        window->setObjectName(window->windowTitle());
+        window->setTitle(screen->name());
+        window->setObjectName(window->title());
         windows.push_back(window);
     }
     return app.exec();

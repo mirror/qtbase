@@ -57,13 +57,6 @@
 
 typedef QMap<QString, QString> QStringMap;
 typedef QList<int> QIntList;
-Q_DECLARE_METATYPE(QImage)
-Q_DECLARE_METATYPE(QRect)
-Q_DECLARE_METATYPE(QSize)
-Q_DECLARE_METATYPE(QColor)
-Q_DECLARE_METATYPE(QStringMap)
-Q_DECLARE_METATYPE(QIntList)
-Q_DECLARE_METATYPE(QIODevice *)
 Q_DECLARE_METATYPE(QImage::Format)
 
 class tst_QImageReader : public QObject
@@ -755,6 +748,15 @@ void tst_QImageReader::gifHandlerBugs()
         QImageReader io(prefix + "endless-anim.gif");
         QVERIFY(io.canRead());
         QCOMPARE(io.loopCount(), -1);
+    }
+
+    // Check that pixels with the transparent color are transparent but not zeroed
+    {
+        QImageReader io(prefix + "trans.gif");
+        QVERIFY(io.canRead());
+        QImage im = io.read();
+        QCOMPARE(im.pixel(0,0), qRgba(0x3f, 0xff, 0x7f, 0x00));
+        QCOMPARE(im.pixel(10,10), qRgba(0x3f, 0xff, 0x7f, 0x00));
     }
 }
 

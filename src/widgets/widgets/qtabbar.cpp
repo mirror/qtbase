@@ -264,10 +264,10 @@ void QTabBar::initStyleOption(QStyleOptionTab *option, int tabIndex) const
     returns the visual geometry of a single tab.
 
     \table 100%
-    \row \li \inlineimage plastique-tabbar.png Screenshot of a Plastique style tab bar
-         \li A tab bar shown in the Plastique widget style.
-    \row \li \inlineimage plastique-tabbar-truncated.png Screenshot of a truncated Plastique tab bar
-         \li A truncated tab bar shown in the Plastique widget style.
+    \row \li \inlineimage fusion-tabbar.png Screenshot of a Fusion style tab bar
+         \li A tab bar shown in the Fusion widget style.
+    \row \li \inlineimage fusion-tabbar-truncated.png Screenshot of a truncated Fusion tab bar
+         \li A truncated tab bar shown in the Fusion widget style.
     \endtable
 
     \sa QTabWidget
@@ -1182,9 +1182,11 @@ void QTabBar::setCurrentIndex(int index)
         d->layoutTab(index);
 #ifndef QT_NO_ACCESSIBILITY
         if (QAccessible::isActive()) {
-            QAccessibleEvent focusEvent(this, QAccessible::Focus);
-            focusEvent.setChild(index);
-            QAccessible::updateAccessibility(&focusEvent);
+            if (hasFocus()) {
+                QAccessibleEvent focusEvent(this, QAccessible::Focus);
+                focusEvent.setChild(index);
+                QAccessible::updateAccessibility(&focusEvent);
+            }
             QAccessibleEvent selectionEvent(this, QAccessible::Selection);
             selectionEvent.setChild(index);
             QAccessible::updateAccessibility(&selectionEvent);

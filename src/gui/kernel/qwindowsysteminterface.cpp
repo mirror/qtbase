@@ -75,10 +75,10 @@ extern QPointer<QWindow> qt_last_mouse_receiver;
     until sendWindowSystemEvents() is called by the event dispatcher.
 */
 
-void QWindowSystemInterface::handleEnterEvent(QWindow *tlw)
+void QWindowSystemInterface::handleEnterEvent(QWindow *tlw, const QPointF &local, const QPointF &global)
 {
     if (tlw) {
-        QWindowSystemInterfacePrivate::EnterEvent *e = new QWindowSystemInterfacePrivate::EnterEvent(tlw);
+        QWindowSystemInterfacePrivate::EnterEvent *e = new QWindowSystemInterfacePrivate::EnterEvent(tlw, local, global);
         QWindowSystemInterfacePrivate::handleWindowSystemEvent(e);
     }
 }
@@ -96,13 +96,13 @@ void QWindowSystemInterface::handleLeaveEvent(QWindow *tlw)
     determine where mouse went and act accordingly. E.g. QWidgetWindow needs to know if mouse
     cursor moves between windows in same window hierarchy.
 */
-void QWindowSystemInterface::handleEnterLeaveEvent(QWindow *enter, QWindow *leave)
+void QWindowSystemInterface::handleEnterLeaveEvent(QWindow *enter, QWindow *leave, const QPointF &local, const QPointF& global)
 {
     bool wasSynchronous = QWindowSystemInterfacePrivate::synchronousWindowsSystemEvents;
     if (wasSynchronous)
         setSynchronousWindowsSystemEvents(false);
     handleLeaveEvent(leave);
-    handleEnterEvent(enter);
+    handleEnterEvent(enter, local, global);
     if (wasSynchronous) {
         flushWindowSystemEvents();
         setSynchronousWindowsSystemEvents(true);
@@ -344,6 +344,11 @@ QWindowSystemInterfacePrivate::WindowSystemEvent * QWindowSystemInterfacePrivate
     return windowSystemEventQueue.takeFirstOrReturnNull();
 }
 
+QWindowSystemInterfacePrivate::WindowSystemEvent *QWindowSystemInterfacePrivate::getNonUserInputWindowSystemEvent()
+{
+    return windowSystemEventQueue.takeFirstNonUserInputOrReturnNull();
+}
+
 QWindowSystemInterfacePrivate::WindowSystemEvent *QWindowSystemInterfacePrivate::peekWindowSystemEvent(EventType t)
 {
     return windowSystemEventQueue.peekAtFirstOfType(t);
@@ -520,20 +525,14 @@ bool QWindowSystemInterface::sendWindowSystemEventsImplementation(QEventLoop::Pr
 {
     int nevents = 0;
 
-    while (true) {
-        QWindowSystemInterfacePrivate::WindowSystemEvent *event;
-        if (!(flags & QEventLoop::ExcludeUserInputEvents)
-            && QWindowSystemInterfacePrivate::windowSystemEventsQueued() > 0) {
-            // process a pending user input event
-            event = QWindowSystemInterfacePrivate::getWindowSystemEvent();
-            if (!event)
-                break;
-        } else {
+    while (QWindowSystemInterfacePrivate::windowSystemEventsQueued()) {
+        QWindowSystemInterfacePrivate::WindowSystemEvent *event =
+            (flags & QEventLoop::ExcludeUserInputEvents) ?
+                QWindowSystemInterfacePrivate::getNonUserInputWindowSystemEvent() :
+                QWindowSystemInterfacePrivate::getWindowSystemEvent();
+        if (!event)
             break;
-        }
-
         nevents++;
-
         QGuiApplicationPrivate::processWindowSystemEvent(event);
         delete event;
     }

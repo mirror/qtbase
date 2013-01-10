@@ -99,15 +99,12 @@
     A valid JSON document is either an array or an object, so a document always starts
     with a square or curly bracket.
 
-    JSON support in Qt consists of a set of 4 classes.
-
 
     \section1 The JSON Classes
 
-    JSON support in Qt consists of these classes:
-
-    \annotatedlist json
-
     All JSON classes are value based,
     \l{Implicit Sharing}{implicitly shared classes}.
+
+    JSON support in Qt consists of these classes:
+
 */

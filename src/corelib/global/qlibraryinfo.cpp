@@ -257,18 +257,30 @@ QLibraryInfo::isDebugBuild()
 
 #endif // QT_BOOTSTRAPPED
 
+/*
+ * To add a new entry in QLibrary::LibraryLocation, add it to the enum above the bootstrapped values and:
+ * - add its relative path in the qtConfEntries[] array below
+ *   (the key is what appears in a qt.conf file)
+ * - add a property name in qmake/property.cpp propList[] array
+ *   (it's used with qmake -query)
+ * - add to qt_config.prf, qt_module.prf, qt_module_fwdpri.prf
+ */
+
 static const struct {
-    char key[14], value[13];
+    char key[19], value[13];
 } qtConfEntries[] = {
     { "Prefix", "." },
-    { "Documentation", "doc" },
+    { "Documentation", "doc" }, // should be ${Data}/doc
     { "Headers", "include" },
     { "Libraries", "lib" },
+    { "LibraryExecutables", "libexec" }, // should be ${ArchData}/libexec
     { "Binaries", "bin" },
-    { "Plugins", "plugins" },
-    { "Imports", "imports" },
+    { "Plugins", "plugins" }, // should be ${ArchData}/plugins
+    { "Imports", "imports" }, // should be ${ArchData}/imports
+    { "Qml2Imports", "qml" }, // should be ${ArchData}/qml
+    { "ArchData", "." },
     { "Data", "." },
-    { "Translations", "translations" },
+    { "Translations", "translations" }, // should be ${Data}/translations
     { "Examples", "examples" },
     { "Tests", "tests" },
 #ifdef QT_BOOTSTRAPPED
@@ -325,7 +337,7 @@ QLibraryInfo::rawLocation(LibraryLocation loc, PathGroup group)
 #endif
     {
         const char *path = 0;
-        if (loc >= 0 && loc < sizeof(qt_configure_prefix_path_strs)/sizeof(qt_configure_prefix_path_strs[0]))
+        if (unsigned(loc) < sizeof(qt_configure_prefix_path_strs)/sizeof(qt_configure_prefix_path_strs[0]))
             path = qt_configure_prefix_path_strs[loc] + 12;
 #ifndef Q_OS_WIN // On Windows we use the registry
         else if (loc == SettingsPath)
@@ -338,7 +350,7 @@ QLibraryInfo::rawLocation(LibraryLocation loc, PathGroup group)
     } else {
         QString key;
         QString defaultValue;
-        if (loc >= 0 && loc < sizeof(qtConfEntries)/sizeof(qtConfEntries[0])) {
+        if (unsigned(loc) < sizeof(qtConfEntries)/sizeof(qtConfEntries[0])) {
             key = QLatin1String(qtConfEntries[loc].key);
             defaultValue = QLatin1String(qtConfEntries[loc].value);
         }
@@ -358,9 +370,13 @@ QLibraryInfo::rawLocation(LibraryLocation loc, PathGroup group)
             ret = config->value(key, defaultValue).toString();
 
 #ifdef QT_BOOTSTRAPPED
-            if (ret.isEmpty() && loc == HostPrefixPath)
-                ret = config->value(QLatin1String(qtConfEntries[PrefixPath].key),
-                                    QLatin1String(qtConfEntries[PrefixPath].value)).toString();
+            if (ret.isEmpty()) {
+                if (loc == HostPrefixPath)
+                    ret = config->value(QLatin1String(qtConfEntries[PrefixPath].key),
+                                        QLatin1String(qtConfEntries[PrefixPath].value)).toString();
+                else if (loc == TargetSpecPath || loc == HostSpecPath)
+                    ret = QString::fromLocal8Bit(qt_configure_prefix_path_strs[loc] + 12);
+            }
 #endif
 
             // expand environment variables in the form $(ENVVAR)
@@ -437,10 +453,13 @@ QLibraryInfo::rawLocation(LibraryLocation loc, PathGroup group)
     \value DocumentationPath The location for documentation upon install.
     \value HeadersPath The location for all headers.
     \value LibrariesPath The location of installed libraries.
+    \value LibraryExecutablesPath The location of installed executables required by libraries at runtime.
     \value BinariesPath The location of installed Qt binaries (tools and applications).
     \value PluginsPath The location of installed Qt plugins.
-    \value ImportsPath The location of installed QML extensions to import.
-    \value DataPath The location of general Qt data.
+    \value ImportsPath The location of installed QML extensions to import (QML 1.x).
+    \value Qml2ImportsPath The location of installed QML extensions to import (QML 2.x).
+    \value ArchDataPath The location of general architecture-dependent Qt data.
+    \value DataPath The location of general architecture-independent Qt data.
     \value TranslationsPath The location of translation information for Qt strings.
     \value ExamplesPath The location for examples upon install.
     \value TestsPath The location of installed Qt testcases.

@@ -71,6 +71,8 @@ public:
         insert("screen",QXcbNativeInterface::Screen);
         insert("eglcontext",QXcbNativeInterface::EglContext);
         insert("glxcontext",QXcbNativeInterface::GLXContext);
+        insert("apptime",QXcbNativeInterface::AppTime);
+        insert("appusertime",QXcbNativeInterface::AppUserTime);
     }
 };
 
@@ -104,6 +106,31 @@ void *QXcbNativeInterface::nativeResourceForContext(const QByteArray &resourceSt
     return result;
 }
 
+void *QXcbNativeInterface::nativeResourceForScreen(const QByteArray &resource, QScreen *screen)
+{
+    const QXcbResourceMap::const_iterator it = qXcbResourceMap()->constFind(resource.toLower());
+    if (it == qXcbResourceMap()->constEnd() || !screen->handle())
+        return  0;
+    void *result = 0;
+    const QXcbScreen *xcbScreen = static_cast<QXcbScreen *>(screen->handle());
+    switch (it.value()) {
+    case Display:
+#ifdef XCB_USE_XLIB
+        result = xcbScreen->connection()->xlib_display();
+#endif
+        break;
+    case AppTime:
+        result = appTime(xcbScreen);
+        break;
+    case AppUserTime:
+        result = appUserTime(xcbScreen);
+        break;
+    default:
+        break;
+    }
+    return result;
+}
+
 void *QXcbNativeInterface::nativeResourceForWindow(const QByteArray &resourceString, QWindow *window)
 {
     QByteArray lowerCaseResource = resourceString.toLower();
@@ -130,6 +157,36 @@ void *QXcbNativeInterface::nativeResourceForWindow(const QByteArray &resourceStr
     }
 
     return result;
+}
+
+QPlatformNativeInterface::NativeResourceForScreenFunction QXcbNativeInterface::nativeResourceFunctionForScreen(const QByteArray &resource)
+{
+    const QByteArray lowerCaseResource = resource.toLower();
+    if (lowerCaseResource == "setapptime")
+        return NativeResourceForScreenFunction(setAppTime);
+    else if (lowerCaseResource == "setappusertime")
+        return NativeResourceForScreenFunction(setAppUserTime);
+    return 0;
+}
+
+void *QXcbNativeInterface::appTime(const QXcbScreen *screen)
+{
+    return reinterpret_cast<void *>(quintptr(screen->connection()->time()));
+}
+
+void *QXcbNativeInterface::appUserTime(const QXcbScreen *screen)
+{
+    return reinterpret_cast<void *>(quintptr(screen->connection()->netWmUserTime()));
+}
+
+void QXcbNativeInterface::setAppTime(QScreen* screen, xcb_timestamp_t time)
+{
+    static_cast<QXcbScreen *>(screen->handle())->connection()->setTime(time);
+}
+
+void QXcbNativeInterface::setAppUserTime(QScreen* screen, xcb_timestamp_t time)
+{
+    static_cast<QXcbScreen *>(screen->handle())->connection()->setNetWmUserTime(time);
 }
 
 QPlatformNativeInterface::NativeResourceForContextFunction QXcbNativeInterface::nativeResourceFunctionForContext(const QByteArray &resource)
@@ -193,6 +250,7 @@ void * QXcbNativeInterface::eglContextForContext(QOpenGLContext *context)
     QEGLPlatformContext *eglPlatformContext = static_cast<QEGLPlatformContext *>(context->handle());
     return eglPlatformContext->eglContext();
 #else
+    Q_UNUSED(context);
     return 0;
 #endif
 }

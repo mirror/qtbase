@@ -47,6 +47,8 @@
 
 #import <AppKit/NSAccessibility.h>
 
+#ifndef QT_NO_COCOA_ACCESSIBILITY
+
 static QAccessibleInterface *acast(void *ptr)
 {
     return reinterpret_cast<QAccessibleInterface *>(ptr);
@@ -59,7 +61,7 @@ static QAccessibleInterface *acast(void *ptr)
     self = [super init];
     if (self) {
         accessibleInterface = anQAccessibleInterface;
-        role = QCocoaAccessible::macRole(acast(accessibleInterface)->role());
+        role = QCocoaAccessible::macRole(acast(accessibleInterface));
         parent = aParent;
     }
 
@@ -96,9 +98,9 @@ static QAccessibleInterface *acast(void *ptr)
 // attributes
 
 - (NSArray *)accessibilityAttributeNames {
-    static NSArray *attributes = nil;
-    if (attributes == nil) {
-        attributes = [[NSArray alloc] initWithObjects:
+    static NSArray *defaultAttributes = nil;
+    if (defaultAttributes == nil) {
+        defaultAttributes = [[NSArray alloc] initWithObjects:
         NSAccessibilityRoleAttribute,
         NSAccessibilityRoleDescriptionAttribute,
         NSAccessibilityChildrenAttribute,
@@ -112,7 +114,15 @@ static QAccessibleInterface *acast(void *ptr)
         NSAccessibilityEnabledAttribute,
         nil];
     }
-    return attributes;
+
+    NSMutableArray *attributes = [[NSMutableArray alloc] initWithCapacity : [defaultAttributes count]];
+    [attributes addObjectsFromArray : defaultAttributes];
+
+    if (QCocoaAccessible::hasValueAttribute(acast(accessibleInterface))) {
+        [attributes addObject : NSAccessibilityValueAttribute];
+    }
+
+    return [attributes autorelease];
 }
 
 - (id)accessibilityAttributeValue:(NSString *)attribute {
@@ -129,7 +139,7 @@ static QAccessibleInterface *acast(void *ptr)
             [kids addObject:[QCocoaAccessibleElement elementWithInterface:(void*)childInterface parent:self]];
         }
 
-        return NSAccessibilityUnignoredChildren(kids);
+        return kids;
     } else if ([attribute isEqualToString:NSAccessibilityFocusedAttribute]) {
         // Just check if the app thinks we're focused.
         id focusedElement = [NSApp accessibilityAttributeValue:NSAccessibilityFocusedUIElementAttribute];
@@ -153,6 +163,13 @@ static QAccessibleInterface *acast(void *ptr)
         return QCFString::toNSString(acast(accessibleInterface)->text(QAccessible::Name));
     } else if ([attribute isEqualToString:NSAccessibilityEnabledAttribute]) {
         return [NSNumber numberWithBool:!acast(accessibleInterface)->state().disabled];
+    } else if ([attribute isEqualToString:NSAccessibilityValueAttribute]) {
+        // VoiceOver asks for the value attribute for all elements. Return nil
+        // if we don't want the element to have a value attribute.
+        if (!QCocoaAccessible::hasValueAttribute(acast(accessibleInterface)))
+            return nil;
+
+        return QCocoaAccessible::getValueAttribute(acast(accessibleInterface));
     }
 
     return nil;
@@ -222,6 +239,10 @@ static QAccessibleInterface *acast(void *ptr)
 
     if (!accessibleInterface)
         return NSAccessibilityUnignoredAncestor(self);
+
+    if (!acast(accessibleInterface)->isValid())
+        return NSAccessibilityUnignoredAncestor(self);
+
     QAccessibleInterface *childInterface = acast(accessibleInterface)->childAt(point.x, qt_mac_flipYCoordinate(point.y));
 
     // No child found, meaning we hit this element.
@@ -239,3 +260,6 @@ static QAccessibleInterface *acast(void *ptr)
 }
 
 @end
+
+#endif // QT_NO_COCOA_ACCESSIBILITY
+

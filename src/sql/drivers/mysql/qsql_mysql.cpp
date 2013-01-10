@@ -838,10 +838,7 @@ bool QMYSQLResult::nextResult()
 
 void QMYSQLResult::virtual_hook(int id, void *data)
 {
-    switch (id) {
-    default:
-        QSqlResult::virtual_hook(id, data);
-    }
+    QSqlResult::virtual_hook(id, data);
 }
 
 
@@ -987,11 +984,16 @@ bool QMYSQLResult::exec()
                     break; }
                 case QVariant::UInt:
                 case QVariant::Int:
-                case QVariant::Bool:
                     currBind->buffer_type = MYSQL_TYPE_LONG;
                     currBind->buffer = data;
                     currBind->buffer_length = sizeof(int);
                     currBind->is_unsigned = (val.type() != QVariant::Int);
+                break;
+                case QVariant::Bool:
+                    currBind->buffer_type = MYSQL_TYPE_TINY;
+                    currBind->buffer = data;
+                    currBind->buffer_length = sizeof(bool);
+                    currBind->is_unsigned = false;
                     break;
                 case QVariant::Double:
                     currBind->buffer_type = MYSQL_TYPE_DOUBLE;
@@ -1173,6 +1175,7 @@ bool QMYSQLDriver::hasFeature(DriverFeature f) const
     case SimpleLocking:
     case EventNotifications:
     case FinishQuery:
+    case CancelQuery:
         return false;
     case QuerySize:
     case BLOB:
@@ -1280,8 +1283,7 @@ bool QMYSQLDriver::open(const QString& db,
                                optionFlags))
     {
         if (!db.isEmpty() && mysql_select_db(d->mysql, db.toLocal8Bit().constData())) {
-            setLastError(qMakeError(tr("Unable to open database '") + db +
-                         QLatin1Char('\''), QSqlError::ConnectionError, d));
+            setLastError(qMakeError(tr("Unable to open database '%1'").arg(db), QSqlError::ConnectionError, d));
             mysql_close(d->mysql);
             setOpenError(true);
             return false;

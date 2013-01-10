@@ -1315,6 +1315,14 @@ void QGraphicsItemPrivate::initStyleOption(QStyleOptionGraphicsItem *option, con
     option->rect = brect.toRect();
     option->levelOfDetail = 1;
     option->exposedRect = brect;
+
+    // Style animations require a QObject-based animation target.
+    // If a plain QGraphicsItem is used to draw animated controls,
+    // QStyle is let to send animation updates to the whole scene.
+    option->styleObject = q_ptr->toGraphicsObject();
+    if (!option->styleObject)
+        option->styleObject = scene;
+
     if (selected)
         option->state |= QStyle::State_Selected;
     if (enabled)
@@ -1428,6 +1436,7 @@ QGraphicsItem::~QGraphicsItem()
 #endif
 
     clearFocus();
+    setFocusProxy(0);
 
     // Update focus scope item ptr.
     QGraphicsItem *p = d_ptr->parent;
@@ -1763,24 +1772,6 @@ void QGraphicsItem::setFlag(GraphicsItemFlag flag, bool enabled)
 }
 
 /*!
-    \internal
-
-    Sets the flag \a flag on \a item and all its children, to \a enabled.
-*/
-static void _q_qgraphicsItemSetFlag(QGraphicsItem *item, QGraphicsItem::GraphicsItemFlag flag,
-                                    bool enabled)
-{
-    if (item->flags() & flag) {
-        // If this item already has the correct flag set, we don't have to
-        // propagate it.
-        return;
-    }
-    item->setFlag(flag, enabled);
-    foreach (QGraphicsItem *child, item->childItems())
-        _q_qgraphicsItemSetFlag(child, flag, enabled);
-}
-
-/*!
     Sets the item flags to \a flags. All flags in \a flags are enabled; all
     flags not in \a flags are disabled.
 
@@ -1876,15 +1867,46 @@ void QGraphicsItem::setFlags(GraphicsItemFlags flags)
             d_ptr->scene->d_func()->updateInputMethodSensitivityInViews();
     }
 
+    if ((flags & ItemIsPanel) != (oldFlags & ItemIsPanel)) {
+        bool becomesPanel = (flags & ItemIsPanel);
+        if ((d_ptr->panelModality != NonModal) && d_ptr->scene) {
+            // update the panel's modal state
+            if (becomesPanel)
+                d_ptr->scene->d_func()->enterModal(this);
+            else
+                d_ptr->scene->d_func()->leaveModal(this);
+        }
+        if (d_ptr->isWidget && (becomesPanel || parentWidget())) {
+            QGraphicsWidget *w = static_cast<QGraphicsWidget *>(this);
+            QGraphicsWidget *focusFirst = w;
+            QGraphicsWidget *focusLast = w;
+            for (;;) {
+                QGraphicsWidget *test = focusLast->d_func()->focusNext;
+                if (!w->isAncestorOf(test) || test == w)
+                    break;
+                focusLast = test;
+            }
 
-    if ((d_ptr->panelModality != NonModal)
-        && d_ptr->scene
-        && (flags & ItemIsPanel) != (oldFlags & ItemIsPanel)) {
-        // update the panel's modal state
-        if (flags & ItemIsPanel)
-            d_ptr->scene->d_func()->enterModal(this);
-        else
-            d_ptr->scene->d_func()->leaveModal(this);
+            if (becomesPanel) {
+                // unlink own widgets from focus chain
+                QGraphicsWidget *beforeMe = w->d_func()->focusPrev;
+                QGraphicsWidget *afterMe = focusLast->d_func()->focusNext;
+                beforeMe->d_func()->focusNext = afterMe;
+                afterMe->d_func()->focusPrev = beforeMe;
+                focusFirst->d_func()->focusPrev = focusLast;
+                focusLast->d_func()->focusNext = focusFirst;
+                if (!isAncestorOf(focusFirst->d_func()->focusNext))
+                    focusFirst->d_func()->focusNext = w;
+            } else if (QGraphicsWidget *pw = parentWidget()) {
+                // link up own widgets to focus chain
+                QGraphicsWidget *beforeMe = pw;
+                QGraphicsWidget *afterMe = pw->d_func()->focusNext;
+                beforeMe->d_func()->focusNext = w;
+                afterMe->d_func()->focusPrev = focusLast;
+                w->d_func()->focusPrev = beforeMe;
+                focusLast->d_func()->focusNext = afterMe;
+            }
+        }
     }
 
     if (d_ptr->scene) {
@@ -2216,7 +2238,8 @@ bool QGraphicsItem::isVisibleTo(const QGraphicsItem *parent) const
     Sets this item's visibility to \a newVisible. If \a explicitly is true,
     this item will be "explicitly" \a newVisible; otherwise, it.. will not be.
 */
-void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly, bool update)
+void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly,
+                                            bool update, bool hiddenByPanel)
 {
     Q_Q(QGraphicsItem);
 
@@ -2265,7 +2288,7 @@ void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly, bo
                 scene->d_func()->leaveModal(q_ptr);
         }
         if (hasFocus && scene) {
-            // Hiding the closest non-panel ancestor of the focus item
+            // Hiding the focus item or the closest non-panel ancestor of the focus item
             QGraphicsItem *focusItem = scene->focusItem();
             bool clear = true;
             if (isWidget && !focusItem->isPanel()) {
@@ -2277,7 +2300,7 @@ void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly, bo
                 } while ((focusItem = focusItem->parentWidget()) && !focusItem->isPanel());
             }
             if (clear)
-                clearFocusHelper(/* giveFocusToParent = */ false);
+                clearFocusHelper(/* giveFocusToParent = */ false, hiddenByPanel);
         }
         if (q_ptr->isSelected())
             q_ptr->setSelected(false);
@@ -2301,7 +2324,7 @@ void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly, bo
                                             && !(flags & QGraphicsItem::ItemHasNoContents));
     foreach (QGraphicsItem *child, children) {
         if (!newVisible || !child->d_ptr->explicitlyHidden)
-            child->d_ptr->setVisibleHelper(newVisible, false, updateChildren);
+            child->d_ptr->setVisibleHelper(newVisible, false, updateChildren, hiddenByPanel);
     }
 
     // Update activation
@@ -2399,13 +2422,16 @@ void QGraphicsItemPrivate::setVisibleHelper(bool newVisible, bool explicitly, bo
 */
 void QGraphicsItem::setVisible(bool visible)
 {
-    d_ptr->setVisibleHelper(visible, /* explicit = */ true);
+    d_ptr->setVisibleHelper(visible,
+                            /* explicit = */ true,
+                            /* update = */ true,
+                            /* hiddenByPanel = */ isPanel());
 }
 
 /*!
     \fn void QGraphicsItem::hide()
 
-    Hides the item. (Items are visible by default.)
+    Hides the item (items are visible by default).
 
     This convenience function is equivalent to calling \c setVisible(false).
 
@@ -2415,7 +2441,7 @@ void QGraphicsItem::setVisible(bool visible)
 /*!
     \fn void QGraphicsItem::show()
 
-    Shows the item. (Items are visible by default.)
+    Shows the item (items are visible by default).
 
     This convenience function is equivalent to calling \c setVisible(true).
 
@@ -3159,10 +3185,20 @@ void QGraphicsItem::setActive(bool active)
             // Activate this item.
             d_ptr->scene->setActivePanel(this);
         } else {
-            // Deactivate this item, and reactivate the last active item
-            // (if any).
-            QGraphicsItem *lastActive = d_ptr->scene->d_func()->lastActivePanel;
-            d_ptr->scene->setActivePanel(lastActive != this ? lastActive : 0);
+            QGraphicsItem *activePanel = d_ptr->scene->activePanel();
+            QGraphicsItem *thisPanel = panel();
+            if (!activePanel || activePanel == thisPanel) {
+                // Deactivate this item, and reactivate the parent panel,
+                // or the last active panel (if any).
+                QGraphicsItem *nextToActivate = 0;
+                if (d_ptr->parent)
+                    nextToActivate = d_ptr->parent->panel();
+                if (!nextToActivate)
+                    nextToActivate = d_ptr->scene->d_func()->lastActivePanel;
+                if (nextToActivate == this || isAncestorOf(nextToActivate))
+                    nextToActivate = 0;
+                d_ptr->scene->setActivePanel(nextToActivate);
+            }
         }
     }
 }
@@ -3256,7 +3292,7 @@ void QGraphicsItemPrivate::setFocusHelper(Qt::FocusReason focusReason, bool clim
 
     // Update the child focus chain.
     QGraphicsItem *commonAncestor = 0;
-    if (scene && scene->focusItem()) {
+    if (scene && scene->focusItem() && scene->focusItem()->panel() == q_ptr->panel()) {
         commonAncestor = scene->focusItem()->commonAncestorItem(f);
         scene->focusItem()->d_ptr->clearSubFocus(scene->focusItem(), commonAncestor);
     }
@@ -3286,14 +3322,21 @@ void QGraphicsItemPrivate::setFocusHelper(Qt::FocusReason focusReason, bool clim
 */
 void QGraphicsItem::clearFocus()
 {
-    d_ptr->clearFocusHelper(/* giveFocusToParent = */ true);
+    d_ptr->clearFocusHelper(/* giveFocusToParent = */ true,
+                            /* hiddenByParentPanel = */ false);
 }
 
 /*!
     \internal
 */
-void QGraphicsItemPrivate::clearFocusHelper(bool giveFocusToParent)
+void QGraphicsItemPrivate::clearFocusHelper(bool giveFocusToParent, bool hiddenByParentPanel)
 {
+    QGraphicsItem *subFocusItem = q_ptr;
+    if (flags & QGraphicsItem::ItemIsFocusScope) {
+        while (subFocusItem->d_ptr->focusScopeItem)
+            subFocusItem = subFocusItem->d_ptr->focusScopeItem;
+    }
+
     if (giveFocusToParent) {
         // Pass focus to the closest parent focus scope
         if (!inDestructor) {
@@ -3302,10 +3345,10 @@ void QGraphicsItemPrivate::clearFocusHelper(bool giveFocusToParent)
                 if (p->flags() & QGraphicsItem::ItemIsFocusScope) {
                     if (p->d_ptr->focusScopeItem == q_ptr) {
                         p->d_ptr->focusScopeItem = 0;
-                        if (!q_ptr->hasFocus()) //if it has focus, focusScopeItemChange is called elsewhere
+                        if (!subFocusItem->hasFocus()) //if it has focus, focusScopeItemChange is called elsewhere
                             focusScopeItemChange(false);
                     }
-                    if (q_ptr->hasFocus())
+                    if (subFocusItem->hasFocus())
                         p->d_ptr->setFocusHelper(Qt::OtherFocusReason, /* climb = */ false,
                                                  /* focusFromHide = */ false);
                     return;
@@ -3315,9 +3358,10 @@ void QGraphicsItemPrivate::clearFocusHelper(bool giveFocusToParent)
         }
     }
 
-    if (q_ptr->hasFocus()) {
+    if (subFocusItem->hasFocus()) {
         // Invisible items with focus must explicitly clear subfocus.
-        clearSubFocus(q_ptr);
+        if (!hiddenByParentPanel)
+            clearSubFocus(q_ptr);
 
         // If this item has the scene's input focus, clear it.
         scene->setFocusItem(0);
@@ -3742,7 +3786,7 @@ void QGraphicsItem::ensureVisible(const QRectF &rect, int xmargin, int ymargin)
     int xmargin = 50, int ymargin = 50)
 
     This convenience function is equivalent to calling
-    ensureVisible(QRectF(\a x, \a y, \a w, \a h), \a xmargin, \a ymargin):
+    ensureVisible(QRectF(\a x, \a y, \a w, \a h), \a xmargin, \a ymargin).
 */
 
 /*!
@@ -4709,9 +4753,9 @@ QRectF QGraphicsItem::childrenBoundingRect() const
 
     If you want to change the item's bounding rectangle, you must first call
     prepareGeometryChange(). This notifies the scene of the imminent change,
-    so that its can update its item geometry index; otherwise, the scene will
+    so that it can update its item geometry index; otherwise, the scene will
     be unaware of the item's new geometry, and the results are undefined
-    (typically, rendering artifacts are left around in the view).
+    (typically, rendering artifacts are left within the view).
 
     Reimplement this function to let QGraphicsView determine what
     parts of the widget, if any, need to be redrawn.
@@ -4810,8 +4854,8 @@ bool QGraphicsItem::isClipped() const
 
     Returns this item's clip path, or an empty QPainterPath if this item is
     not clipped. The clip path constrains the item's appearance and
-    interaction (i.e., restricts the area the item can draw, and it also
-    restricts the area that the item receives events).
+    interaction (i.e., restricts the area the item can draw within and receive
+    events for).
 
     You can enable clipping by setting the ItemClipsToShape or
     ItemClipsChildrenToShape flags. The item's clip path is calculated by
@@ -6716,9 +6760,9 @@ bool QGraphicsItem::sceneEvent(QEvent *event)
     menu events. The \a event parameter contains details about the event to
     be handled.
 
-    If you ignore the event, (i.e., by calling QEvent::ignore(),) \a event
+    If you ignore the event (i.e., by calling QEvent::ignore()), \a event
     will propagate to any item beneath this item. If no items accept the
-    event, it will be ignored by the scene, and propagate to the view.
+    event, it will be ignored by the scene and propagate to the view.
 
     It's common to open a QMenu in response to receiving a context menu
     event. Example:
@@ -6739,7 +6783,7 @@ void QGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     drag enter events for this item. Drag enter events are generated as the
     cursor enters the item's area.
 
-    By accepting the event, (i.e., by calling QEvent::accept(),) the item will
+    By accepting the event (i.e., by calling QEvent::accept()), the item will
     accept drop events, in addition to receiving drag move and drag
     leave. Otherwise, the event will be ignored and propagate to the item
     beneath. If the event is accepted, the item will receive a drag move event
@@ -7573,6 +7617,13 @@ QGraphicsObject::QGraphicsObject(QGraphicsItemPrivate &dd, QGraphicsItem *parent
     : QGraphicsItem(dd, parent)
 {
     QGraphicsItem::d_ptr->isObject = true;
+}
+
+/*!
+  Destructor.
+*/
+QGraphicsObject::~QGraphicsObject()
+{
 }
 
 /*!

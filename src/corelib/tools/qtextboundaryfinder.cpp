@@ -41,7 +41,6 @@
 #include <QtCore/qtextboundaryfinder.h>
 #include <QtCore/qvarlengtharray.h>
 
-#include <private/qunicodetables_p.h>
 #include <private/qunicodetools_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -61,15 +60,15 @@ static void init(QTextBoundaryFinder::BoundaryType type, const QChar *chars, int
     // correctly assign script, isTab and isObject to the script analysis
     const ushort *uc = unicode;
     const ushort *e = uc + length;
-    int script = QUnicodeTables::Common;
-    int lastScript = QUnicodeTables::Common;
+    uchar script = QChar::Script_Common;
+    uchar lastScript = QChar::Script_Common;
     const ushort *start = uc;
     while (uc < e) {
-        int s = QUnicodeTables::script(*uc);
-        if (s != QUnicodeTables::Inherited)
+        int s = QChar::script(*uc);
+        if (s != QChar::Script_Inherited)
             script = s;
         if (*uc == QChar::ObjectReplacementCharacter || *uc == QChar::LineSeparator || *uc == 9) 
-            script = QUnicodeTables::Common;
+            script = QChar::Script_Common;
         if (script != lastScript) {
             if (uc != start) {
                 QUnicodeTools::ScriptItem item;
@@ -172,13 +171,6 @@ static void init(QTextBoundaryFinder::BoundaryType type, const QChar *chars, int
                          (can occur for a Line boundary type only).
   \value SoftHyphen  The boundary finder is at the soft hyphen
                      (can occur for a Line boundary type only).
-
-  \value StartWord  Deprecated since 5.0. Use StartOfItem instead.
-                    The boundary finder is at the start of a word.
-                    (can occur for a Word boundary type only).
-  \value EndWord  Deprecated since 5.0. Use EndOfItem instead.
-                  The boundary finder is at the end of a word.
-                  (can occur for a Word boundary type only).
 */
 
 /*!
@@ -496,9 +488,9 @@ QTextBoundaryFinder::BoundaryReasons QTextBoundaryFinder::boundaryReasons() cons
         if (attr.wordBreak) {
             reasons |= BreakOpportunity;
             if (attr.wordStart)
-                reasons |= StartOfItem | StartWord;
+                reasons |= StartOfItem;
             if (attr.wordEnd)
-                reasons |= EndOfItem | EndWord;
+                reasons |= EndOfItem;
         }
         break;
     case Sentence:

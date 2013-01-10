@@ -341,11 +341,9 @@ static bool convert(const QVariant::Private *d, int t, void *result, bool *ok)
             *str = v_cast<QUrl>(d)->toString();
             break;
 #endif
-#ifndef QT_NO_QUUID_STRING
         case QVariant::Uuid:
             *str = v_cast<QUuid>(d)->toString();
             break;
-#endif
         default:
             return false;
         }
@@ -722,11 +720,9 @@ static bool convert(const QVariant::Private *d, int t, void *result, bool *ok)
 #endif
     case QVariant::Uuid:
         switch (d->type) {
-#ifndef QT_NO_QUUID_STRING
         case QVariant::String:
             *static_cast<QUuid *>(result) = QUuid(*v_cast<QString>(d));
             break;
-#endif
         default:
             return false;
         }
@@ -1533,10 +1529,13 @@ QVariant::QVariant(const QLocale &l)
 QVariant::QVariant(const QRegExp &regExp)
     : d(RegExp)
 { v_construct<QRegExp>(&d, regExp); }
+#endif // QT_NO_REGEXP
 #ifndef QT_BOOTSTRAPPED
+#ifndef QT_NO_REGULAREXPRESSION
 QVariant::QVariant(const QRegularExpression &re)
     : d(RegularExpression)
 { v_construct<QRegularExpression>(&d, re); }
+#endif
 QVariant::QVariant(const QUuid &uuid)
     : d(Uuid)
 { v_construct<QUuid>(&d, uuid); }
@@ -1556,7 +1555,6 @@ QVariant::QVariant(const QJsonDocument &jsonDocument)
     : d(QMetaType::QJsonDocument)
 { v_construct<QJsonDocument>(&d, jsonDocument); }
 #endif // QT_BOOTSTRAPPED
-#endif // QT_NO_REGEXP
 
 /*!
     Returns the storage type of the value stored in the variant.
@@ -1736,7 +1734,7 @@ static const ushort mapIdFromQt3ToCurrent[MapFromThreeCount] =
     QVariant::UInt,
     QVariant::Bool,
     QVariant::Double,
-    QVariant::ByteArray,
+    0, // Buggy ByteArray, QByteArray never had id == 20
     QVariant::Polygon,
     QVariant::Region,
     QVariant::Bitmap,
@@ -1829,13 +1827,13 @@ void QVariant::save(QDataStream &s) const
     quint32 typeId = type();
     if (s.version() < QDataStream::Qt_4_0) {
         int i;
-        for (i = MapFromThreeCount - 1; i >= 0; i--) {
+        for (i = 0; i <= MapFromThreeCount - 1; ++i) {
             if (mapIdFromQt3ToCurrent[i] == typeId) {
                 typeId = i;
                 break;
             }
         }
-        if (i == -1) {
+        if (i >= MapFromThreeCount) {
             s << QVariant();
             return;
         }
@@ -2218,6 +2216,7 @@ QRegExp QVariant::toRegExp() const
 }
 #endif
 
+#ifndef QT_BOOTSTRAPPED
 /*!
     \fn QRegularExpression QVariant::toRegularExpression() const
     \since 5.0
@@ -2227,13 +2226,12 @@ QRegExp QVariant::toRegExp() const
 
     \sa canConvert(), convert()
 */
-#ifndef QT_BOOTSTRAPPED
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
 QRegularExpression QVariant::toRegularExpression() const
 {
     return qVariantToHelper<QRegularExpression>(d, handlerManager);
 }
-#endif
+#endif // QT_NO_REGULAREXPRESSION
 
 /*!
     \since 5.0

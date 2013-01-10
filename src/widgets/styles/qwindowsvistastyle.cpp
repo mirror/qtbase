@@ -39,8 +39,8 @@
 **
 ****************************************************************************/
 
-#include "qwindowsvistastyle.h"
 #include "qwindowsvistastyle_p.h"
+#include "qwindowsvistastyle_p_p.h"
 #include <qscreen.h>
 #include <qwindow.h>
 #include <private/qstyleanimation_p.h>
@@ -188,6 +188,7 @@ QStyleOption *clonedAnimationStyleOption(const QStyleOption*option) {
   \since 4.3
   \ingroup appearance
   \inmodule QtWidgets
+  \internal
 
   \warning This style is only available on the Windows Vista platform
   because it makes use of Windows Vista's style engine.
@@ -200,6 +201,13 @@ QStyleOption *clonedAnimationStyleOption(const QStyleOption*option) {
 */
 QWindowsVistaStyle::QWindowsVistaStyle()
     : QWindowsXPStyle(*new QWindowsVistaStylePrivate)
+{
+}
+
+/*!
+  Destructor.
+*/
+QWindowsVistaStyle::~QWindowsVistaStyle()
 {
 }
 
@@ -494,29 +502,33 @@ void QWindowsVistaStyle::drawPrimitive(PrimitiveElement element, const QStyleOpt
         }
         break;
     case PE_Frame: {
-        painter->save();
-        int stateId = ETS_NORMAL;
-        if (!(state & State_Enabled))
-            stateId = ETS_DISABLED;
-        else if (state & State_ReadOnly)
-            stateId = ETS_READONLY;
-        else if (state & State_HasFocus)
-            stateId = ETS_SELECTED;
-        XPThemeData theme(widget, painter,
-                          QWindowsXPStylePrivate::EditTheme,
-                          EP_EDITBORDER_HVSCROLL, stateId, option->rect);
-        uint resolve_mask = option->palette.resolve();
-        if (resolve_mask & (1 << QPalette::Base)) {
-            // Since EP_EDITBORDER_HVSCROLL does not us borderfill, theme.noContent cannot be used for clipping
-            int borderSize = 1;
-            pGetThemeInt(theme.handle(), theme.partId, theme.stateId, TMT_BORDERSIZE, &borderSize);
-            QRegion clipRegion = option->rect;
-            QRegion content = option->rect.adjusted(borderSize, borderSize, -borderSize, -borderSize);
-            clipRegion ^= content;
-            painter->setClipRegion(clipRegion);
+        if (QStyleHelper::isInstanceOf(option->styleObject, QAccessible::EditableText)) {
+            painter->save();
+            int stateId = ETS_NORMAL;
+            if (!(state & State_Enabled))
+                stateId = ETS_DISABLED;
+            else if (state & State_ReadOnly)
+                stateId = ETS_READONLY;
+            else if (state & State_HasFocus)
+                stateId = ETS_SELECTED;
+            XPThemeData theme(widget, painter,
+                              QWindowsXPStylePrivate::EditTheme,
+                              EP_EDITBORDER_HVSCROLL, stateId, option->rect);
+            uint resolve_mask = option->palette.resolve();
+            if (resolve_mask & (1 << QPalette::Base)) {
+                // Since EP_EDITBORDER_HVSCROLL does not us borderfill, theme.noContent cannot be used for clipping
+                int borderSize = 1;
+                pGetThemeInt(theme.handle(), theme.partId, theme.stateId, TMT_BORDERSIZE, &borderSize);
+                QRegion clipRegion = option->rect;
+                QRegion content = option->rect.adjusted(borderSize, borderSize, -borderSize, -borderSize);
+                clipRegion ^= content;
+                painter->setClipRegion(clipRegion);
+            }
+            d->drawBackground(theme);
+            painter->restore();
+        } else {
+            QWindowsXPStyle::drawPrimitive(element, option, painter, widget);
         }
-        d->drawBackground(theme);
-        painter->restore();
     }
     break;
 
@@ -1248,7 +1260,7 @@ void QWindowsVistaStyle::drawControl(ControlElement element, const QStyleOption 
                                           menuitem->rect.y(), checkcol - 6, menuitem->rect.height()));
 
             if (act) {
-                stateId = MBI_HOT;
+                stateId = dis ? MBI_DISABLED : MBI_HOT;
                 XPThemeData theme2(widget, painter,
                                    QWindowsXPStylePrivate::MenuTheme,
                                    MENU_POPUPITEM, stateId, option->rect);

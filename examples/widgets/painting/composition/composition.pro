@@ -6,17 +6,15 @@ SHARED_FOLDER = ../shared
 include($$SHARED_FOLDER/shared.pri)
 
 RESOURCES += composition.qrc
-contains(QT_CONFIG, opengl) {
+qtHaveModule(opengl) {
 	DEFINES += QT_OPENGL_SUPPORT
 	QT += opengl
 }
 QT += widgets
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/painting/composition
-sources.files = $$SOURCES $$HEADERS $$RESOURCES *.png *.jpg *.pro *.html
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/painting/composition
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/painting/composition
+INSTALLS += target
 
 
 win32-msvc* {

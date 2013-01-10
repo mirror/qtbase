@@ -115,7 +115,8 @@ public:
     virtual void requestActivateWindow();
 
     virtual void handleContentOrientationChange(Qt::ScreenOrientation orientation);
-    virtual Qt::ScreenOrientation requestWindowOrientation(Qt::ScreenOrientation orientation);
+
+    virtual qreal devicePixelRatio() const;
 
     virtual bool setKeyboardGrabEnabled(bool grab);
     virtual bool setMouseGrabEnabled(bool grab);

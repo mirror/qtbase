@@ -69,7 +69,8 @@ void *QCocoaNativeInterface::nativeResourceForContext(const QByteArray &resource
 {
     if (!context)
         return 0;
-
+    if (resourceString.toLower() == "nsopenglcontext")
+        return nsOpenGLContextForContext(context);
     if (resourceString.toLower() == "cglcontextobj")
         return cglContextForContext(context);
 
@@ -106,8 +107,10 @@ QPlatformPrinterSupport *QCocoaNativeInterface::createPlatformPrinterSupport()
 void *QCocoaNativeInterface::NSPrintInfoForPrintEngine(QPrintEngine *printEngine)
 {
 #ifndef QT_NO_WIDGETS
-    QMacPrintEngine *macPrintEngine = static_cast<QMacPrintEngine *>(printEngine);
-    return macPrintEngine->d_func()->printInfo;
+    QMacPrintEnginePrivate *macPrintEnginePriv = static_cast<QMacPrintEngine *>(printEngine)->d_func();
+    if (macPrintEnginePriv->state == QPrinter::Idle && !macPrintEnginePriv->isPrintSessionInitialized())
+        macPrintEnginePriv->initialize();
+    return macPrintEnginePriv->printInfo;
 #else
     qFatal("Printing is not supported when Qt is configured with -no-widgets");
     return 0;
@@ -122,12 +125,18 @@ void QCocoaNativeInterface::onAppFocusWindowChanged(QWindow *window)
 
 void *QCocoaNativeInterface::cglContextForContext(QOpenGLContext* context)
 {
+    NSOpenGLContext *nsOpenGLContext = static_cast<NSOpenGLContext*>(nsOpenGLContextForContext(context));
+    if (nsOpenGLContext)
+        return [nsOpenGLContext CGLContextObj];
+    return 0;
+}
+
+void *QCocoaNativeInterface::nsOpenGLContextForContext(QOpenGLContext* context)
+{
     if (context) {
         QCocoaGLContext *cocoaGLContext = static_cast<QCocoaGLContext *>(context->handle());
         if (cocoaGLContext) {
-            NSOpenGLContext *nsOpenGLContext = cocoaGLContext->nsOpenGLContext();
-            if (nsOpenGLContext)
-                return [nsOpenGLContext CGLContextObj];
+            return cocoaGLContext->nsOpenGLContext();
         }
     }
     return 0;

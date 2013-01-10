@@ -2520,26 +2520,6 @@ int qrand()
 */
 
 /*!
-    \macro TRUE
-    \relates <QtGlobal>
-    \obsolete
-
-    Synonym for \c true.
-
-    \sa FALSE
-*/
-
-/*!
-    \macro FALSE
-    \relates <QtGlobal>
-    \obsolete
-
-    Synonym for \c false.
-
-    \sa TRUE
-*/
-
-/*!
     \macro QABS(n)
     \relates <QtGlobal>
     \obsolete

@@ -167,6 +167,9 @@ void QCoreApplicationPrivate::processCommandLineArguments()
         QByteArray arg = argv[i];
         if (arg.startsWith("-qmljsdebugger=")) {
             qmljs_debug_arguments = QString::fromLocal8Bit(arg.right(arg.length() - 15));
+        } else if (arg == "-qmljsdebugger" && i < argc - 1) {
+            ++i;
+            qmljs_debug_arguments = QString::fromLocal8Bit(argv[i]);
         } else {
             argv[j++] = argv[i];
         }
@@ -2321,19 +2324,6 @@ void QCoreApplication::setEventDispatcher(QAbstractEventDispatcher *eventDispatc
     mainThread->setEventDispatcher(eventDispatcher);
 }
 
-/*
-    \fn void QCoreApplication::watchUnixSignal(int signal, bool watch)
-    \internal
-*/
-
-/*!
-    \fn void QCoreApplication::unixSignal(int number)
-    \internal
-
-    This signal is emitted whenever a Unix signal is received by the
-    application. The Unix signal received is specified by its \a number.
-*/
-
 /*!
     \fn void qAddPostRoutine(QtCleanUpFunction ptr)
     \relates QCoreApplication
@@ -2388,14 +2378,6 @@ void QCoreApplication::setEventDispatcher(QAbstractEventDispatcher *eventDispatc
     be any string.
 
     \sa Q_OBJECT, QObject::tr(), QObject::trUtf8()
-*/
-
-/*!
-    \enum QCoreApplication::Type
-
-    \value Tty a console application
-    \value GuiClient a GUI application
-    \value GuiServer \e{Deprecated.} this value is only left for compatibility.
 */
 
 QT_END_NAMESPACE

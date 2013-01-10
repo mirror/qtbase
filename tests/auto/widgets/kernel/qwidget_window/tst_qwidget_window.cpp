@@ -53,6 +53,13 @@
 #include <qpushbutton.h>
 #include <qboxlayout.h>
 
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QWidget_window : public QWidget
 {
@@ -116,6 +123,7 @@ void tst_QWidget_window::tst_min_max_size()
     const QSize minSize(300, 400);
     const QSize maxSize(1000, 500);
     QWidget w1;
+    setFrameless(&w1);
     (new QVBoxLayout(&w1))->addWidget(new QPushButton("Test"));
     if (setMinMaxSizeBeforeShow) {
         w1.setMinimumSize(minSize);
@@ -230,28 +238,16 @@ void tst_QWidget_window::tst_windowFilePathAndwindowTitle_data()
 
     QString validPath = QApplication::applicationFilePath();
     QString fileNameOnly = QFileInfo(validPath).fileName() + QLatin1String("[*]");
-    QString fileAndSep = fileNameOnly + QLatin1String(" ") + QChar(0x2014) + QLatin1String(" ");
     QString windowTitle = QLatin1String("Here is a Window Title");
-
-    QString defaultPlatString =
-#if 0 // was ifdef Q_OS_MAC, but that code is disabled in qwidget.cpp and caption handling should move to QPA anyway
-        fileNameOnly;
-#else
-        fileAndSep + "tst_qwidget_window"; // default app name in Qt5
-#endif
+    QString defaultPlatString = fileNameOnly;
 
     QTest::newRow("never Set Title nor AppName") << false << false << validPath << QString() << windowTitle << defaultPlatString << defaultPlatString;
     QTest::newRow("set title after only, but no AppName") << false << true << validPath << QString() << windowTitle << defaultPlatString << windowTitle;
     QTest::newRow("set title before only, not AppName") << true << false << validPath << QString() << windowTitle << windowTitle << windowTitle;
     QTest::newRow("always set title, not appName") << true << true << validPath << QString() << windowTitle << windowTitle << windowTitle;
 
-    QString appName = QLatin1String("Killer App");
-    QString platString =
-#if 0 // was ifdef Q_OS_MAC, but that code is disabled in qwidget.cpp and caption handling should move to QPA anyway
-        fileNameOnly;
-#else
-        fileAndSep + appName;
-#endif
+    QString appName = QLatin1String("Killer App"); // Qt4 used to make it part of windowTitle(), Qt5 doesn't anymore, the QPA plugin takes care of it.
+    QString platString = fileNameOnly;
 
     QTest::newRow("never Set Title, yes AppName") << false << false << validPath << appName << windowTitle << platString << platString;
     QTest::newRow("set title after only, yes AppName") << false << true << validPath << appName << windowTitle << platString << windowTitle;

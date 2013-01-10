@@ -47,7 +47,8 @@
 
 QT_BEGIN_NAMESPACE
 
-extern void qt_registerFont(const QString &familyname, const QString &foundryname, int weight,
+extern void qt_registerFont(const QString &familyname, const QString &stylename,
+                            const QString &foundryname, int weight,
                             QFont::Style style, int stretch, bool antialiased,
                             bool scalable, int pixelSize, bool fixedPitch,
                             const QSupportedWritingSystems &writingSystems, void *hanlde);
@@ -89,7 +90,7 @@ void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *
                 }
             }
             QFont::Stretch stretch = QFont::Unstretched;
-            registerFont(fontName,QString(),fontWeight,fontStyle,stretch,true,false,pixelSize,false,writingSystems,handle);
+            registerFont(fontName,QString(),QString(),fontWeight,fontStyle,stretch,true,false,pixelSize,false,writingSystems,handle);
         }
     } else {
         qDebug() << "header verification of QPF2 font failed. maybe it is corrupt?";
@@ -117,7 +118,8 @@ void QPlatformFontDatabase::registerQPF2Font(const QByteArray &dataArray, void *
 
     \sa registerQPF2Font()
 */
-void QPlatformFontDatabase::registerFont(const QString &familyname, const QString &foundryname, QFont::Weight weight,
+void QPlatformFontDatabase::registerFont(const QString &familyname, const QString &stylename,
+                                         const QString &foundryname, QFont::Weight weight,
                                          QFont::Style style, QFont::Stretch stretch, bool antialiased,
                                          bool scalable, int pixelSize, bool fixedPitch,
                                          const QSupportedWritingSystems &writingSystems, void *usrPtr)
@@ -125,7 +127,7 @@ void QPlatformFontDatabase::registerFont(const QString &familyname, const QStrin
     if (scalable)
         pixelSize = 0;
 
-    qt_registerFont(familyname, foundryname, weight, style,
+    qt_registerFont(familyname, stylename, foundryname, weight, style,
                     stretch, antialiased, scalable, pixelSize,
                     fixedPitch, writingSystems, usrPtr);
 }
@@ -276,8 +278,7 @@ void QPlatformFontDatabase::populateFontDatabase()
     option to fall back to the fonts given by \a fallbacks if \a fontEngine does not support
     a certain character.
 */
-QFontEngineMulti *QPlatformFontDatabase::fontEngineMulti(QFontEngine *fontEngine,
-                                                         QUnicodeTables::Script script)
+QFontEngineMulti *QPlatformFontDatabase::fontEngineMulti(QFontEngine *fontEngine, QChar::Script script)
 {
     return new QFontEngineMultiQPA(fontEngine, script);
 }
@@ -286,7 +287,7 @@ QFontEngineMulti *QPlatformFontDatabase::fontEngineMulti(QFontEngine *fontEngine
     Returns the font engine that can be used to render the font described by
     the font definition, \a fontDef, in the specified \a script.
 */
-QFontEngine *QPlatformFontDatabase::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle)
+QFontEngine *QPlatformFontDatabase::fontEngine(const QFontDef &fontDef, QChar::Script script, void *handle)
 {
     Q_UNUSED(script);
     Q_UNUSED(handle);
@@ -310,7 +311,7 @@ QFontEngine *QPlatformFontDatabase::fontEngine(const QByteArray &fontData, qreal
     Returns a list of alternative fonts for the specified \a family and
     \a style and \a script using the \a styleHint given.
 */
-QStringList QPlatformFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
+QStringList QPlatformFontDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
 {
     Q_UNUSED(family);
     Q_UNUSED(style);

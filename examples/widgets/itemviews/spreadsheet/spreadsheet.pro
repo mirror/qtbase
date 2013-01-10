@@ -1,6 +1,6 @@
 QT += widgets
-!isEmpty(QT.printsupport.name): QT += printsupport
-#unix:contains(QT_CONFIG, dbus):QT += dbus widgets
+qtHaveModule(printsupport): QT += printsupport
+#unix:qtHaveModule(dbus): QT += dbus widgets
 
 HEADERS += printview.h spreadsheet.h spreadsheetdelegate.h spreadsheetitem.h
 SOURCES += main.cpp \
@@ -16,8 +16,6 @@ build_all:!build_pass {
 }
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/itemviews/spreadsheet
-sources.files = $$SOURCES $$RESOURCES *.pro images $$HEADERS
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/itemviews/spreadsheet
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/itemviews/spreadsheet
+INSTALLS += target
 

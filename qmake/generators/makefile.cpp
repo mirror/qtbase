@@ -223,8 +223,8 @@ MakefileGenerator::initOutPaths()
     //some builtin directories
     if(project->isEmpty("PRECOMPILED_DIR") && !project->isEmpty("OBJECTS_DIR"))
         v["PRECOMPILED_DIR"] = v["OBJECTS_DIR"];
-    static const char * const dirs[] = { "OBJECTS_DIR", "DESTDIR", "QMAKE_PKGCONFIG_DESTDIR",
-                                         "SUBLIBS_DIR", "DLLDESTDIR", "QMAKE_LIBTOOL_DESTDIR",
+    static const char * const dirs[] = { "OBJECTS_DIR", "DESTDIR",
+                                         "SUBLIBS_DIR", "DLLDESTDIR",
                                          "PRECOMPILED_DIR", 0 };
     for (int x = 0; dirs[x]; x++) {
         const ProKey dkey(dirs[x]);
@@ -436,6 +436,9 @@ MakefileGenerator::init()
     init_already = true;
 
     ProValueMap &v = project->variables();
+
+    if (v["TARGET"].isEmpty())
+        warn_msg(WarnLogic, "TARGET is empty");
 
     chkdir = v["QMAKE_CHK_DIR_EXISTS"].join(' ');
     chkfile = v["QMAKE_CHK_FILE_EXISTS"].join(' ');
@@ -2249,6 +2252,10 @@ MakefileGenerator::writeHeader(QTextStream &t)
         t << "# Command: " << build_args().replace("$(QMAKE)", var("QMAKE_QMAKE")) << endl;
     t << "#############################################################################" << endl;
     t << endl;
+    QString ofile = Option::fixPathToTargetOS(Option::output.fileName());
+    if (ofile.lastIndexOf(Option::dir_sep) != -1)
+        ofile.remove(0, ofile.lastIndexOf(Option::dir_sep) +1);
+    t << "MAKEFILE      = " << ofile << endl << endl;
 }
 
 QList<MakefileGenerator::SubTarget*>
@@ -2407,10 +2414,6 @@ MakefileGenerator::writeSubTargets(QTextStream &t, QList<MakefileGenerator::SubT
         t << "include " << (*qeui_it) << endl;
 
     if (!(flags & SubTargetSkipDefaultVariables)) {
-        QString ofile = Option::fixPathToTargetOS(Option::output.fileName());
-        if(ofile.lastIndexOf(Option::dir_sep) != -1)
-            ofile.remove(0, ofile.lastIndexOf(Option::dir_sep) +1);
-        t << "MAKEFILE      = " << ofile << endl;
         /* Calling Option::fixPathToTargetOS() is necessary for MinGW/MSYS, which requires
          * back-slashes to be turned into slashes. */
         t << "QMAKE         = " << var("QMAKE_QMAKE") << endl;

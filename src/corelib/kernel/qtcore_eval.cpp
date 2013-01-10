@@ -60,7 +60,7 @@ static const char boilerplate_unsuported[] =
     "Registered to:\n"
     "   Licensee: %2\n\n"
     "The evaluation expires in %4 days\n\n"
-    "Contact http://qt.nokia.com/about/contact-us for pricing and purchasing information.\n";
+    "Contact http://qt.digia.com/contact-us for pricing and purchasing information.\n";
 
 static const char boilerplate_supported[] =
     "\nQt %1 Evaluation License\n"
@@ -69,22 +69,22 @@ static const char boilerplate_supported[] =
     "Registered to:\n"
     "   Licensee: %2\n\n"
     "The evaluation expires in %4 days\n\n"
-    "Contact http://qt.nokia.com/about/contact-us for pricing and purchasing information.\n";
+    "Contact http://qt.digia.com/contact-us for pricing and purchasing information.\n";
 
 static const char boilerplate_expired[] =
     "This software is using the trial version of the Qt GUI toolkit.\n"
     "The trial period has expired. If you need more time to\n"
     "evaluate Qt, or if you have any questions about Qt, contact us\n"
-    "at: http://qt.nokia.com/about/contact-us.\n\n";
+    "at: http://qt.digia.com/contact-us.\n\n";
 
 static const char will_shutdown_1min[] =
     "\nThe evaluation of Qt will SHUT DOWN in 1 minute.\n"
-    "Contact http://qt.nokia.com/about/contact-us for pricing and purchasing information.\n";
+    "Contact http://qt.digia.com/contact-us for pricing and purchasing information.\n";
 
 static const char will_shutdown_now[] =
     "\nThe evaluation of Qt has now reached its automatic\n"
     "timeout and will shut down.\n"
-    "Contact http://qt.nokia.com/about/contact-us for pricing and purchasing information.\n";
+    "Contact http://qt.digia.com/contact-us for pricing and purchasing information.\n";
 
 static int qt_eval_is_supported()
 {
@@ -117,7 +117,7 @@ static int qt_eval_days_left()
 
     QDate today = QDate::currentDate();
     QDate build = QLibraryInfo::buildDate();
-    return qMax(-1, today.daysTo(build) + 30);
+    return qMax<qint64>(-1, today.daysTo(build) + 30);
 }
 
 static QString qt_eval_string()
@@ -198,7 +198,7 @@ void qt_core_eval_init(uint type)
 }
 #endif
 
-#ifdef QT_BUILD_GUI_LIB
+#ifdef QT_BUILD_WIDGETS_LIB
 
 QT_BEGIN_INCLUDE_NAMESPACE
 #include <qdialog.h>
@@ -464,7 +464,7 @@ public:
         QFrame *border = new QFrame(this);
 
         QLabel *pixmap_label = new QLabel(border);
-        pixmap_label->setPixmap(qtlogo_eval_xpm);
+        pixmap_label->setPixmap(QPixmap(qtlogo_eval_xpm));
         pixmap_label->setAlignment(Qt::AlignTop);
 
         QLabel *text_label = new QLabel(str, border);

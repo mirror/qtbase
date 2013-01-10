@@ -43,11 +43,13 @@
 #define QXCBNATIVEINTERFACE_H
 
 #include <qpa/qplatformnativeinterface.h>
+#include <xcb/xcb.h>
 
 QT_BEGIN_NAMESPACE
 
 class QWidget;
 class QXcbScreen;
+class QXcbConnection;
 
 class QXcbNativeInterface : public QPlatformNativeInterface
 {
@@ -59,15 +61,19 @@ public:
         Screen,
         GraphicsDevice,
         EglContext,
-        GLXContext
+        GLXContext,
+        AppTime,
+        AppUserTime
     };
 
     QXcbNativeInterface();
 
     void *nativeResourceForContext(const QByteArray &resourceString, QOpenGLContext *context);
+    void *nativeResourceForScreen(const QByteArray &resource, QScreen *screen);
     void *nativeResourceForWindow(const QByteArray &resourceString, QWindow *window);
 
     NativeResourceForContextFunction nativeResourceFunctionForContext(const QByteArray &resource);
+    NativeResourceForScreenFunction nativeResourceFunctionForScreen(const QByteArray &resource) Q_DECL_OVERRIDE;
 
     inline const QByteArray &genericEventFilterType() const { return m_genericEventFilterType; }
 
@@ -76,6 +82,10 @@ public:
     void *connectionForWindow(QWindow *window);
     void *screenForWindow(QWindow *window);
     void *graphicsDeviceForWindow(QWindow *window);
+    void *appTime(const QXcbScreen *screen);
+    void *appUserTime(const QXcbScreen *screen);
+    static void setAppTime(QScreen *screen, xcb_timestamp_t time);
+    static void setAppUserTime(QScreen *screen, xcb_timestamp_t time);
     static void *eglContextForContext(QOpenGLContext *context);
     static void *glxContextForContext(QOpenGLContext *context);
 

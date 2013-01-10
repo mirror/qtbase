@@ -44,6 +44,14 @@
 #include <QtGui>
 #include <QtWidgets>
 
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
+
 class tst_QBoxLayout : public QObject
 {
     Q_OBJECT
@@ -66,13 +74,14 @@ private slots:
     void setStyleShouldChangeSpacing();
 
     void taskQTBUG_7103_minMaxWidthNotRespected();
+    void taskQTBUG_27420_takeAtShouldUnparentLayout();
 };
 
-class CustomLayoutStyle : public QWindowsStyle
+class CustomLayoutStyle : public QProxyStyle
 {
     Q_OBJECT
 public:
-    CustomLayoutStyle() : QWindowsStyle()
+    CustomLayoutStyle() : QProxyStyle(QStyleFactory::create("windows"))
     {
         hspacing = 5;
         vspacing = 10;
@@ -109,7 +118,7 @@ int CustomLayoutStyle::pixelMetric(PixelMetric metric, const QStyleOption * opti
         default:
             break;
     }
-    return QWindowsStyle::pixelMetric(metric, option, widget);
+    return QProxyStyle::pixelMetric(metric, option, widget);
 }
 
 
@@ -197,6 +206,7 @@ void tst_QBoxLayout::sizeConstraints()
 void tst_QBoxLayout::setGeometry()
 {
     QWidget toplevel;
+    setFrameless(&toplevel);
     QWidget w(&toplevel);
     QVBoxLayout *lay = new QVBoxLayout;
     lay->setMargin(0);
@@ -271,6 +281,27 @@ void tst_QBoxLayout::taskQTBUG_7103_minMaxWidthNotRespected()
     QTest::qWait(50);
 
     QCOMPARE(label->height(), height);
+}
+
+void tst_QBoxLayout::taskQTBUG_27420_takeAtShouldUnparentLayout()
+{
+    QSharedPointer<QHBoxLayout> outer(new QHBoxLayout);
+    QPointer<QVBoxLayout> inner = new QVBoxLayout;
+
+    outer->addLayout(inner);
+    QCOMPARE(outer->count(), 1);
+    QCOMPARE(inner->parent(), outer.data());
+
+    QLayoutItem *item = outer->takeAt(0);
+    QCOMPARE(item->layout(), inner.data());
+    QVERIFY(!item->layout()->parent());
+
+    outer.reset();
+
+    if (inner)
+        delete item; // success: a taken item/layout should not be deleted when the old parent is deleted
+    else
+        QVERIFY(!inner.isNull());
 }
 
 QTEST_MAIN(tst_QBoxLayout)

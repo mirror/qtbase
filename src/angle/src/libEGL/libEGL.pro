@@ -1,10 +1,13 @@
 TEMPLATE = lib
-TARGET = libEGL
+TARGET = $$qtLibraryTarget(libEGL)
 
 include(../common/common.pri)
 
-LIBS += -ld3d9 -ldxguid -ldwmapi \
-        -L$$QT_BUILD_TREE/lib -llibGLESv2
+# Note: ANGLE is patched to dynamically resolve DwmIsCompositionEnabled DwmSetPresentParameters
+# in Surface.cpp, which would otherwise require -ldwmapi, which does not exist on Windows XP
+# (QTBUG-27741).
+LIBS += -ld3d9 -ldxguid \
+        -L$$QT_BUILD_TREE/lib -l$$qtLibraryTarget(libGLESv2)
 
 HEADERS += \
     $$ANGLE_DIR/src/libEGL/Config.h \
@@ -20,6 +23,11 @@ SOURCES += \
     $$ANGLE_DIR/src/libEGL/libEGL.cpp \
     $$ANGLE_DIR/src/libEGL/main.cpp \
     $$ANGLE_DIR/src/libEGL/Surface.cpp
+
+!static {
+    DEF_FILE = $$ANGLE_DIR/src/libEGL/$${TARGET}.def
+    win32-g++*:equals(QT_ARCH, i386): DEF_FILE = $$ANGLE_DIR/src/libEGL/$${TARGET}_mingw32.def
+}
 
 load(qt_installs)
 

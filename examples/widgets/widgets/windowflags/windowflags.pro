@@ -1,3 +1,5 @@
+QT += widgets
+
 HEADERS       = controllerwindow.h \
                 previewwindow.h
 SOURCES       = controllerwindow.cpp \
@@ -5,11 +7,7 @@ SOURCES       = controllerwindow.cpp \
                 main.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/windowflags
-sources.files = $$SOURCES $$HEADERS $$RESOURCES $$FORMS windowflags.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/widgets/windowflags
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/windowflags
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

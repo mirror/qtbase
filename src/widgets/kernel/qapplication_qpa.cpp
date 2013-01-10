@@ -250,12 +250,6 @@ void QApplicationPrivate::openPopup(QWidget *popup)
             QApplication::sendEvent(fw, &e);
         }
     }
-
-    // Dispatch leave for last mouse receiver to update undermouse states
-    if (qt_last_mouse_receiver && !QWidget::mouseGrabber()) {
-        QApplicationPrivate::dispatchEnterLeave(0, qt_last_mouse_receiver.data());
-        qt_last_mouse_receiver = 0;
-    }
 }
 
 void QApplicationPrivate::initializeMultitouch_sys()
@@ -427,8 +421,11 @@ void qt_init(QApplicationPrivate *priv, int type)
 
     QColormap::initialize();
 
+#ifndef QT_NO_TOOLTIP
     if (const QPalette *toolTipPalette = QGuiApplicationPrivate::platformTheme()->palette(QPlatformTheme::ToolTipPalette))
         QToolTip::setPalette(*toolTipPalette);
+#endif
+
     QApplicationPrivate::initializeWidgetFontHash();
 }
 

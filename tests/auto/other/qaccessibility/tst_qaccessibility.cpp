@@ -69,6 +69,16 @@
 
 #include "QtTest/qtestaccessible.h"
 
+// Make a widget frameless to prevent size constraints of title bars
+// from interfering (Windows).
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
+
 #if defined(Q_OS_WINCE)
 extern "C" bool SystemParametersInfo(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
 #define SPI_GETPLATFORMTYPE 257
@@ -99,7 +109,7 @@ static inline bool verifyChild(QWidget *child, QAccessibleInterface *interface,
     }
 
     // Verify that we get a valid QAccessibleInterface for the child.
-    QAccessibleInterface *childInterface = QAccessible::queryAccessibleInterface(child);
+    QAIPtr childInterface(QAccessible::queryAccessibleInterface(child));
     if (!childInterface) {
         qWarning("tst_QAccessibility::verifyChild: Failed to retrieve interface for child.");
         return false;
@@ -107,7 +117,7 @@ static inline bool verifyChild(QWidget *child, QAccessibleInterface *interface,
 
     // QAccessibleInterface::indexOfChild():
     // Verify that indexOfChild() returns an index equal to the index passed in
-    int indexFromIndexOfChild = interface->indexOfChild(childInterface);
+    int indexFromIndexOfChild = interface->indexOfChild(childInterface.data());
     if (indexFromIndexOfChild != index) {
         qWarning("tst_QAccessibility::verifyChild (indexOfChild()):");
         qWarning() << "Expected:" << index;
@@ -116,18 +126,17 @@ static inline bool verifyChild(QWidget *child, QAccessibleInterface *interface,
     }
 
     // Navigate to child, compare its object and role with the interface from queryAccessibleInterface(child).
-    QAccessibleInterface *navigatedChildInterface = interface->child(index);
-    if (navigatedChildInterface == 0)
+    QAIPtr navigatedChildInterface(interface->child(index));
+    if (!navigatedChildInterface)
         return false;
 
     const QRect rectFromInterface = navigatedChildInterface->rect();
-    delete navigatedChildInterface;
 
     // QAccessibleInterface::childAt():
     // Calculate global child position and check that the interface
     // returns the correct index for that position.
     QPoint globalChildPos = child->mapToGlobal(QPoint(0, 0));
-    QAccessibleInterface *childAtInterface = interface->childAt(globalChildPos.x(), globalChildPos.y());
+    QAIPtr childAtInterface(interface->childAt(globalChildPos.x(), globalChildPos.y()));
     if (!childAtInterface) {
         qWarning("tst_QAccessibility::verifyChild (childAt()):");
         qWarning() << "Expected:" << childInterface;
@@ -140,8 +149,6 @@ static inline bool verifyChild(QWidget *child, QAccessibleInterface *interface,
         qWarning() << "Actual:  " << childAtInterface;
         return false;
     }
-    delete childInterface;
-    delete childAtInterface;
 
     // QAccessibleInterface::rect():
     // Calculate global child geometry and check that the interface
@@ -167,19 +174,18 @@ static inline int indexOfChild(QAccessibleInterface *parentInterface, QWidget *c
 {
     if (!parentInterface || !childWidget)
         return -1;
-    QAccessibleInterface *childInterface = QAccessible::queryAccessibleInterface(childWidget);
+    QAIPtr childInterface(QAccessible::queryAccessibleInterface(childWidget));
     if (!childInterface)
         return -1;
-    int index = parentInterface->indexOfChild(childInterface);
-    delete childInterface;
-    return index;
+    return parentInterface->indexOfChild(childInterface.data());
 }
 
 #define EXPECT(cond) \
     do { \
         if (!errorAt && !(cond)) { \
             errorAt = __LINE__; \
-            qWarning("level: %d, middle: %d, role: %d (%s)", treelevel, middle, iface->role(), #cond); \
+            qWarning("level: %d, role: %d (%s)", treelevel, iface->role(), #cond); \
+            break; \
         } \
     } while (0)
 
@@ -187,36 +193,21 @@ static int verifyHierarchy(QAccessibleInterface *iface)
 {
     int errorAt = 0;
     static int treelevel = 0;   // for error diagnostics
-    QAccessibleInterface *middleChild, *if2;
-    middleChild = 0;
+    QAIPtr middleChild;
+    QAIPtr if2;
     ++treelevel;
-    int middle = iface->childCount()/2 + 1;
-    if (iface->childCount() >= 2) {
-        middleChild = iface->child(middle - 1);
-    }
     for (int i = 0; i < iface->childCount() && !errorAt; ++i) {
-        if2 = iface->child(i);
+        if2 = QAIPtr(iface->child(i));
         EXPECT(if2 != 0);
-        // navigate Ancestor...
-        QAccessibleInterface *parent = if2->parent();
+        EXPECT(iface->indexOfChild(if2.data()) == i);
+        // navigate Ancestor
+        QAIPtr parent(if2->parent());
         EXPECT(iface->object() == parent->object());
-        delete parent;
 
-            // navigate Sibling...
-//            if (middleChild) {
-//                entry = if2->navigate(QAccessible::Sibling, middle, &if3);
-//                EXPECT(entry == 0 && if3->object() == middleChild->object());
-//                if (entry == 0)
-//                    delete if3;
-//                EXPECT(iface->indexOfChild(middleChild) == middle);
-//            }
-
-        // verify children...
+        // verify children
         if (!errorAt)
-            errorAt = verifyHierarchy(if2);
-        delete if2;
+            errorAt = verifyHierarchy(if2.data());
     }
-    delete middleChild;
 
     --treelevel;
     return errorAt;
@@ -224,10 +215,7 @@ static int verifyHierarchy(QAccessibleInterface *iface)
 
 QRect childRect(QAccessibleInterface *iface, int index = 0)
 {
-    QAccessibleInterface *child = iface->child(index);
-    QRect rect = child->rect();
-    delete child;
-    return rect;
+    return QAIPtr(iface->child(index))->rect();
 }
 
 class tst_QAccessibility : public QObject
@@ -294,16 +282,14 @@ private:
     int click_count;
 };
 
-const double Q_PI = 3.14159265358979323846;
-
 QAccessible::State state(QWidget * const widget)
 {
-    QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(widget);
-    if (!iface)
+    QAIPtr iface(QAccessible::queryAccessibleInterface(widget));
+    if (!iface) {
         qWarning() << "Cannot get QAccessibleInterface for widget";
-    QAccessible::State state = (iface ? iface->state() : QAccessible::State());
-    delete iface;
-    return state;
+        return QAccessible::State();
+    }
+    return iface->state();
 }
 
 class QtTestAccessibleWidget: public QWidget
@@ -385,6 +371,7 @@ void tst_QAccessibility::eventTest()
 {
     QPushButton* button = new QPushButton(0);
     button->setObjectName(QString("Olaf"));
+    setFrameless(button);
 
     button->show();
     QAccessibleEvent showEvent(button, QAccessible::ObjectShow);
@@ -462,10 +449,11 @@ void tst_QAccessibility::sliderTest()
 {
     {
     QSlider *slider = new QSlider(0);
+    setFrameless(slider);
     slider->setObjectName(QString("Slidy"));
     slider->show();
-    QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(slider);
-    QVERIFY(iface != 0);
+    QAIPtr iface(QAccessible::queryAccessibleInterface(slider));
+    QVERIFY(iface);
     QVERIFY(iface->isValid());
 
     QCOMPARE(iface->childCount(), 0);
@@ -475,6 +463,7 @@ void tst_QAccessibility::sliderTest()
     QVERIFY(valueIface != 0);
     QCOMPARE(valueIface->minimumValue().toInt(), slider->minimum());
     QCOMPARE(valueIface->maximumValue().toInt(), slider->maximum());
+    QCOMPARE(valueIface->minimumStepSize().toInt(), slider->singleStep());
     slider->setValue(50);
     QCOMPARE(valueIface->currentValue().toInt(), slider->value());
     slider->setValue(0);
@@ -483,8 +472,9 @@ void tst_QAccessibility::sliderTest()
     QCOMPARE(valueIface->currentValue().toInt(), slider->value());
     valueIface->setCurrentValue(77);
     QCOMPARE(77, slider->value());
+    slider->setSingleStep(2);
+    QCOMPARE(valueIface->minimumStepSize().toInt(), 2);
 
-    delete iface;
     delete slider;
     }
     QTestAccessibility::clearEvents();
@@ -509,54 +499,44 @@ void tst_QAccessibility::navigateHierarchy()
     w31->setObjectName(QString("31"));
     w31->show();
 
-    QAccessibleInterface *target = 0;
-    QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(w);
-    QVERIFY(iface != 0);
-    QVERIFY(iface->isValid());
+    QAIPtr ifaceW(QAccessible::queryAccessibleInterface(w));
+    QVERIFY(ifaceW != 0);
+    QVERIFY(ifaceW->isValid());
 
-    target = iface->child(14);
+    QAIPtr target = QAIPtr(ifaceW->child(14));
     QVERIFY(target == 0);
-    target = iface->child(-1);
+    target = QAIPtr(ifaceW->child(-1));
     QVERIFY(target == 0);
-    target = iface->child(0);
-    QAccessibleInterface *interfaceW1 = iface->child(0);
+    target = QAIPtr(ifaceW->child(0));
+    QAIPtr interfaceW1(ifaceW->child(0));
     QVERIFY(target);
     QVERIFY(target->isValid());
     QCOMPARE(target->object(), (QObject*)w1);
     QVERIFY(interfaceW1 != 0);
     QVERIFY(interfaceW1->isValid());
     QCOMPARE(interfaceW1->object(), (QObject*)w1);
-    delete interfaceW1;
-    delete iface; iface = 0;
 
-    iface = QAccessible::queryAccessibleInterface(w);
-    target = iface->child(2);
+    target = QAIPtr(ifaceW->child(2));
     QVERIFY(target != 0);
     QVERIFY(target->isValid());
     QCOMPARE(target->object(), (QObject*)w3);
-    delete iface; iface = 0;
 
+    QAIPtr child = QAIPtr(target->child(1));
+    QVERIFY(child == 0);
+    child = QAIPtr(target->child(0));
+    QVERIFY(child != 0);
+    QVERIFY(child->isValid());
+    QCOMPARE(child->object(), (QObject*)w31);
 
-    iface = target->child(1);
-    QCOMPARE(iface, (QAccessibleInterface*)0);
-    iface = target->child(0);
-    QVERIFY(iface != 0);
-    QVERIFY(iface->isValid());
-    QCOMPARE(iface->object(), (QObject*)w31);
-
-    iface = QAccessible::queryAccessibleInterface(w);
-    QAccessibleInterface *acc3 = iface->child(2);
-    target = acc3->child(0);
-    delete acc3;
-    delete iface;
+    ifaceW = QAIPtr(QAccessible::queryAccessibleInterface(w));
+    QAIPtr acc3(ifaceW->child(2));
+    target = QAIPtr(acc3->child(0));
     QCOMPARE(target->object(), (QObject*)w31);
 
-    iface = target->parent();
-    QVERIFY(iface != 0);
-    QVERIFY(iface->isValid());
-    QCOMPARE(iface->object(), (QObject*)w3);
-    delete iface; iface = 0;
-    delete target; target = 0;
+    QAIPtr parent = QAIPtr(target->parent());
+    QVERIFY(parent != 0);
+    QVERIFY(parent->isValid());
+    QCOMPARE(parent->object(), (QObject*)w3);
 
     delete w;
     }
@@ -697,6 +677,7 @@ void tst_QAccessibility::textAttributes()
 void tst_QAccessibility::hideShowTest()
 {
     QWidget * const window = new QWidget();
+    window->resize(200, 200);
     QWidget * const child = new QWidget(window);
 
     QVERIFY(state(window).invisible);
@@ -757,6 +738,7 @@ void tst_QAccessibility::actionTest()
 
     {
     QPushButton *button = new QPushButton;
+    setFrameless(button);
     button->show();
     QVERIFY(QTest::qWaitForWindowExposed(button));
     button->clearFocus();
@@ -846,7 +828,7 @@ void tst_QAccessibility::mainWindowTest()
     child.setGeometry(10, 10, 20, 20);
     child.show();
 
-    child.requestActivateWindow();
+    child.requestActivate();
     QTRY_VERIFY(QGuiApplication::focusWindow() == &child);
 
     QAccessibleStateChangeEvent deactivate(&window, activeState);
@@ -942,6 +924,7 @@ void tst_QAccessibility::buttonTest()
     QMenu *menu = new QMenu();
     menu->addAction(foo);
     QPushButton menuButton;
+    setFrameless(&menuButton);
     menuButton.setMenu(menu);
     menuButton.show();
     QAccessibleInterface *interface = QAccessible::queryAccessibleInterface(&menuButton);
@@ -1097,6 +1080,7 @@ void tst_QAccessibility::scrollBarTest()
 void tst_QAccessibility::tabTest()
 {
     QTabBar *tabBar = new QTabBar();
+    setFrameless(tabBar);
     tabBar->show();
 
     QAccessibleInterface * const interface = QAccessible::queryAccessibleInterface(tabBar);
@@ -1473,6 +1457,7 @@ void tst_QAccessibility::menuTest()
 void tst_QAccessibility::spinBoxTest()
 {
     QSpinBox * const spinBox = new QSpinBox();
+    setFrameless(spinBox);
     spinBox->setValue(3);
     spinBox->show();
 
@@ -1515,6 +1500,7 @@ void tst_QAccessibility::spinBoxTest()
 void tst_QAccessibility::doubleSpinBoxTest()
 {
     QDoubleSpinBox *doubleSpinBox = new QDoubleSpinBox;
+    setFrameless(doubleSpinBox);
     doubleSpinBox->show();
 
     QAccessibleInterface *interface = QAccessible::queryAccessibleInterface(doubleSpinBox);
@@ -1546,7 +1532,7 @@ static QRect characterRect(const QTextEdit &edit, int offset)
     QPointF layoutPosition = layout->position();
     int relativeOffset = offset - block.position();
     QTextLine line = layout->lineForTextPosition(relativeOffset);
-    QFontMetrics fm(edit.font());
+    QFontMetrics fm(edit.currentFont());
     QChar ch = edit.document()->characterAt(offset);
     int w = fm.width(ch);
     int h = fm.height();
@@ -1558,11 +1544,27 @@ static QRect characterRect(const QTextEdit &edit, int offset)
     return r;
 }
 
+/* The rects does not have to be exactly the same. They may be slightly different due to
+   different ways of calculating them. By having an acceptable delta, this should also
+   make the test a bit more resilient against any future changes in the behavior of
+   characterRect().
+*/
+static bool fuzzyRectCompare(const QRect &a, const QRect &b)
+{
+    static const int MAX_ACCEPTABLE_DELTA = 1;
+    const QMargins delta(a.left() - b.left(), a.top() - b.top(),
+                         a.right() - b.right(), a.bottom() - b.bottom());
+
+    return qAbs(delta.left()) <= MAX_ACCEPTABLE_DELTA && qAbs(delta.top()) <= MAX_ACCEPTABLE_DELTA
+           && qAbs(delta.right()) <= MAX_ACCEPTABLE_DELTA && qAbs(delta.bottom()) <= MAX_ACCEPTABLE_DELTA;
+}
+
 void tst_QAccessibility::textEditTest()
 {
     for (int pass = 0; pass < 2; ++pass) {
         {
         QTextEdit edit;
+        setFrameless(&edit);
         int startOffset;
         int endOffset;
         // create two blocks of text. The first block has two lines.
@@ -1572,7 +1574,7 @@ void tst_QAccessibility::textEditTest()
             QFont font("Helvetica");
             font.setPointSizeF(12.5);
             font.setWordSpacing(1.1);
-            edit.setFont(font);
+            edit.setCurrentFont(font);
         }
 
         edit.show();
@@ -1586,23 +1588,23 @@ void tst_QAccessibility::textEditTest()
         QCOMPARE(startOffset, 13);
         QCOMPARE(endOffset, 31);
         QCOMPARE(iface->textInterface()->characterCount(), 48);
-        QFontMetrics fm(edit.font());
+        QFontMetrics fm(edit.currentFont());
         QCOMPARE(iface->textInterface()->characterRect(0).size(), QSize(fm.width("h"), fm.height()));
         QCOMPARE(iface->textInterface()->characterRect(5).size(), QSize(fm.width(" "), fm.height()));
         QCOMPARE(iface->textInterface()->characterRect(6).size(), QSize(fm.width("w"), fm.height()));
 
         int offset = 10;
         QCOMPARE(iface->textInterface()->text(offset, offset + 1), QStringLiteral("d"));
-        QCOMPARE(iface->textInterface()->characterRect(offset), characterRect(edit, offset));
+        QVERIFY(fuzzyRectCompare(iface->textInterface()->characterRect(offset), characterRect(edit, offset)));
         offset = 13;
         QCOMPARE(iface->textInterface()->text(offset, offset + 1), QStringLiteral("H"));
-        QCOMPARE(iface->textInterface()->characterRect(offset), characterRect(edit, offset));
+        QVERIFY(fuzzyRectCompare(iface->textInterface()->characterRect(offset), characterRect(edit, offset)));
         offset = 21;
         QCOMPARE(iface->textInterface()->text(offset, offset + 1), QStringLiteral("y"));
-        QCOMPARE(iface->textInterface()->characterRect(offset), characterRect(edit, offset));
+        QVERIFY(fuzzyRectCompare(iface->textInterface()->characterRect(offset), characterRect(edit, offset)));
         offset = 32;
         QCOMPARE(iface->textInterface()->text(offset, offset + 1), QStringLiteral("I"));
-        QCOMPARE(iface->textInterface()->characterRect(offset), characterRect(edit, offset));
+        QVERIFY(fuzzyRectCompare(iface->textInterface()->characterRect(offset), characterRect(edit, offset)));
 
         QTestAccessibility::clearEvents();
 
@@ -1613,6 +1615,8 @@ void tst_QAccessibility::textEditTest()
         edit.setTextCursor(c);
         QAccessibleTextSelectionEvent sel(&edit, 2, 4);
         QVERIFY_EVENT(&sel);
+        QAccessibleTextCursorEvent cursor(&edit, 4);
+        QVERIFY_EVENT(&cursor);
 
         edit.selectAll();
         int end = edit.textCursor().position();
@@ -2159,6 +2163,7 @@ void tst_QAccessibility::dialogButtonBoxTest()
     QDialogButtonBox box(QDialogButtonBox::Reset |
                          QDialogButtonBox::Help |
                          QDialogButtonBox::Ok, Qt::Horizontal);
+    setFrameless(&box);
 
 
     // Test up and down navigation
@@ -2200,6 +2205,7 @@ void tst_QAccessibility::dialTest()
 {
     {
     QDial dial;
+    setFrameless(&dial);
     dial.setMinimum(23);
     dial.setMaximum(121);
     dial.setValue(42);
@@ -2684,6 +2690,41 @@ void tst_QAccessibility::tableTest()
     QCOMPARE(table2->rowDescription(1), QString("v2"));
     QCOMPARE(table2->rowDescription(2), QString("v3"));
 
+    tableView->clearSelection();
+    tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
+    tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    QVERIFY(!table2->selectRow(0));
+    QVERIFY(!table2->isRowSelected(0));
+    tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    QVERIFY(table2->selectRow(0));
+    QVERIFY(table2->selectRow(1));
+    QVERIFY(!table2->isRowSelected(0));
+    tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+    QVERIFY(table2->selectRow(0));
+    QVERIFY(table2->isRowSelected(1));
+    QVERIFY(table2->unselectRow(0));
+    QVERIFY(!table2->isRowSelected(0));
+    tableView->setSelectionBehavior(QAbstractItemView::SelectColumns);
+    QVERIFY(!table2->selectRow(0));
+    QVERIFY(!table2->isRowSelected(0));
+    tableView->clearSelection();
+    QCOMPARE(table2->selectedColumnCount(), 0);
+    QCOMPARE(table2->selectedRowCount(), 0);
+    QVERIFY(table2->selectColumn(1));
+    QVERIFY(table2->isColumnSelected(1));
+    tableView->clearSelection();
+    tableView->setSelectionMode(QAbstractItemView::ContiguousSelection);
+    table2->selectColumn(0);
+    table2->selectColumn(2);
+    QVERIFY(!(table2->isColumnSelected(2) && table2->isColumnSelected(0)));
+    tableView->clearSelection();
+    tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
+    tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+    table2->selectColumn(1);
+    table2->selectRow(1);
+    QVERIFY(table2->isColumnSelected(1));
+    QVERIFY(table2->isRowSelected(1));
+
     delete tableView;
 
     QTestAccessibility::clearEvents();
@@ -2923,6 +2964,7 @@ void tst_QAccessibility::labelTest()
 {
     QString text = "Hello World";
     QLabel *label = new QLabel(text);
+    setFrameless(label);
     label->show();
 
 #if defined(Q_OS_UNIX)

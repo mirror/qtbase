@@ -98,6 +98,8 @@ public:
 
     void moveToScreen(QWindow *window, int screen);
 
+    bool supportsNavigatorEvents() const;
+
     QAbstractEventDispatcher *guiThreadEventDispatcher() const;
 
     QPlatformFontDatabase *fontDatabase() const { return m_fontDatabase; }
@@ -126,10 +128,10 @@ public:
 
     void createDisplay(screen_display_t display, bool isPrimary);
     void removeDisplay(QQnxScreen *screen);
+    QQnxScreen *primaryDisplay() const;
 private:
     void createDisplays();
     void destroyDisplays();
-    QQnxScreen *primaryDisplay() const;
 
     static void addWindow(screen_window_t qnxWindow, QWindow *window);
     static void removeWindow(screen_window_t qnxWindow);

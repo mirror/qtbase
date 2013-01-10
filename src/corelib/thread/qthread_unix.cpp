@@ -325,7 +325,7 @@ void *QThreadPrivate::start(void *arg)
 
 #endif
 
-    emit thr->started();
+    emit thr->started(QThread::QPrivateSignal());
 #if !defined(Q_OS_LINUX_ANDROID)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     pthread_testcancel();
@@ -348,7 +348,7 @@ void QThreadPrivate::finish(void *arg)
     d->priority = QThread::InheritPriority;
     void *data = &d->data->tls;
     locker.unlock();
-    emit thr->finished();
+    emit thr->finished(QThread::QPrivateSignal());
     QCoreApplication::sendPostedEvents(0, QEvent::DeferredDelete);
     QThreadStorageData::finish((void **)data);
     locker.relock();
@@ -392,10 +392,7 @@ int QThread::idealThreadCount() Q_DECL_NOTHROW
 {
     int cores = -1;
 
-#if defined(Q_OS_MAC) && !defined(Q_OS_IOS)
-    // Mac OS X
-    cores = MPProcessorsScheduled();
-#elif defined(Q_OS_HPUX)
+#if defined(Q_OS_HPUX)
     // HP-UX
     struct pst_dynamic psd;
     if (pstat_getdynamic(&psd, sizeof(psd), 1, 0) == -1) {
@@ -405,7 +402,7 @@ int QThread::idealThreadCount() Q_DECL_NOTHROW
         cores = (int)psd.psd_proc_cnt;
     }
 #elif defined(Q_OS_BSD4)
-    // FreeBSD, OpenBSD, NetBSD, BSD/OS
+    // FreeBSD, OpenBSD, NetBSD, BSD/OS, Mac OS X
     size_t len = sizeof(cores);
     int mib[2];
     mib[0] = CTL_HW;

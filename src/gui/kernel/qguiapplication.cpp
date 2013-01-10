@@ -60,8 +60,10 @@
 #include <QtCore/private/qthread_p.h>
 #include <QtCore/qdir.h>
 #include <QtDebug>
+#include "qaccessible.h"
 #include <qpalette.h>
 #include <qscreen.h>
+#include "qsessionmanager.h"
 #include <private/qscreen_p.h>
 #include <private/qdrawhelper_p.h>
 
@@ -151,6 +153,7 @@ QWindow *QGuiApplicationPrivate::focus_window = 0;
 static QBasicMutex applicationFontMutex;
 QFont *QGuiApplicationPrivate::app_font = 0;
 bool QGuiApplicationPrivate::obey_desktop_settings = true;
+bool QGuiApplicationPrivate::noGrab = false;
 
 static qreal fontSmoothingGamma = 1.7;
 
@@ -210,13 +213,16 @@ static inline void clearFontUnlocked()
 
     QGuiApplication contains the main event loop, where all events from the window
     system and other sources are processed and dispatched. It also handles the
-    application's initialization and finalization. In addition, QGuiApplication handles
-    most of the system-wide and application-wide settings.
+    application's initialization and finalization, and provides session management.
+    In addition, QGuiApplication handles most of the system-wide and application-wide
+    settings.
 
     For any GUI application using Qt, there is precisely \b one QGuiApplication
     object no matter whether the application has 0, 1, 2 or more windows at
     any given time. For non-GUI Qt applications, use QCoreApplication instead,
-    as it does not depend on the \l QtGui library.
+    as it does not depend on the \l QtGui library. For QWidget based Qt applications,
+    use QApplication instead, as it provides some functionality needed for creating
+    QWidget instances.
 
     The QGuiApplication object is accessible through the instance() function, which
     returns a pointer equivalent to the global \l qApp pointer.
@@ -248,6 +254,14 @@ static inline void clearFontUnlocked()
 
             \li  It manages the application's mouse cursor handling, see
                 setOverrideCursor()
+
+            \li  It provides support for sophisticated \l{Session Management}
+                {session management}. This makes it possible for applications
+                to terminate gracefully when the user logs out, to cancel a
+                shutdown process if termination isn't possible and even to
+                preserve the entire application's state for a future session.
+                See isSessionRestored(), sessionId() and commitDataRequest() and
+                saveStateRequest() for details.
         \endlist
 
     Since the QGuiApplication object does so much initialization, it \e{must} be
@@ -298,6 +312,13 @@ static inline void clearFontUnlocked()
             restoreOverrideCursor().
 
         \row
+        \li  Session management
+        \li  isSessionRestored(),
+            sessionId(),
+            commitDataRequest(),
+            saveStateRequest().
+
+        \row
         \li  Miscellaneous
         \li  startingUp(),
             closingDown(),
@@ -332,6 +353,8 @@ static inline void clearFontUnlocked()
         \li  -qmljsdebugger=, activates the QML/JS debugger with a specified port.
             The value must be of format port:1234[,block], where block is optional
             and will make the application wait until a debugger connects to it.
+        \li  -session \e session, restores the application from an earlier
+            \l{Session Management}{session}.
     \endlist
 
     \sa arguments()
@@ -371,6 +394,11 @@ QGuiApplication::~QGuiApplication()
     QGuiApplicationPrivate::qt_clipboard = 0;
 #endif
 
+#ifndef QT_NO_SESSIONMANAGER
+    delete d->session_manager;
+    d->session_manager = 0;
+#endif //QT_NO_SESSIONMANAGER
+
     clearPalette();
 
 #ifndef QT_NO_CURSOR
@@ -390,7 +418,11 @@ QGuiApplicationPrivate::QGuiApplicationPrivate(int &argc, char **argv, int flags
       lastTouchType(QEvent::TouchEnd)
 {
     self = this;
-    application_type = QCoreApplication::GuiClient;
+    application_type = QCoreApplicationPrivate::Gui;
+#ifndef QT_NO_SESSIONMANAGER
+    is_session_restored = false;
+    is_saving_session = false;
+#endif
 }
 
 /*!
@@ -422,14 +454,14 @@ QString QGuiApplication::applicationDisplayName()
     visible, this function returns zero.
 
     A modal window is a window which has its
-    \l{QWindow::windowModality}{windowModality} property set to Qt::WindowModal
+    \l{QWindow::modality}{modality} property set to Qt::WindowModal
     or Qt::ApplicationModal. A modal window must be closed before the user can
     continue with other parts of the program.
 
     Modal window are organized in a stack. This function returns the modal
     window at the top of the stack.
 
-    \sa Qt::WindowModality, QWindow::setWindowModality()
+    \sa Qt::WindowModality, QWindow::setModality()
 */
 QWindow *QGuiApplication::modalWindow()
 {
@@ -441,7 +473,7 @@ QWindow *QGuiApplication::modalWindow()
 void QGuiApplicationPrivate::updateBlockedStatus(QWindow *window)
 {
     bool shouldBeBlocked = false;
-    if ((window->windowType() & Qt::Popup) != Qt::Popup && !self->modalWindowList.isEmpty())
+    if ((window->type() & Qt::Popup) != Qt::Popup && !self->modalWindowList.isEmpty())
         shouldBeBlocked = self->isWindowBlocked(window);
 
     if (shouldBeBlocked != window->d_func()->blockedByModalWindow) {
@@ -457,7 +489,7 @@ void QGuiApplicationPrivate::showModalWindow(QWindow *modal)
     self->modalWindowList.prepend(modal);
 
     // Send leave for currently entered window if it should be blocked
-    if (currentMouseWindow && (currentMouseWindow->windowType() & Qt::Popup) != Qt::Popup) {
+    if (currentMouseWindow && (currentMouseWindow->type() & Qt::Popup) != Qt::Popup) {
         bool shouldBeBlocked = self->isWindowBlocked(currentMouseWindow);
         if (shouldBeBlocked) {
             // Remove the new window from modalWindowList temporarily so leave can go through
@@ -525,7 +557,7 @@ bool QGuiApplicationPrivate::isWindowBlocked(QWindow *window, QWindow **blocking
             }
         }
 
-        Qt::WindowModality windowModality = modalWindow->windowModality();
+        Qt::WindowModality windowModality = modalWindow->modality();
         switch (windowModality) {
         case Qt::ApplicationModal:
         {
@@ -672,7 +704,34 @@ QList<QScreen *> QGuiApplication::screens()
 
 
 /*!
-    Returns the top level window at the given position \a pos, if any.
+    Returns the highest screen device pixel ratio found on
+    the system. This is the ratio between physical pixels and
+    device-independent pixels.
+
+    Use this function only when you don't know which window you are targeting.
+    If you do know the target window use QWindow::devicePixelRatio() instead.
+
+    \sa QWindow::devicePixelRatio();
+    \sa QGuiApplicaiton::devicePixelRatio();
+*/
+qreal QGuiApplication::devicePixelRatio() const
+{
+    // Cache topDevicePixelRatio, iterate through the screen list once only.
+    static qreal topDevicePixelRatio = 0.0;
+    if (!qFuzzyIsNull(topDevicePixelRatio)) {
+        return topDevicePixelRatio;
+    }
+
+    topDevicePixelRatio = 1.0; // make sure we never return 0.
+    foreach (QScreen *screen, QGuiApplicationPrivate::screen_list) {
+        topDevicePixelRatio = qMax(topDevicePixelRatio, screen->devicePixelRatio());
+    }
+
+    return topDevicePixelRatio;
+}
+
+/*!
+    Returns the top level window at the given position, if any.
 */
 QWindow *QGuiApplication::topLevelAt(const QPoint &pos)
 {
@@ -864,8 +923,18 @@ void QGuiApplicationPrivate::setEventDispatcher(QAbstractEventDispatcher *eventD
 
 }
 
+#if defined(QT_DEBUG) && defined(Q_OS_LINUX)
+// Find out if our parent process is gdb by looking at the 'exe' symlink under /proc.
+static bool runningUnderDebugger()
+{
+    const QFileInfo parentProcExe(QStringLiteral("/proc/") + QString::number(getppid()) + QStringLiteral("/exe"));
+    return parentProcExe.isSymLink() && parentProcExe.symLinkTarget().endsWith(QStringLiteral("/gdb"));
+}
+#endif
+
 void QGuiApplicationPrivate::init()
 {
+    bool doGrabUnderDebugger = false;
     QList<QByteArray> pluginList;
     // Get command line params
 
@@ -894,6 +963,23 @@ void QGuiApplicationPrivate::init()
                     QDir::setCurrent(qbundlePath.section(QLatin1Char('/'), 0, -2));
             }
 #endif
+        } else if (arg == "-nograb") {
+            QGuiApplicationPrivate::noGrab = true;
+        } else if (arg == "-dograb") {
+            doGrabUnderDebugger = true;
+#ifndef QT_NO_SESSIONMANAGER
+        } else if (arg == "-session" && i < argc-1) {
+            ++i;
+            if (argv[i] && *argv[i]) {
+                session_id = QString::fromLatin1(argv[i]);
+                int p = session_id.indexOf(QLatin1Char('_'));
+                if (p >= 0) {
+                    session_key = session_id.mid(p +1);
+                    session_id = session_id.left(p);
+                }
+                is_session_restored = true;
+            }
+#endif
         } else {
             argv[j++] = argv[i];
         }
@@ -903,6 +989,16 @@ void QGuiApplicationPrivate::init()
         argv[j] = 0;
         argc = j;
     }
+
+#if defined(QT_DEBUG) && defined(Q_OS_LINUX)
+    if (!doGrabUnderDebugger && !QGuiApplicationPrivate::noGrab && runningUnderDebugger()) {
+        QGuiApplicationPrivate::noGrab = true;
+        qDebug("Qt: gdb: -nograb added to command-line options.\n"
+               "\t Use the -dograb option to enforce grabbing.");
+    }
+#else
+    Q_UNUSED(doGrabUnderDebugger)
+#endif
 
     // Load environment exported generic plugins
     foreach (const QByteArray &plugin, qgetenv("QT_QPA_GENERIC_PLUGINS").split(','))
@@ -930,6 +1026,14 @@ void QGuiApplicationPrivate::init()
     is_app_running = true;
     init_plugins(pluginList);
     QWindowSystemInterface::flushWindowSystemEvents();
+
+    Q_Q(QGuiApplication);
+
+#ifndef QT_NO_SESSIONMANAGER
+    // connect to the session manager
+    session_manager = new QSessionManager(q, session_id, session_key);
+#endif
+
 }
 
 extern void qt_cleanupFontDatabase();
@@ -962,7 +1066,8 @@ QGuiApplicationPrivate::~QGuiApplicationPrivate()
 
     QPixmapCache::clear();
 
-    delete  platform_theme;
+    delete platform_theme;
+    platform_theme = 0;
     delete platform_integration;
     platform_integration = 0;
     delete m_gammaTables.load();
@@ -1052,7 +1157,7 @@ Qt::MouseButtons QGuiApplication::mouseButtons()
 QPlatformNativeInterface *QGuiApplication::platformNativeInterface()
 {
     QPlatformIntegration *pi = QGuiApplicationPrivate::platformIntegration();
-    return pi->nativeInterface();
+    return pi ? pi->nativeInterface() : 0;
 }
 
 /*!
@@ -1080,6 +1185,9 @@ QPlatformNativeInterface *QGuiApplication::platformNativeInterface()
 */
 int QGuiApplication::exec()
 {
+#ifndef QT_NO_ACCESSIBILITY
+    QAccessible::setRootObject(qApp);
+#endif
     return QCoreApplication::exec();
 }
 
@@ -1284,7 +1392,7 @@ void QGuiApplicationPrivate::processMouseEvent(QWindowSystemInterfacePrivate::Mo
             // Ignore mouse events that don't change the current state.
             return;
         }
-        buttons = e->buttons;
+        mouse_buttons = buttons = e->buttons;
         if (button & e->buttons) {
             ulong doubleClickInterval = static_cast<ulong>(qApp->styleHints()->mouseDoubleClickInterval());
             doubleClick = e->timestamp - mousePressTime < doubleClickInterval && button == mousePressButton;
@@ -1424,7 +1532,7 @@ void QGuiApplicationPrivate::processEnterEvent(QWindowSystemInterfacePrivate::En
 
     currentMouseWindow = e->enter;
 
-    QEvent event(QEvent::Enter);
+    QEnterEvent event(e->localPos, e->localPos, e->globalPos);
     QCoreApplication::sendSpontaneousEvent(e->enter.data(), &event);
 }
 
@@ -1580,7 +1688,10 @@ void QGuiApplicationPrivate::processTabletEvent(QWindowSystemInterfacePrivate::T
         type = e->down ? QEvent::TabletPress : QEvent::TabletRelease;
         tabletState = e->down;
     }
+
     QWindow *window = e->window.data();
+    modifier_buttons = e->modifiers;
+
     bool localValid = true;
     // If window is null, pick one based on the global position and make sure all
     // subsequent events up to the release are delivered to that same window.
@@ -1611,7 +1722,7 @@ void QGuiApplicationPrivate::processTabletEvent(QWindowSystemInterfacePrivate::T
     QTabletEvent ev(type, local, e->global,
                     e->device, e->pointerType, e->pressure, e->xTilt, e->yTilt,
                     e->tangentialPressure, e->rotation, e->z,
-                    e->mods, e->uid);
+                    e->modifiers, e->uid);
     ev.setTimestamp(e->timestamp);
     QGuiApplication::sendSpontaneousEvent(window, &ev);
 #else
@@ -2289,6 +2400,169 @@ bool QGuiApplicationPrivate::shouldQuit()
 }
 
 /*!
+    \since 4.2
+    \fn void QGuiApplication::commitDataRequest(QSessionManager &manager)
+
+    This signal deals with \l{Session Management}{session management}. It is
+    emitted when the QSessionManager wants the application to commit all its
+    data.
+
+    Usually this means saving all open files, after getting permission from
+    the user. Furthermore you may want to provide a means by which the user
+    can cancel the shutdown.
+
+    You should not exit the application within this signal. Instead,
+    the session manager may or may not do this afterwards, depending on the
+    context.
+
+    \warning Within this signal, no user interaction is possible, \e
+    unless you ask the \a manager for explicit permission. See
+    QSessionManager::allowsInteraction() and
+    QSessionManager::allowsErrorInteraction() for details and example
+    usage.
+
+    \note You should use Qt::DirectConnection when connecting to this signal.
+
+    \sa isSessionRestored(), sessionId(), saveStateRequest(), {Session Management}
+*/
+
+/*!
+    \since 4.2
+    \fn void QGuiApplication::saveStateRequest(QSessionManager &manager)
+
+    This signal deals with \l{Session Management}{session management}. It is
+    invoked when the \l{QSessionManager}{session manager} wants the application
+    to preserve its state for a future session.
+
+    For example, a text editor would create a temporary file that includes the
+    current contents of its edit buffers, the location of the cursor and other
+    aspects of the current editing session.
+
+    You should never exit the application within this signal. Instead, the
+    session manager may or may not do this afterwards, depending on the
+    context. Futhermore, most session managers will very likely request a saved
+    state immediately after the application has been started. This permits the
+    session manager to learn about the application's restart policy.
+
+    \warning Within this signal, no user interaction is possible, \e
+    unless you ask the \a manager for explicit permission. See
+    QSessionManager::allowsInteraction() and
+    QSessionManager::allowsErrorInteraction() for details.
+
+    \note You should use Qt::DirectConnection when connecting to this signal.
+
+    \sa isSessionRestored(), sessionId(), commitDataRequest(), {Session Management}
+*/
+
+/*!
+    \fn bool QGuiApplication::isSessionRestored() const
+
+    Returns true if the application has been restored from an earlier
+    \l{Session Management}{session}; otherwise returns false.
+
+    \sa sessionId(), commitDataRequest(), saveStateRequest()
+*/
+
+/*!
+    \since 5.0
+    \fn bool QGuiApplication::isSavingSession() const
+
+    Returns true if the application is currently saving the
+    \l{Session Management}{session}; otherwise returns false.
+
+    This is true when commitDataRequest() and saveStateRequest() are emitted,
+    but also when the windows are closed afterwards by session management.
+
+    \sa sessionId(), commitDataRequest(), saveStateRequest()
+*/
+
+/*!
+    \fn QString QGuiApplication::sessionId() const
+
+    Returns the current \l{Session Management}{session's} identifier.
+
+    If the application has been restored from an earlier session, this
+    identifier is the same as it was in that previous session. The session
+    identifier is guaranteed to be unique both for different applications
+    and for different instances of the same application.
+
+    \sa isSessionRestored(), sessionKey(), commitDataRequest(), saveStateRequest()
+*/
+
+/*!
+    \fn QString QGuiApplication::sessionKey() const
+
+    Returns the session key in the current \l{Session Management}{session}.
+
+    If the application has been restored from an earlier session, this key is
+    the same as it was when the previous session ended.
+
+    The session key changes every time the session is saved. If the shutdown process
+    is cancelled, another session key will be used when shutting down again.
+
+    \sa isSessionRestored(), sessionId(), commitDataRequest(), saveStateRequest()
+*/
+#ifndef QT_NO_SESSIONMANAGER
+bool QGuiApplication::isSessionRestored() const
+{
+    Q_D(const QGuiApplication);
+    return d->is_session_restored;
+}
+
+QString QGuiApplication::sessionId() const
+{
+    Q_D(const QGuiApplication);
+    return d->session_id;
+}
+
+QString QGuiApplication::sessionKey() const
+{
+    Q_D(const QGuiApplication);
+    return d->session_key;
+}
+
+bool QGuiApplication::isSavingSession() const
+{
+    Q_D(const QGuiApplication);
+    return d->is_saving_session;
+}
+
+void QGuiApplicationPrivate::commitData(QSessionManager& manager)
+{
+    Q_Q(QGuiApplication);
+    is_saving_session = true;
+    emit q->commitDataRequest(manager);
+    if (manager.allowsInteraction()) {
+        QWindowList done;
+        QWindowList list = QGuiApplication::topLevelWindows();
+        bool cancelled = false;
+        for (int i = 0; !cancelled && i < list.size(); ++i) {
+            QWindow* w = list.at(i);
+            if (w->isVisible() && !done.contains(w)) {
+                cancelled = !w->close();
+                if (!cancelled)
+                    done.append(w);
+                list = QGuiApplication::topLevelWindows();
+                i = -1;
+            }
+        }
+        if (cancelled)
+            manager.cancel();
+    }
+    is_saving_session = false;
+}
+
+
+void QGuiApplicationPrivate::saveState(QSessionManager &manager)
+{
+    Q_Q(QGuiApplication);
+    is_saving_session = true;
+    emit q->saveStateRequest(manager);
+    is_saving_session = false;
+}
+#endif //QT_NO_SESSIONMANAGER
+
+/*!
     \property QGuiApplication::layoutDirection
     \brief the default layout direction for this application
 
@@ -2359,7 +2633,7 @@ static inline void applyCursor(const QList<QWindow *> &l, const QCursor &c)
 {
     for (int i = 0; i < l.size(); ++i) {
         QWindow *w = l.at(i);
-        if (w->handle() && w->windowType() != Qt::Desktop)
+        if (w->handle() && w->type() != Qt::Desktop)
             applyCursor(w, c);
     }
 }
@@ -2368,7 +2642,7 @@ static inline void applyWindowCursor(const QList<QWindow *> &l)
 {
     for (int i = 0; i < l.size(); ++i) {
         QWindow *w = l.at(i);
-        if (w->handle() && w->windowType() != Qt::Desktop)
+        if (w->handle() && w->type() != Qt::Desktop)
             applyCursor(w, w->cursor());
     }
 }

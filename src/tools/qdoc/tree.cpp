@@ -398,41 +398,11 @@ void Tree::addPropertyFunction(PropertyNode* property,
 }
 
 /*!
-  This function adds the \a node to the \a group. The group
-  can be listed anywhere using the \e{annotated list} command.
- */
-void Tree::addToGroup(Node* node, const QString& group)
-{
-    groupMap.insert(group, node);
-}
-
-/*!
-  Returns the group map.
- */
-const NodeMultiMap& Tree::groups() const
-{
-    return groupMap;
-}
-
-/*!
-  This function adds the \a group name to the list of groups
-  for the \a node name. It also adds the \a node to the \a group.
- */
-void Tree::addToPublicGroup(Node* node, const QString& group)
-{
-    publicGroupMap.insert(node->name(), group);
-    addToGroup(node, group);
-}
-
-/*!
-  Returns the public group map.
- */
-QMultiMap<QString, QString> Tree::publicGroups() const
-{
-    return publicGroupMap;
-}
-
-/*!
+  This function resolves inheritance and reimplementation settings
+  for each class node found in the namspace beginning ar \a rootNode.
+  If it finds another namespace node in the child list of \a rootNode,
+  it calls itself recursively. For each child of \a rootNode that is a
+  class node, it calls the other resolveInheritance() function.
  */
 void Tree::resolveInheritance(NamespaceNode* rootNode)
 {
@@ -510,11 +480,24 @@ void Tree::resolveProperties()
 }
 
 /*!
+  This function is run twice for each \a classNode in the
+  tree. First it is run with \a pass set to 0 for each
+  \a classNode. Then it is run with \a pass set to 1 for
+  each \a classNode.
+
+  In \a pass 0, all the base classes of \a classNode are
+  found and added to the base class list for \a classNode.
+
+  In \a pass 1, each child of \a classNode that is a function
+  that is reimplemented from one of the base classes is marked
+  as being reimplemented from that class.
+
+  Some property node fixing up is also done in \a pass 1.
  */
-void Tree::resolveInheritance(int pass, ClassNode* classe)
+void Tree::resolveInheritance(int pass, ClassNode* classNode)
 {
     if (pass == 0) {
-        QList<InheritanceBound> bounds = unresolvedInheritanceMap[classe];
+        QList<InheritanceBound> bounds = unresolvedInheritanceMap[classNode];
         QList<InheritanceBound>::ConstIterator b = bounds.constBegin();
         while (b != bounds.constEnd()) {
             Node* n = findClassNode((*b).basePath);
@@ -522,17 +505,17 @@ void Tree::resolveInheritance(int pass, ClassNode* classe)
                 n = findClassNode((*b).basePath, (*b).parent);
             }
             if (n) {
-                classe->addBaseClass((*b).access, static_cast<ClassNode*>(n), (*b).dataTypeWithTemplateArgs);
+                classNode->addBaseClass((*b).access, static_cast<ClassNode*>(n), (*b).dataTypeWithTemplateArgs);
             }
             ++b;
         }
     }
     else {
-        NodeList::ConstIterator c = classe->childNodes().constBegin();
-        while (c != classe->childNodes().constEnd()) {
+        NodeList::ConstIterator c = classNode->childNodes().constBegin();
+        while (c != classNode->childNodes().constEnd()) {
             if ((*c)->type() == Node::Function) {
                 FunctionNode* func = (FunctionNode*)* c;
-                FunctionNode* from = findVirtualFunctionInBaseClasses(classe, func);
+                FunctionNode* from = findVirtualFunctionInBaseClasses(classNode, func);
                 if (from != 0) {
                     if (func->virtualness() == FunctionNode::NonVirtual)
                         func->setVirtualness(FunctionNode::ImpureVirtual);
@@ -540,27 +523,10 @@ void Tree::resolveInheritance(int pass, ClassNode* classe)
                 }
             }
             else if ((*c)->type() == Node::Property) {
-                fixPropertyUsingBaseClasses(classe, static_cast<PropertyNode*>(*c));
+                fixPropertyUsingBaseClasses(classNode, static_cast<PropertyNode*>(*c));
             }
             ++c;
         }
-    }
-}
-
-/*!
-  For each node in the group map, add the node to the appropriate
-  group node.
- */
-void Tree::resolveGroups()
-{
-    NodeMultiMap::const_iterator i;
-    for (i = groupMap.constBegin(); i != groupMap.constEnd(); ++i) {
-        if (i.value()->access() == Node::Private)
-            continue;
-
-        DocNode* n = findGroupNode(QStringList(i.key()));
-        if (n)
-            n->addMember(i.value());
     }
 }
 
@@ -603,11 +569,11 @@ void Tree::fixInheritance(NamespaceNode* rootNode)
 
 /*!
  */
-FunctionNode* Tree::findVirtualFunctionInBaseClasses(ClassNode* classe,
+FunctionNode* Tree::findVirtualFunctionInBaseClasses(ClassNode* classNode,
                                                      FunctionNode* clone)
 {
-    QList<RelatedClass>::ConstIterator r = classe->baseClasses().constBegin();
-    while (r != classe->baseClasses().constEnd()) {
+    QList<RelatedClass>::ConstIterator r = classNode->baseClasses().constBegin();
+    while (r != classNode->baseClasses().constEnd()) {
         FunctionNode* func;
         if (((func = findVirtualFunctionInBaseClasses((*r).node, clone)) != 0 ||
              (func = (*r).node->findFunctionNode(clone)) != 0)) {
@@ -621,10 +587,10 @@ FunctionNode* Tree::findVirtualFunctionInBaseClasses(ClassNode* classe,
 
 /*!
  */
-void Tree::fixPropertyUsingBaseClasses(ClassNode* classe, PropertyNode* property)
+void Tree::fixPropertyUsingBaseClasses(ClassNode* classNode, PropertyNode* property)
 {
-    QList<RelatedClass>::const_iterator r = classe->baseClasses().constBegin();
-    while (r != classe->baseClasses().constEnd()) {
+    QList<RelatedClass>::const_iterator r = classNode->baseClasses().constBegin();
+    while (r != classNode->baseClasses().constEnd()) {
         Node* n = r->node->findChildNodeByNameAndType(property->name(), Node::Property);
         if (n) {
             PropertyNode* baseProperty = static_cast<PropertyNode*>(n);
@@ -640,10 +606,10 @@ void Tree::fixPropertyUsingBaseClasses(ClassNode* classe, PropertyNode* property
 
 /*!
  */
-NodeList Tree::allBaseClasses(const ClassNode* classe) const
+NodeList Tree::allBaseClasses(const ClassNode* classNode) const
 {
     NodeList result;
-    foreach (const RelatedClass& r, classe->baseClasses()) {
+    foreach (const RelatedClass& r, classNode->baseClasses()) {
         result += r.node;
         result += allBaseClasses(r.node);
     }
@@ -784,19 +750,6 @@ NamespaceNode* Tree::findNamespaceNode(const QStringList& path)
 {
     Node* start = const_cast<NamespaceNode*>(root());
     return static_cast<NamespaceNode*>(findNodeRecursive(path, 0, start, Node::Namespace, Node::NoSubType));
-}
-
-/*!
-  Find the Group node named \a path. Begin the search at the
-  \a start node. If the \a start node is 0, begin the search
-  at the root of the tree. Only a Group node named \a path is
-  acceptible. If one is not found, 0 is returned.
- */
-DocNode* Tree::findGroupNode(const QStringList& path, Node* start)
-{
-    if (!start)
-        start = const_cast<NamespaceNode*>(root());
-    return static_cast<DocNode*>(findNodeRecursive(path, 0, start, Node::Document, Node::Group));
 }
 
 /*!

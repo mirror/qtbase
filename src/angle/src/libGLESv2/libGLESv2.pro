@@ -1,12 +1,12 @@
 TEMPLATE = lib
-TARGET = libGLESv2
-DEPENDPATH += . shaders
+TARGET = $$qtLibraryTarget(libGLESv2)
 CONFIG += simd
 
 include(../common/common.pri)
 
 INCLUDEPATH += $$OUT_PWD/..
 
+# Remember to adapt tools/configure/configureapp.cpp if the Direct X version changes.
 LIBS += -ld3d9 -ld3dcompiler
 STATICLIBS = translator_common translator_hlsl preprocessor
 
@@ -65,6 +65,11 @@ SOURCES += \
     $$ANGLE_DIR/src/libGLESv2/VertexDataManager.cpp
 
 SSE2_SOURCES += $$ANGLE_DIR/src/libGLESv2/TextureSSE2.cpp
+
+!static {
+    DEF_FILE = $$ANGLE_DIR/src/libGLESv2/$${TARGET}.def
+    win32-g++*:equals(QT_ARCH, i386): DEF_FILE = $$ANGLE_DIR/src/libGLESv2/$${TARGET}_mingw32.def
+}
 
 float_converter.target = float_converter
 float_converter.commands = python $$ANGLE_DIR/src/libGLESv2/Float16ToFloat32.py \

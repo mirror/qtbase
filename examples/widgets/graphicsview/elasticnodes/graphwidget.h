@@ -41,7 +41,7 @@
 #ifndef GRAPHWIDGET_H
 #define GRAPHWIDGET_H
 
-#include <QtWidgets/QGraphicsView>
+#include <QGraphicsView>
 
 class Node;
 
@@ -63,7 +63,9 @@ public slots:
 protected:
     void keyPressEvent(QKeyEvent *event);
     void timerEvent(QTimerEvent *event);
+#ifndef QT_NO_WHEELEVENT
     void wheelEvent(QWheelEvent *event);
+#endif
     void drawBackground(QPainter *painter, const QRectF &rect);
 
     void scaleView(qreal scaleFactor);
@@ -74,4 +76,4 @@ private:
 };
 //! [0]
 
-#endif
+#endif // GRAPHWIDGET_H

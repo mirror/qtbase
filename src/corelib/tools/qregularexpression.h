@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2012 Giuseppe D'Angelo <dangelog@gmail.com>.
+** Copyright (C) 2012 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Giuseppe D'Angelo <giuseppe.dangelo@kdab.com>
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -42,7 +43,7 @@
 #ifndef QREGULAREXPRESSION_H
 #define QREGULAREXPRESSION_H
 
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
 
 #include <QtCore/qstring.h>
 #include <QtCore/qshareddata.h>
@@ -99,7 +100,8 @@ public:
     enum MatchType {
         NormalMatch = 0,
         PartialPreferCompleteMatch,
-        PartialPreferFirstMatch
+        PartialPreferFirstMatch,
+        NoMatch
     };
 
     enum MatchOption {
@@ -241,6 +243,6 @@ QT_END_NAMESPACE
 
 QT_END_HEADER
 
-#endif // QT_NO_REGEXP
+#endif // QT_NO_REGULAREXPRESSION
 
 #endif // QREGULAREXPRESSION_H

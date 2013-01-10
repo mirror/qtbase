@@ -79,12 +79,6 @@ public:
     enum { ApplicationFlags = QT_VERSION
     };
 
-    enum Type {
-        Tty,
-        GuiClient,
-        GuiServer // # deprecated
-    };
-
     QCoreApplication(int &argc, char **argv
 #ifndef Q_QDOC
                      , int = ApplicationFlags
@@ -156,10 +150,6 @@ public:
 
     static void flush();
 
-#if defined(Q_OS_UNIX)
-    static void watchUnixSignal(int signal, bool watch);
-#endif
-
     void installNativeEventFilter(QAbstractNativeEventFilter *filterObj);
     void removeNativeEventFilter(QAbstractNativeEventFilter *filterObj);
 
@@ -171,13 +161,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void aboutToQuit(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
     QPrivateSignal
-#endif
-    );
-    void unixSignal(int
-#if !defined(qdoc)
-    , QPrivateSignal
 #endif
     );
 

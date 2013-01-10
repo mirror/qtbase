@@ -68,6 +68,17 @@ QT_BEGIN_NAMESPACE
 
 #ifndef QT_NO_DRAGANDDROP
 
+static QWindow* topLevelAt(const QPoint &pos)
+{
+    QWindowList list = QGuiApplication::topLevelWindows();
+    for (int i = list.count()-1; i >= 0; --i) {
+        QWindow *w = list.at(i);
+        if (w->isVisible() && w->geometry().contains(pos) && !qobject_cast<QShapedPixmapWindow*>(w))
+            return w;
+    }
+    return 0;
+}
+
 /*!
     \class QBasicDrag
     \brief QBasicDrag is a base class for implementing platform drag and drop.
@@ -237,6 +248,7 @@ void  QBasicDrag::exitDndEventLoop()
 
 void QBasicDrag::updateCursor(Qt::DropAction action)
 {
+#ifndef QT_NO_CURSOR
     Qt::CursorShape cursorShape = Qt::ForbiddenCursor;
     if (canDrop()) {
         switch (action) {
@@ -267,6 +279,7 @@ void QBasicDrag::updateCursor(Qt::DropAction action)
             }
         }
     }
+#endif
     updateAction(action);
 }
 
@@ -296,7 +309,7 @@ QMimeData *QSimpleDrag::platformDropData()
 void QSimpleDrag::startDrag()
 {
     QBasicDrag::startDrag();
-    m_current_window = QGuiApplication::topLevelAt(QCursor::pos());
+    m_current_window = topLevelAt(QCursor::pos());
     if (m_current_window) {
         QPlatformDragQtResponse response = QWindowSystemInterface::handleDrag(m_current_window, drag()->mimeData(), QCursor::pos(), drag()->supportedActions());
         setCanDrop(response.isAccepted());
@@ -319,7 +332,7 @@ void QSimpleDrag::cancel()
 void QSimpleDrag::move(const QMouseEvent *me)
 {
     QBasicDrag::move(me);
-    QWindow *window = QGuiApplication::topLevelAt(me->globalPos());
+    QWindow *window = topLevelAt(me->globalPos());
     if (!window)
         return;
 
@@ -334,7 +347,7 @@ void QSimpleDrag::move(const QMouseEvent *me)
 void QSimpleDrag::drop(const QMouseEvent *me)
 {
     QBasicDrag::drop(me);
-    QWindow *window = QGuiApplication::topLevelAt(me->globalPos());
+    QWindow *window = topLevelAt(me->globalPos());
     if (!window)
         return;
 

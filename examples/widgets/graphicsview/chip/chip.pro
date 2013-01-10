@@ -5,8 +5,8 @@ SOURCES += main.cpp
 SOURCES += mainwindow.cpp view.cpp chip.cpp
 
 QT += widgets
-!isEmpty(QT.printsupport.name): QT += printsupport
-contains(QT_CONFIG, opengl):QT += opengl
+qtHaveModule(printsupport): QT += printsupport
+qtHaveModule(opengl): QT += opengl
 
 build_all:!build_pass {
     CONFIG -= build_all
@@ -14,8 +14,6 @@ build_all:!build_pass {
 }
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/chip
-sources.files = $$SOURCES $$HEADERS $$RESOURCES *.png *.pro *.html *.doc images
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/graphicsview/chip
-INSTALLS += target sources
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/graphicsview/chip
+INSTALLS += target
 

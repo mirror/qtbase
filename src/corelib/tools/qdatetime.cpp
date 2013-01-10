@@ -549,8 +549,8 @@ int QDate::weekNumber(int *yearNumber) const
     \li 12 = "Dec"
     \endlist
 
-    The month names will be localized according to the system's locale
-    settings.
+    The month names will be localized according to the system's default
+    locale settings.
 
     Returns an empty string if the date is invalid.
 
@@ -596,8 +596,8 @@ QString QDate::shortMonthName(int month, QDate::MonthNameType type)
     \li 12 = "December"
     \endlist
 
-    The month names will be localized according to the system's locale
-    settings.
+    The month names will be localized according to the system's default
+    locale settings.
 
     Returns an empty string if the date is invalid.
 
@@ -638,8 +638,8 @@ QString QDate::longMonthName(int month, MonthNameType type)
     \li 7 = "Sun"
     \endlist
 
-    The day names will be localized according to the system's locale
-    settings.
+    The day names will be localized according to the system's default
+    locale settings.
 
     Returns an empty string if the date is invalid.
 
@@ -680,8 +680,8 @@ QString QDate::shortDayName(int weekday, MonthNameType type)
     \li 7 = "Sunday"
     \endlist
 
-    The day names will be localized according to the system's locale
-    settings.
+    The day names will be localized according to the system's default
+    locale settings.
 
     Returns an empty string if the date is invalid.
 
@@ -718,8 +718,8 @@ QString QDate::longDayName(int weekday, MonthNameType type)
     If the \a format is Qt::TextDate, the string is formatted in
     the default way. QDate::shortDayName() and QDate::shortMonthName()
     are used to generate the string, so the day and month names will
-    be localized names. An example of this formatting is
-    "Sat May 20 1995".
+    be localized names using the default locale from the system. An
+    example of this formatting is "Sat May 20 1995".
 
     If the \a format is Qt::ISODate, the string format corresponds
     to the ISO 8601 extended specification for representations of
@@ -2045,6 +2045,7 @@ int QTime::elapsed() const
 /*!
     \class QDateTime
     \inmodule QtCore
+    \ingroup shared
     \reentrant
     \brief The QDateTime class provides date and time functions.
 
@@ -3535,6 +3536,18 @@ QDateTime QDateTime::fromString(const QString& s, Qt::DateFormat f)
 
     This could have meant 1 January 00:30.00 but the M will grab
     two digits.
+
+    Incorrectly specified fields of the \a string will cause an invalid
+    QDateTime to be returned. For example, consider the following code,
+    where the two digit year 12 is read as 1912 (see the table below for all
+    field defaults); the resulting datetime is invalid because 23 April 1912
+    was a Tuesday, not a Monday:
+
+    \snippet code/src_corelib_tools_qdatetime.cpp 20
+
+    The correct code is:
+
+    \snippet code/src_corelib_tools_qdatetime.cpp 21
 
     For any field that is not represented in the format, the following
     defaults are used:

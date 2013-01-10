@@ -1,13 +1,11 @@
+QT += widgets
+
 HEADERS     = dialog.h
 SOURCES     = dialog.cpp \
               main.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/qtbase/layouts/dynamiclayouts
-sources.files = $$SOURCES $$HEADERS *.pro
-sources.path = $$[QT_INSTALL_EXAMPLES]/qtbase/layouts/dynamiclayouts
-INSTALLS += target sources
-
-QT += widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/layouts/dynamiclayouts
+INSTALLS += target
 
 simulator: warning(This example might not fully work on Simulator platform)

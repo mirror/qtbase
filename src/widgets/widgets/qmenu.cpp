@@ -1225,11 +1225,11 @@ void QMenu::initStyleOption(QStyleOptionMenuItem *option, const QAction *action)
 
     \table 100%
     \row
-    \li \inlineimage plastique-menu.png
+    \li \inlineimage fusion-menu.png
     \li \inlineimage windowsxp-menu.png
     \li \inlineimage macintosh-menu.png
     \endtable
-    \caption Fig. A menu shown in \l{Plastique Style Widget Gallery}{Plastique widget style},
+    \caption Fig. A menu shown in \l{Fusion Style Widget Gallery}{Fusion widget style},
            \l{Windows XP Style Widget Gallery}{Windows XP widget style},
            and \l{Macintosh Style Widget Gallery}{Macintosh widget style}.
 
@@ -1856,7 +1856,7 @@ void QMenu::popup(const QPoint &p, QAction *atAction)
 
     QPoint mouse = QCursor::pos();
     d->mousePopupPos = mouse;
-    const bool snapToMouse = (QRect(p.x() - 3, p.y() - 3, 6, 6).contains(mouse));
+    const bool snapToMouse = !d->causedPopup.widget && (QRect(p.x() - 3, p.y() - 3, 6, 6).contains(mouse));
 
     const QSize menuSize(sizeHint());
     if (adjustToDesktop) {

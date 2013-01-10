@@ -60,7 +60,6 @@
 #ifndef QT_NO_OPENGL
 #include <QtOpenGL>
 #endif
-#include <QMacStyle>
 #include <QStyleHints>
 
 static const Qt::WindowFlags DefaultWindowFlags
@@ -68,8 +67,6 @@ static const Qt::WindowFlags DefaultWindowFlags
       | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint;
 
 Q_DECLARE_METATYPE(QMdiArea::WindowOrder)
-Q_DECLARE_METATYPE(QMdiSubWindow *)
-Q_DECLARE_METATYPE(QList<int>)
 Q_DECLARE_METATYPE(QTabWidget::TabPosition)
 
 static bool tabBetweenSubWindowsIn(QMdiArea *mdiArea, int tabCount = -1, bool reverse = false)
@@ -195,7 +192,7 @@ static bool verifyArrangement(QMdiArea *mdiArea, Arrangement arrangement, const 
         int titleBarHeight = firstSubWindow->style()->pixelMetric(QStyle::PM_TitleBarHeight, &options);
 #ifdef Q_OS_MAC
         // ### Remove this after the mac style has been fixed
-        if (qobject_cast<QMacStyle *>(firstSubWindow->style()))
+        if (firstSubWindow->style()->inherits("QMacStyle"))
             titleBarHeight -= 4;
 #endif
         const QFontMetrics fontMetrics = QFontMetrics(QApplication::font("QMdiSubWindowTitleBar"));
@@ -1734,9 +1731,9 @@ void tst_QMdiArea::tileSubWindows()
     QTRY_COMPARE(workspace.viewport()->rect().size(), expectedViewportSize);
 
     // Not enough space for all sub-windows to be visible -> provide scroll bars.
-    workspace.resize(150, 150);
+    workspace.resize(160, 150);
     qApp->processEvents();
-    QTRY_COMPARE(workspace.size(), QSize(150, 150));
+    QTRY_COMPARE(workspace.size(), QSize(160, 150));
 
     // Horizontal scroll bar.
     QScrollBar *hBar = workspace.horizontalScrollBar();
@@ -2595,7 +2592,10 @@ void tst_QMdiArea::nativeSubWindows()
     const QString platformName = QGuiApplication::platformName();
     if (platformName != QLatin1String("xcb") && platformName != QLatin1String("windows"))
         QSKIP(qPrintable(QString::fromLatin1("nativeSubWindows() does not work on this platform (%1).").arg(platformName)));
-
+#ifdef QT_OPENGL_ES_2_ANGLE
+    if (platformName == QLatin1String("windows"))
+        QSKIP("nativeSubWindows() does not work with ANGLE on Windows, QTBUG-28545.");
+#endif
     { // Add native widgets after show.
     QMdiArea mdiArea;
     mdiArea.addSubWindow(new QWidget);

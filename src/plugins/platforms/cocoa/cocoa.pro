@@ -1,6 +1,7 @@
 TARGET = qcocoa
 
 PLUGIN_TYPE = platforms
+PLUGIN_CLASS_NAME = QCocoaIntegrationPlugin
 load(qt_plugin)
 
 OBJECTIVE_SOURCES += main.mm \
@@ -37,6 +38,8 @@ OBJECTIVE_SOURCES += main.mm \
     qcocoainputcontext.mm \
     qcocoaservices.mm \
     qcocoasystemtrayicon.mm \
+    qcocoaintrospection.mm \
+    qcocoakeymapper.mm \
 
 HEADERS += qcocoaintegration.h \
     qcocoatheme.h \
@@ -70,6 +73,8 @@ HEADERS += qcocoaintegration.h \
     qcocoainputcontext.h \
     qcocoaservices.h \
     qcocoasystemtrayicon.h \
+    qcocoaintrospection.h \
+    qcocoakeymapper.h \
 
 RESOURCES += qcocoaresources.qrc
 
@@ -77,7 +82,7 @@ LIBS += -framework Cocoa -framework IOKit
 
 QT += core-private gui-private platformsupport-private
 
-!contains(QT_CONFIG, no-widgets) {
+qtHaveModule(widgets) {
     OBJECTIVE_SOURCES += \
         qpaintengine_mac.mm \
         qprintengine_mac.mm \
@@ -93,16 +98,12 @@ QT += core-private gui-private platformsupport-private
 
 OTHER_FILES += cocoa.json
 
-# Build the release libqcocoa.dylib only, skip the debug version.
-# The Qt plugin loader will dlopen both if found, causing duplicate
-# Objective-c class definitions for the classes defined in the plugin.
-contains(QT_CONFIG,release):CONFIG -= debug
-contains(QT_CONFIG,debug_and_release):CONFIG -= debug_and_release
-contains(QT_CONFIG,build_all):CONFIG -= build_all
-
 # Acccessibility debug support
 # DEFINES += QT_COCOA_ENABLE_ACCESSIBILITY_INSPECTOR
 # include ($$PWD/../../../../util/accessibilityinspector/accessibilityinspector.pri)
+
+# Accessibility is currently unstable and disabled.
+DEFINES += QT_NO_COCOA_ACCESSIBILITY
 
 # Window debug support
 #DEFINES += QT_COCOA_ENABLE_WINDOW_DEBUG

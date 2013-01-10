@@ -50,7 +50,6 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QWizard>
-#include <QWindowsStyle>
 #include <QTreeWidget>
 
 static QImage grabWidget(QWidget *window)
@@ -1661,7 +1660,6 @@ Q_DECLARE_METATYPE(Operation *)
 Q_DECLARE_METATYPE(SetPage *)
 Q_DECLARE_METATYPE(SetStyle *)
 Q_DECLARE_METATYPE(SetOption *)
-Q_DECLARE_METATYPE(QList<Operation *>)
 
 class TestGroup
 {

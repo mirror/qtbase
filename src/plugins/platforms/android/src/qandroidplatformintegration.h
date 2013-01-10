@@ -61,6 +61,10 @@ QT_BEGIN_NAMESPACE
 class QDesktopWidget;
 class QAndroidPlatformServices;
 
+#ifdef ANDROID_PLUGIN_OPENGL
+class QEglFSWindow;
+#endif
+
 class QAndroidPlatformNativeInterface: public QPlatformNativeInterface
 {
 public:
@@ -89,6 +93,10 @@ public:
     QAndroidPlatformScreen *screen() { return m_primaryScreen; }
     virtual void setDesktopSize(int width, int height);
     virtual void setDisplayMetrics(int width, int height);
+#else
+    QPlatformWindow *createPlatformWindow(QWindow *window) const;
+    void invalidateNativeSurface();
+    void surfaceChanged();
 #endif
 
     bool isVirtualDesktop() { return true; }
@@ -111,11 +119,18 @@ public:
     static void setDefaultDisplayMetrics(int gw, int gh, int sw, int sh);
     static void setDefaultDesktopSize(int gw, int gh);
 
+    static QSize defaultDesktopSize()
+    {
+        return QSize(m_defaultGeometryWidth, m_defaultGeometryHeight);
+    }
+
 private:
 
 #ifndef ANDROID_PLUGIN_OPENGL
     QAbstractEventDispatcher *m_eventDispatcher;
     QAndroidPlatformScreen *m_primaryScreen;
+#else
+    mutable QEglFSWindow *m_primaryWindow;
 #endif
 
     QThread * m_mainThread;

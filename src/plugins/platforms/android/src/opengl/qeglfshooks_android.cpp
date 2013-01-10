@@ -59,7 +59,7 @@ public:
     EGLNativeWindowType createNativeWindow(const QSize &size, const QSurfaceFormat &format);
     void destroyNativeWindow(EGLNativeWindowType window);
     bool hasCapability(QPlatformIntegration::Capability cap) const;
-
+    bool isSuspended() const;
 };
 
 void QEglFSAndroidHooks::platformInit()
@@ -83,7 +83,8 @@ QSize QEglFSAndroidHooks::screenSize() const
 EGLNativeWindowType QEglFSAndroidHooks::createNativeWindow(const QSize &size, const QSurfaceFormat &format)
 {
     ANativeWindow *window = QtAndroid::nativeWindow();
-    ANativeWindow_acquire(window);
+    if (window != 0)
+        ANativeWindow_acquire(window);
 
     return window;
 }
@@ -116,6 +117,11 @@ QSurfaceFormat QEglFSAndroidHooks::surfaceFormatFor(const QSurfaceFormat &inputF
     ret.setGreenBufferSize(8);
     ret.setBlueBufferSize(8);
     return ret;
+}
+
+bool QEglFSAndroidHooks::isSuspended() const
+{
+    return QtAndroid::nativeWindow(false) == 0;
 }
 
 static QEglFSAndroidHooks eglFSAndroidHooks;

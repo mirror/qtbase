@@ -57,6 +57,8 @@
 #  include "qandroidplatformscreen.h"
 #  include "qandroidplatformwindow.h"
 #  include <QtPlatformSupport/private/qfbbackingstore_p.h>
+#else
+#  include "qeglfswindow.h"
 #endif
 
 #include "qandroidplatformtheme.h"
@@ -76,6 +78,9 @@ void *QAndroidPlatformNativeInterface::nativeResourceForIntegration(const QByteA
 }
 
 QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &paramList)
+#ifdef ANDROID_PLUGIN_OPENGL
+    : m_primaryWindow(0)
+#endif
 {
     Q_UNUSED(paramList);
 
@@ -110,6 +115,9 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
     m_androidPlatformClipboard = new QAndroidPlatformClipboard();
 }
 
+#ifdef ANDROID_PLUGIN_OPENGL
+#endif
+
 bool QAndroidPlatformIntegration::hasCapability(Capability cap) const
 {
     switch (cap) {
@@ -137,6 +145,33 @@ QPlatformWindow *QAndroidPlatformIntegration::createPlatformWindow(QWindow *wind
 QAbstractEventDispatcher *QAndroidPlatformIntegration::guiThreadEventDispatcher() const
 {
     return m_eventDispatcher;
+}
+#else // !ANDROID_PLUGIN_OPENGL
+QPlatformWindow *QAndroidPlatformIntegration::createPlatformWindow(QWindow *window) const
+{
+    if (m_primaryWindow != 0) {
+        qWarning("QAndroidPlatformIntegration::createPlatformWindow: Unsupported case: More than "
+                 "one top-level window created.");
+    }
+
+    m_primaryWindow = new QEglFSWindow(window);
+    m_primaryWindow->requestActivateWindow();
+
+    return m_primaryWindow;
+}
+
+void QAndroidPlatformIntegration::invalidateNativeSurface()
+{
+    qDebug() << Q_FUNC_INFO << "Surface invalidated, m_primaryWindow=" << m_primaryWindow;
+    if (m_primaryWindow != 0)
+        m_primaryWindow->invalidateSurface();
+}
+
+void QAndroidPlatformIntegration::surfaceChanged()
+{
+    qDebug() << Q_FUNC_INFO << "Surface changed, m_primaryWindow=" << m_primaryWindow;
+    if (m_primaryWindow != 0)
+        m_primaryWindow->resetSurface();
 }
 #endif // ANDROID_PLUGIN_OPENGL
 
@@ -189,7 +224,6 @@ QPlatformTheme *QAndroidPlatformIntegration::createPlatformTheme(const QString &
     return 0;
 }
 
-
 void QAndroidPlatformIntegration::setDefaultDisplayMetrics(int gw, int gh, int sw, int sh)
 {
     m_defaultGeometryWidth=gw;
@@ -239,12 +273,5 @@ void QAndroidPlatformIntegration::resumeApp()
         QAbstractEventDispatcher::instance(m_mainThread)->wakeUp();
 }
 
-#if 0
-void QAndroidPlatformIntegration::surfaceChanged()
-{
-    if (m_primaryScreen)
-        QMetaObject::invokeMethod(m_primaryScreen, "surfaceChanged", Qt::AutoConnection);
-}
-#endif
 
 QT_END_NAMESPACE

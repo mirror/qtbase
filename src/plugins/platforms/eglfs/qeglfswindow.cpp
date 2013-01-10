@@ -84,10 +84,27 @@ void QEglFSWindow::create()
 
     EGLDisplay display = (static_cast<QEglFSScreen *>(window()->screen()->handle()))->display();
     QSurfaceFormat platformFormat = hooks->surfaceFormatFor(window()->requestedFormat());
-    EGLConfig config = q_configFromGLFormat(display, platformFormat);
-    m_format = q_glFormatFromConfig(display, config);
+    m_config = q_configFromGLFormat(display, platformFormat);
+    m_format = q_glFormatFromConfig(display, m_config);
+    resetSurface();
+}
+
+void QEglFSWindow::invalidateSurface()
+{
+    // Native surface has been deleted behind our backs
+    m_window = 0;
+    m_surface = 0;
+}
+
+void QEglFSWindow::resetSurface()
+{
+    if (hooks->isSuspended())
+        return;
+
+    EGLDisplay display = (static_cast<QEglFSScreen *>(window()->screen()->handle()))->display();
+
     m_window = hooks->createNativeWindow(hooks->screenSize(), m_format);
-    m_surface = eglCreateWindowSurface(display, config, m_window, NULL);
+    m_surface = eglCreateWindowSurface(display, m_config, m_window, NULL);
     if (m_surface == EGL_NO_SURFACE) {
         EGLint error = eglGetError();
         eglTerminate(display);

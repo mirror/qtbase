@@ -233,10 +233,8 @@ namespace QtAndroid
 
     QSize nativeWindowSize()
     {
-        if (m_nativeWindow == 0) {
-            qWarning("QtAndroid::nativeWindowSize: Called before native window is set.");
-            return QSize();
-        }
+        if (m_nativeWindow == 0)
+            return QAndroidPlatformIntegration::defaultDesktopSize();
 
         int width = ANativeWindow_getWidth(m_nativeWindow);
         int height = ANativeWindow_getHeight(m_nativeWindow);
@@ -580,8 +578,7 @@ static void setSurface(JNIEnv *env, jobject /*thiz*/, jobject jSurface)
         m_waitForWindowSemaphore.release();    
     if (m_androidPlatformIntegration) {
         m_surfaceMutex.unlock();
-        // ### TODO: Fix surfaceChanged
-        // m_androidPlatformIntegration->surfaceChanged();
+        m_androidPlatformIntegration->surfaceChanged();
     } else {
         m_surfaceMutex.unlock();
     }
@@ -599,6 +596,8 @@ static void destroySurface(JNIEnv * env, jobject /*thiz*/)
 #else
     Q_UNUSED(env);
     m_nativeWindow = 0;
+    if (m_androidPlatformIntegration != 0)
+        m_androidPlatformIntegration->invalidateNativeSurface();
 #endif
 }
 
@@ -620,6 +619,8 @@ static void setDisplayMetrics(JNIEnv* /*env*/, jclass /*clazz*/,
         m_androidPlatformIntegration->setDisplayMetrics(qRound((double)desktopWidthPixels  / xdpi * 25.4 ),
                                                 qRound((double)desktopHeightPixels / ydpi * 25.4 ));
         m_androidPlatformIntegration->setDesktopSize(desktopWidthPixels, desktopHeightPixels);
+#else
+        qWarning("setDisplayMetrics: Not implemented yet on OpenGL");
 #endif
     }
 }
@@ -636,15 +637,19 @@ static void unlockSurface(JNIEnv */*env*/, jobject /*thiz*/)
 
 static void updateWindow(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    if(!m_androidPlatformIntegration ||  !qApp)
+    if (!m_androidPlatformIntegration)
         return;
 
-    foreach(QWidget * w, qApp->topLevelWidgets())
-        w->update();
+    if (qApp != 0) {
+        foreach (QWidget *w, qApp->topLevelWidgets())
+            w->update();
+    }
 
 #ifndef ANDROID_PLUGIN_OPENGL
     QAndroidPlatformScreen *screen = static_cast<QAndroidPlatformScreen *>(m_androidPlatformIntegration->screen());
     QMetaObject::invokeMethod(screen, "setDirty", Qt::QueuedConnection, Q_ARG(QRect,screen->geometry()));
+#else
+    qWarning("updateWindow: Dirty screen not implemented yet on OpenGL");
 #endif
 }
 

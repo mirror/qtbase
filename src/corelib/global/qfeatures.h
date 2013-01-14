@@ -91,9 +91,6 @@
 // QHostInfo
 //#define QT_NO_HOSTINFO
 
-// QImageIOPlugin
-//#define QT_NO_IMAGEFORMATPLUGIN
-
 // BMP Image Format
 //#define QT_NO_IMAGEFORMAT_BMP
 
@@ -157,8 +154,8 @@
 // Properties
 //#define QT_NO_PROPERTIES
 
-//  Universally Unique Identifier Convertion
-//#define QT_NO_QUUID_STRING
+// QRegularExpression
+//#define QT_NO_REGULAREXPRESSION
 
 // Resize Handler
 //#define QT_NO_RESIZEHANDLER

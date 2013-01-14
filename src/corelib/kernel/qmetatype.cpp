@@ -240,6 +240,7 @@ struct DefinedTypesFilter {
     \omitvalue PointerToQObject
     \omitvalue WeakPointerToQObject
     \omitvalue TrackingPointerToQObject
+    \omitvalue WasDeclaredAsMetaType
 */
 
 /*!
@@ -943,11 +944,11 @@ bool QMetaType::save(QDataStream &stream, int type, const void *data)
         break;
 #endif
 #ifndef QT_BOOTSTRAPPED
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
     case QMetaType::QRegularExpression:
         stream << *static_cast<const NS(QRegularExpression)*>(data);
         break;
-#endif // QT_NO_REGEXP
+#endif // QT_NO_REGULAREXPRESSION
     case QMetaType::QEasingCurve:
         stream << *static_cast<const NS(QEasingCurve)*>(data);
         break;
@@ -1166,11 +1167,11 @@ bool QMetaType::load(QDataStream &stream, int type, void *data)
         break;
 #endif
 #ifndef QT_BOOTSTRAPPED
-#ifndef QT_NO_REGEXP
+#ifndef QT_NO_REGULAREXPRESSION
     case QMetaType::QRegularExpression:
         stream >> *static_cast< NS(QRegularExpression)*>(data);
         break;
-#endif // QT_NO_REGEXP
+#endif // QT_NO_REGULAREXPRESSION
     case QMetaType::QEasingCurve:
         stream >> *static_cast< NS(QEasingCurve)*>(data);
         break;

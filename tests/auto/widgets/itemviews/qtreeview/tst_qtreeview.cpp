@@ -45,7 +45,6 @@
 #include <QtWidgets/QtWidgets>
 #include <private/qabstractitemview_p.h>
 
-Q_DECLARE_METATYPE(QModelIndex)
 #ifndef QT_NO_DRAGANDDROP
 Q_DECLARE_METATYPE(QAbstractItemView::DragDropMode)
 #endif
@@ -111,6 +110,16 @@ struct PublicView : public QTreeView
     inline int sizeHintForColumn(int column) const { return QTreeView::sizeHintForColumn(column); }
     QAbstractItemViewPrivate* aiv_priv() { return static_cast<QAbstractItemViewPrivate*>(d_ptr.data()); }
 };
+
+// Make a widget frameless to prevent size constraints of title bars
+// from interfering (Windows).
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QTreeView : public QObject
 {
@@ -402,7 +411,6 @@ void tst_QTreeView::initTestCase()
 #ifdef Q_OS_WINCE //disable magic for WindowsCE
     qApp->setAutoMaximizeThreshold(-1);
 #endif
-    qRegisterMetaType<QModelIndex>("QModelIndex");
 }
 
 void tst_QTreeView::cleanupTestCase()
@@ -879,6 +887,7 @@ void tst_QTreeView::horizontalScrollMode()
     }
 
     QTreeView view;
+    setFrameless(&view);
     view.setModel(&model);
     view.setFixedSize(100, 100);
     view.header()->resizeSection(0, 200);
@@ -1799,7 +1808,6 @@ public:
 };
 
 typedef QList<QPoint> PointList;
-Q_DECLARE_METATYPE(PointList)
 
 void tst_QTreeView::setSelection_data()
 {
@@ -3420,6 +3428,7 @@ void tst_QTreeView::task224091_appendColumns()
 {
     QStandardItemModel *model = new QStandardItemModel();
     QWidget* topLevel= new QWidget;
+    setFrameless(topLevel);
     QTreeView *treeView = new QTreeView(topLevel);
     treeView->setModel(model);
     topLevel->show();

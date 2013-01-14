@@ -54,10 +54,7 @@ typedef QList<int> IntList;
 typedef QPair<int, int> IntPair;
 typedef QList<IntPair> IntPairList;
 
-Q_DECLARE_METATYPE(IntList)
-Q_DECLARE_METATYPE(IntPair)
-Q_DECLARE_METATYPE(IntPairList)
-Q_DECLARE_METATYPE(QModelIndex)
+Q_DECLARE_METATYPE(QList<QPersistentModelIndex>)
 
 class tst_QSortFilterProxyModel : public QObject
 {
@@ -179,10 +176,7 @@ tst_QSortFilterProxyModel::tst_QSortFilterProxyModel()
 
 void tst_QSortFilterProxyModel::initTestCase()
 {
-    qRegisterMetaType<QModelIndex>("QModelIndex");
-    qRegisterMetaType<IntList>("IntList");
-    qRegisterMetaType<IntPair>("IntPair");
-    qRegisterMetaType<IntPairList>("IntPairList");
+    qRegisterMetaType<QList<QPersistentModelIndex> >();
     m_model = new QStandardItemModel(0, 1);
     m_proxy = new QSortFilterProxyModel();
     m_proxy->setSourceModel(m_model);
@@ -3248,8 +3242,6 @@ void tst_QSortFilterProxyModel::resetInvalidate()
     QCOMPARE(ok, works);
 }
 
-Q_DECLARE_METATYPE(QList<QPersistentModelIndex>)
-
 void tst_QSortFilterProxyModel::testParentLayoutChanged()
 {
     QStandardItemModel model;
@@ -3281,8 +3273,6 @@ void tst_QSortFilterProxyModel::testParentLayoutChanged()
 
     proxy2.setSourceModel(&proxy);
     proxy2.setObjectName("proxy2");
-
-    qRegisterMetaType<QList<QPersistentModelIndex> >();
 
     QSignalSpy dataChangedSpy(&model, SIGNAL(dataChanged(QModelIndex,QModelIndex)));
 
@@ -3417,8 +3407,6 @@ private:
 
 void tst_QSortFilterProxyModel::moveSourceRows()
 {
-    qRegisterMetaType<QList<QPersistentModelIndex> >();
-
     DynamicTreeModel model;
 
     {

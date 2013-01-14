@@ -44,6 +44,8 @@
 #include <QtCore/qvariantanimation.h>
 #include <QtWidgets/qwidget.h>
 
+Q_DECLARE_METATYPE(QAbstractAnimation::State)
+
 class UncontrolledAnimation : public QPropertyAnimation
 {
     Q_OBJECT
@@ -699,7 +701,6 @@ struct Number
 };
 
 Q_DECLARE_METATYPE(Number)
-Q_DECLARE_METATYPE(QAbstractAnimation::State)
 
 QVariant numberInterpolator(const Number &f, const Number &t, qreal progress)
 {
@@ -773,7 +774,6 @@ void tst_QPropertyAnimation::interpolated()
     }
 }
 
-Q_DECLARE_METATYPE(QVariant)
 
 void tst_QPropertyAnimation::setStartEndValues_data()
 {
@@ -1124,7 +1124,6 @@ void tst_QPropertyAnimation::restart()
 
 void tst_QPropertyAnimation::valueChanged()
 {
-    qRegisterMetaType<QVariant>("QVariant");
 
     //we check that we receive the valueChanged signal
     MyErrorObject o;

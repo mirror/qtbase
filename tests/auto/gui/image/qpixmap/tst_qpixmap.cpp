@@ -114,6 +114,7 @@ private slots:
 
     void convertFromImageNoDetach();
     void convertFromImageDetach();
+    void convertFromImageCacheKey();
 
 #if defined(Q_OS_WIN)
     void toWinHBITMAP_data();
@@ -200,10 +201,6 @@ static bool lenientCompare(const QPixmap &actual, const QPixmap &expected)
     return true;
 }
 
-Q_DECLARE_METATYPE(QImage)
-Q_DECLARE_METATYPE(QPixmap)
-Q_DECLARE_METATYPE(QMatrix)
-Q_DECLARE_METATYPE(QBitmap)
 
 tst_QPixmap::tst_QPixmap()
 {
@@ -781,6 +778,28 @@ void tst_QPixmap::convertFromImageDetach()
     img.fill(1);
     p = QPixmap::fromImage(img);
     QVERIFY(copy.isDetached());
+}
+
+void tst_QPixmap::convertFromImageCacheKey()
+{
+    QPixmap randomPixmap(10, 10);
+    if (randomPixmap.handle()->classId() != QPlatformPixmap::RasterClass)
+        QSKIP("Test only valid for raster pixmaps");
+
+    //first get the screen format
+    QImage::Format screenFormat = randomPixmap.toImage().format();
+    QVERIFY(screenFormat != QImage::Format_Invalid);
+
+    QImage orig(100,100, screenFormat);
+    orig.fill(0);
+
+    QPixmap pix = QPixmap::fromImage(orig);
+    QImage copy = pix.toImage();
+
+    QVERIFY(copy.format() == screenFormat);
+
+    QCOMPARE(orig.cacheKey(), pix.cacheKey());
+    QCOMPARE(copy.cacheKey(), pix.cacheKey());
 }
 
 #if defined(Q_OS_WIN)

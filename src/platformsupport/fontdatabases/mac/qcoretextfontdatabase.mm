@@ -87,9 +87,9 @@ static const char *languageForWritingSystem[] = {
     "ko",  // Korean
     "vi",  // Vietnamese
     0, // Symbol
-    0, // Ogham
-    0, // Runic
-    0 // N'Ko
+    "sga", // Ogham
+    "non", // Runic
+    "man" // N'Ko
 };
 enum { LanguageCount = sizeof(languageForWritingSystem) / sizeof(const char *) };
 
@@ -229,6 +229,7 @@ void QCoreTextFontDatabase::populateFontDatabase()
     for (int i = 0; i < numFonts; ++i) {
         CTFontDescriptorRef font = (CTFontDescriptorRef) CFArrayGetValueAtIndex(fonts, i);
         QCFString familyName = (CFStringRef) CTFontDescriptorCopyLocalizedAttribute(font, kCTFontFamilyNameAttribute, NULL);
+        QCFString styleName = (CFStringRef)CTFontDescriptorCopyLocalizedAttribute(font, kCTFontStyleNameAttribute, NULL);
         QCFType<CFDictionaryRef> styles = (CFDictionaryRef) CTFontDescriptorCopyAttribute(font, kCTFontTraitsAttribute);
         QFont::Weight weight = QFont::Normal;
         QFont::Style style = QFont::StyleNormal;
@@ -287,7 +288,7 @@ void QCoreTextFontDatabase::populateFontDatabase()
         }
 
         CFRetain(font);
-        QPlatformFontDatabase::registerFont(familyName, foundryName, weight, style, stretch,
+        QPlatformFontDatabase::registerFont(familyName, styleName, foundryName, weight, style, stretch,
                                             true /* antialiased */, true /* scalable */,
                                             pixelSize, fixedPitch, writingSystems, (void *) font);
         CFStringRef psName = (CFStringRef) CTFontDescriptorCopyAttribute(font, kCTFontNameAttribute);
@@ -327,7 +328,7 @@ void QCoreTextFontDatabase::releaseHandle(void *handle)
     CFRelease(CTFontDescriptorRef(handle));
 }
 
-QFontEngine *QCoreTextFontDatabase::fontEngine(const QFontDef &f, QUnicodeTables::Script script, void *usrPtr)
+QFontEngine *QCoreTextFontDatabase::fontEngine(const QFontDef &f, QChar::Script script, void *usrPtr)
 {
     Q_UNUSED(script);
 
@@ -377,7 +378,7 @@ QFontEngine *QCoreTextFontDatabase::fontEngine(const QByteArray &fontData, qreal
     return fontEngine;
 }
 
-QStringList QCoreTextFontDatabase::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
+QStringList QCoreTextFontDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
 {
     Q_UNUSED(family);
     Q_UNUSED(style);

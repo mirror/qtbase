@@ -279,20 +279,20 @@ static bool addFontToDatabase(QString familyName, const QString &scriptName,
     if (!QDir::isAbsolutePath(value))
         value.prepend(QString::fromLocal8Bit(qgetenv("windir") + "\\Fonts\\"));
 
-    QPlatformFontDatabase::registerFont(faceName, foundryName, weight, style, stretch,
+    QPlatformFontDatabase::registerFont(faceName, QString(), foundryName, weight, style, stretch,
         antialias, scalable, size, fixed, writingSystems, createFontFile(value, index));
 
     // add fonts windows can generate for us:
     if (weight <= QFont::DemiBold)
-        QPlatformFontDatabase::registerFont(faceName, foundryName, QFont::Bold, style, stretch,
+        QPlatformFontDatabase::registerFont(faceName, QString(), foundryName, QFont::Bold, style, stretch,
                                             antialias, scalable, size, fixed, writingSystems, createFontFile(value, index));
 
     if (style != QFont::StyleItalic)
-        QPlatformFontDatabase::registerFont(faceName, foundryName, weight, QFont::StyleItalic, stretch,
+        QPlatformFontDatabase::registerFont(faceName, QString(), foundryName, weight, QFont::StyleItalic, stretch,
                                             antialias, scalable, size, fixed, writingSystems, createFontFile(value, index));
 
     if (weight <= QFont::DemiBold && style != QFont::StyleItalic)
-        QPlatformFontDatabase::registerFont(faceName, foundryName, QFont::Bold, QFont::StyleItalic, stretch,
+        QPlatformFontDatabase::registerFont(faceName, QString(), foundryName, QFont::Bold, QFont::StyleItalic, stretch,
                                             antialias, scalable, size, fixed, writingSystems, createFontFile(value, index));
 
     if (!englishName.isEmpty())
@@ -362,7 +362,7 @@ void QWindowsFontDatabaseFT::populate(const QString &family)
     ReleaseDC(0, dummy);
 }
 
-QFontEngine * QWindowsFontDatabaseFT::fontEngine(const QFontDef &fontDef, QUnicodeTables::Script script, void *handle)
+QFontEngine * QWindowsFontDatabaseFT::fontEngine(const QFontDef &fontDef, QChar::Script script, void *handle)
 {
     QFontEngine *fe = QBasicFontDatabase::fontEngine(fontDef, script, handle);
     if (QWindowsContext::verboseFonts)
@@ -430,9 +430,9 @@ static const char *kr_tryFonts[] = {
 
 static const char **tryFonts = 0;
 
-QStringList QWindowsFontDatabaseFT::fallbacksForFamily(const QString family, const QFont::Style &style, const QFont::StyleHint &styleHint, const QUnicodeTables::Script &script) const
+QStringList QWindowsFontDatabaseFT::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
 {
-    if(script == QUnicodeTables::Common) {
+    if (script == QChar::Script_Common) {
 //            && !(request.styleStrategy & QFont::NoFontMerging)) {
         QFontDatabase db;
         if (!db.writingSystems(family).contains(QFontDatabase::Symbol)) {
@@ -518,8 +518,8 @@ HFONT QWindowsFontDatabaseFT::systemFont()
 
 static inline bool scriptRequiresOpenType(int script)
 {
-    return ((script >= QUnicodeTables::Syriac && script <= QUnicodeTables::Sinhala)
-            || script == QUnicodeTables::Khmer || script == QUnicodeTables::Nko);
+    return ((script >= QChar::Script_Syriac && script <= QChar::Script_Sinhala)
+            || script == QChar::Script_Khmer || script == QChar::Script_Nko);
 }
 
 static inline int verticalDPI()

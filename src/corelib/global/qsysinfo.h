@@ -39,10 +39,10 @@
 **
 ****************************************************************************/
 
+#include <QtCore/qglobal.h>
+
 #ifndef QSYSINFO_H
 #define QSYSINFO_H
-
-#include <QtCore/qglobal.h>
 
 QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
@@ -70,7 +70,7 @@ public:
         BigEndian,
         LittleEndian
 
-#  ifdef qdoc
+#  ifdef Q_QDOC
         , ByteOrder = <platform-dependent>
 #  elif Q_BYTE_ORDER == Q_BIG_ENDIAN
         , ByteOrder = BigEndian

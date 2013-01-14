@@ -67,7 +67,6 @@
 #include <locale.h>
 #include <qhash.h>
 
-Q_DECLARE_METATYPE(qlonglong)
 
 #define CREATE_REF(string)                                              \
     const QString padded = QString::fromLatin1(" %1 ").arg(string);     \
@@ -315,9 +314,6 @@ QString verifyZeroTermination(const QString &str)
     /**/
 
 typedef QList<int> IntList;
-
-Q_DECLARE_METATYPE(QList<QVariant>)
-Q_DECLARE_METATYPE(IntList)
 
 // This next bit is needed for the NAN and INF in string -> number conversion tests
 #include <float.h>
@@ -1428,6 +1424,55 @@ void tst_QString::contains()
     QVERIFY(a.contains(QRegExp("[G][HE]")));
     QVERIFY(a.contains(QRegularExpression("[FG][HI]")));
     QVERIFY(a.contains(QRegularExpression("[G][HE]")));
+
+    {
+        QRegularExpressionMatch match;
+        QVERIFY(!match.hasMatch());
+
+        QVERIFY(a.contains(QRegularExpression("[FG][HI]"), &match));
+        QVERIFY(match.hasMatch());
+        QCOMPARE(match.capturedStart(), 6);
+        QCOMPARE(match.capturedEnd(), 8);
+        QCOMPARE(match.captured(), QStringLiteral("GH"));
+
+        QVERIFY(a.contains(QRegularExpression("[G][HE]"), &match));
+        QVERIFY(match.hasMatch());
+        QCOMPARE(match.capturedStart(), 6);
+        QCOMPARE(match.capturedEnd(), 8);
+        QCOMPARE(match.captured(), QStringLiteral("GH"));
+
+        QVERIFY(a.contains(QRegularExpression("[f](.*)[FG]"), &match));
+        QVERIFY(match.hasMatch());
+        QCOMPARE(match.capturedStart(), 10);
+        QCOMPARE(match.capturedEnd(), 15);
+        QCOMPARE(match.captured(), QString("fGEFG"));
+        QCOMPARE(match.capturedStart(1), 11);
+        QCOMPARE(match.capturedEnd(1), 14);
+        QCOMPARE(match.captured(1), QStringLiteral("GEF"));
+
+        QVERIFY(a.contains(QRegularExpression("[f](.*)[F]"), &match));
+        QVERIFY(match.hasMatch());
+        QCOMPARE(match.capturedStart(), 10);
+        QCOMPARE(match.capturedEnd(), 14);
+        QCOMPARE(match.captured(), QString("fGEF"));
+        QCOMPARE(match.capturedStart(1), 11);
+        QCOMPARE(match.capturedEnd(1), 13);
+        QCOMPARE(match.captured(1), QStringLiteral("GE"));
+
+        QVERIFY(!a.contains(QRegularExpression("ZZZ"), &match));
+        // doesn't match, but ensure match didn't change
+        QVERIFY(match.hasMatch());
+        QCOMPARE(match.capturedStart(), 10);
+        QCOMPARE(match.capturedEnd(), 14);
+        QCOMPARE(match.captured(), QStringLiteral("fGEF"));
+        QCOMPARE(match.capturedStart(1), 11);
+        QCOMPARE(match.capturedEnd(1), 13);
+        QCOMPARE(match.captured(1), QStringLiteral("GE"));
+
+        // don't crash with a null pointer
+        QVERIFY(a.contains(QRegularExpression("[FG][HI]"), 0));
+        QVERIFY(!a.contains(QRegularExpression("ZZZ"), 0));
+    }
 
     CREATE_REF(QLatin1String("FG"));
     QVERIFY(a.contains(ref));

@@ -49,6 +49,7 @@
 #include "qcocoaclipboard.h"
 #include "qcocoadrag.h"
 #include "qcocoaservices.h"
+#include "qcocoakeymapper.h"
 
 #include <QtCore/QScopedPointer>
 #include <qpa/qplatformintegration.h>
@@ -79,11 +80,11 @@ public:
     // ----------------------------------------------------
     // Additional methods
     void setVirtualSiblings(QList<QPlatformScreen *> siblings) { m_siblings = siblings; }
-    NSScreen *osScreen() const { return m_screen; }
+    NSScreen *osScreen() const;
     void updateGeometry();
 
 public:
-    NSScreen *m_screen;
+    int m_screenIndex;
     QRect m_geometry;
     QRect m_availableGeometry;
     QDpi m_logicalDpi;
@@ -121,6 +122,8 @@ public:
     QPlatformServices *services() const;
     QVariant styleHint(StyleHint hint) const;
 
+    QList<int> possibleKeys(const QKeyEvent *event) const;
+
     void updateScreens();
 
 private:
@@ -138,6 +141,7 @@ private:
     QScopedPointer<QCocoaDrag> mCocoaDrag;
     QScopedPointer<QPlatformNativeInterface> mNativeInterface;
     QScopedPointer<QCocoaServices> mServices;
+    QScopedPointer<QCocoaKeyMapper> mKeyboardMapper;
 };
 
 QT_END_NAMESPACE

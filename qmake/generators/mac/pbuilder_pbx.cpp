@@ -1284,11 +1284,6 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                 if (!program.isEmpty())
                     t << "\t\t\t\t" << writeSettings("LDPLUSPLUS", fixForOutput(findProgram(program))) << ";" << "\n";
 
-                if (!project->isEmpty("PRECOMPILED_HEADER")) {
-                    t << "\t\t\t\t" << writeSettings("GCC_PRECOMPILE_PREFIX_HEADER", "YES") << ";" << "\n"
-                      << "\t\t\t\t" << writeSettings("GCC_PREFIX_HEADER", escapeFilePath(project->first("PRECOMPILED_HEADER"))) << ";" << "\n";
-                }
-
                 if ((project->first("TEMPLATE") == "app" && project->isActiveConfig("app_bundle")) ||
                    (project->first("TEMPLATE") == "lib" && !project->isActiveConfig("staticlib") &&
                     project->isActiveConfig("lib_bundle"))) {
@@ -1336,8 +1331,6 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
 
                 if (project->first("TEMPLATE") == "lib")
                     t << "\t\t\t\t" << writeSettings("INSTALL_PATH", ProStringList()) << ";" << "\n";
-                if (!project->isEmpty("OBJECTS_DIR"))
-                    t << "\t\t\t\t" << writeSettings("OBJROOT", fixForOutput(project->first("OBJECTS_DIR").toQString())) << ";" << "\n";
 
                 if (!project->isEmpty("VERSION") && project->first("VERSION") != "0.0.0") {
                     t << "\t\t\t\t" << writeSettings("DYLIB_CURRENT_VERSION",  project->first("VER_MAJ")+"."+project->first("VER_MIN")+"."+project->first("VER_PAT")) << ";" << "\n";
@@ -1365,7 +1358,10 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                         val = "/usr/bin/";
                     t << "\t\t\t\t" << writeSettings(var, escapeFilePath(val)) << ";" << "\n";
                 }
-
+                if (!project->isEmpty("PRECOMPILED_HEADER")) {
+                    t << "\t\t\t\t" << writeSettings("GCC_PRECOMPILE_PREFIX_HEADER", "YES") << ";" << "\n"
+                      << "\t\t\t\t" << writeSettings("GCC_PREFIX_HEADER", escapeFilePath(project->first("PRECOMPILED_HEADER"))) << ";" << "\n";
+                }
                 t << "\t\t\t\t" << writeSettings("HEADER_SEARCH_PATHS", fixListForOutput("INCLUDEPATH") + ProStringList(fixForOutput(specdir())), SettingsAsList, 5) << ";" << "\n"
                   << "\t\t\t\t" << writeSettings("LIBRARY_SEARCH_PATHS", fixListForOutput("QMAKE_PBX_LIBPATHS"), SettingsAsList, 5) << ";" << "\n"
                   << "\t\t\t\t" << writeSettings("FRAMEWORK_SEARCH_PATHS", fixListForOutput("QMAKE_FRAMEWORKPATH"),
@@ -1402,6 +1398,8 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                 const ProStringList &archs = project->values("QT_ARCH");
                 if (!archs.isEmpty())
                     t << "\t\t\t\t" << writeSettings("ARCHS", archs) << ";" << "\n";
+                if (!project->isEmpty("OBJECTS_DIR"))
+                    t << "\t\t\t\t" << writeSettings("OBJROOT", escapeFilePath(project->first("OBJECTS_DIR").toQString())) << ";" << "\n";
             } else {
                 if (project->first("TEMPLATE") == "app") {
                     t << "\t\t\t\t" << writeSettings("PRODUCT_NAME", fixForOutput(project->first("QMAKE_ORIG_TARGET").toQString())) << ";" << "\n";

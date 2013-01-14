@@ -41,7 +41,6 @@
 
 #include "qplatformdefs.h"
 #include "qabstracteventdispatcher.h"
-#include "qaccessible.h"
 #include "qapplication.h"
 #include "qclipboard.h"
 #include "qcursor.h"
@@ -189,6 +188,15 @@ QApplicationPrivate::~QApplicationPrivate()
     object, no matter whether the application has 0, 1, 2 or more windows at
     any given time. For non-QWidget based Qt applications, use QGuiApplication instead,
     as it does not depend on the \l QtWidgets library.
+
+    Some GUI applications provide a special batch mode ie. provide command line
+    arguments for executing tasks without manual intervention. In such non-GUI
+    mode, it is often sufficient to instantiate a plain QCoreApplication to
+    avoid unnecessarily initializing resources needed for a graphical user
+    interface. The following example shows how to dynamically create an
+    appropriate type of application instance:
+
+    \snippet code/src_gui_kernel_qapplication.cpp 0
 
     The QApplication object is accessible through the instance() function that
     returns a pointer equivalent to the global qApp pointer.
@@ -2653,9 +2661,6 @@ int QApplication::startDragDistance()
 */
 int QApplication::exec()
 {
-#ifndef QT_NO_ACCESSIBILITY
-    QAccessible::setRootObject(qApp);
-#endif
     return QGuiApplication::exec();
 }
 
@@ -2704,16 +2709,48 @@ bool QApplication::notify(QObject *receiver, QEvent *e)
     if (receiver->isWindowType())
         QGuiApplicationPrivate::sendQWindowEventToQPlatformWindow(static_cast<QWindow *>(receiver), e);
 
-    // capture the current mouse/keyboard state
     if(e->spontaneous()) {
-        if (e->type() == QEvent::MouseButtonPress
-            || e->type() == QEvent::MouseButtonRelease) {
+        // Capture the current mouse and keyboard states. Doing so here is
+        // required in order to support QTestLib synthesized events. Real mouse
+        // and keyboard state updates from the platform plugin are managed by
+        // QGuiApplicationPrivate::process(Mouse|Wheel|Key|Touch|Tablet)Event();
+        switch (e->type()) {
+        case QEvent::MouseButtonPress:
+            {
                 QMouseEvent *me = static_cast<QMouseEvent*>(e);
-                if(me->type() == QEvent::MouseButtonPress)
-                    QApplicationPrivate::mouse_buttons |= me->button();
-                else
-                    QApplicationPrivate::mouse_buttons &= ~me->button();
+                QApplicationPrivate::modifier_buttons = me->modifiers();
+                QApplicationPrivate::mouse_buttons |= me->button();
+                break;
             }
+        case QEvent::MouseButtonRelease:
+            {
+                QMouseEvent *me = static_cast<QMouseEvent*>(e);
+                QApplicationPrivate::modifier_buttons = me->modifiers();
+                QApplicationPrivate::mouse_buttons &= ~me->button();
+                break;
+            }
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        case QEvent::MouseMove:
+#ifndef QT_NO_WHEELEVENT
+        case QEvent::Wheel:
+#endif
+        case QEvent::TouchBegin:
+        case QEvent::TouchUpdate:
+        case QEvent::TouchEnd:
+#ifndef QT_NO_TABLETEVENT
+        case QEvent::TabletMove:
+        case QEvent::TabletPress:
+        case QEvent::TabletRelease:
+#endif
+            {
+                QInputEvent *ie = static_cast<QInputEvent*>(e);
+                QApplicationPrivate::modifier_buttons = ie->modifiers();
+                break;
+            }
+        default:
+            break;
+        }
     }
 
 #ifndef QT_NO_GESTURES

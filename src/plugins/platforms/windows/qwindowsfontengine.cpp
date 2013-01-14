@@ -66,7 +66,6 @@
 #include <QtCore/QThreadStorage>
 #include <QtCore/private/qsystemlibrary_p.h>
 
-#include <QtCore/private/qunicodetables_p.h>
 #include <QtCore/QDebug>
 
 #include <limits.h>
@@ -155,9 +154,20 @@ static OUTLINETEXTMETRIC *getOutlineTextMetric(HDC hdc)
     return otm;
 }
 
+bool QWindowsFontEngine::hasCFFTable() const
+{
+    HDC hdc = m_fontEngineData->hdc;
+    SelectObject(hdc, hfont);
+    return GetFontData(hdc, MAKE_TAG('C', 'F', 'F', ' '), 0, 0, 0) != GDI_ERROR;
+}
+
 void QWindowsFontEngine::getCMap()
 {
     ttf = (bool)(tm.tmPitchAndFamily & TMPF_TRUETYPE);
+
+    // TMPF_TRUETYPE is not set for fonts with CFF tables
+    cffTable = !ttf && hasCFFTable();
+
     HDC hdc = m_fontEngineData->hdc;
     SelectObject(hdc, hfont);
     bool symb = false;
@@ -1041,7 +1051,7 @@ void QWindowsFontEngine::getUnscaledGlyph(glyph_t glyph, QPainterPath *path, gly
 
 bool QWindowsFontEngine::getSfntTableData(uint tag, uchar *buffer, uint *length) const
 {
-    if (!ttf)
+    if (!ttf && !cffTable)
         return false;
     HDC hdc = m_fontEngineData->hdc;
     SelectObject(hdc, hfont);
@@ -1258,7 +1268,7 @@ QFontEngine *QWindowsFontEngine::cloneWithSize(qreal pixelSize) const
     request.styleStrategy |= QFont::NoFontMerging;
 
     QFontEngine *fontEngine =
-        QWindowsFontDatabase::createEngine(QUnicodeTables::Common, request, 0,
+        QWindowsFontDatabase::createEngine(QChar::Script_Common, request, 0,
                                            QWindowsContext::instance()->defaultDPI(),
                                            false,
                                            QStringList(), m_fontEngineData);

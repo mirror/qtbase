@@ -19,8 +19,15 @@ gui_app {
     LIBS += "-force_load $${lib_path_and_base}.$${QMAKE_EXTENSION_STATICLIB}"
     LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
 
+    # Which means we don't want the auto-generated import for the platform plugin
+    CONFIG -= import_qpa_plugin
+
     !no_main_wrapper {
-        QTPLUGIN += iosmain
+        # We link the iosmain library manually, since it's not really a plugin
+        lib_name = qiosmain
+        lib_path_and_base = $$[QT_INSTALL_PLUGINS/get]/platforms/lib$${lib_name}$$qtPlatformTargetSuffix()
+        LIBS += "-L$$[QT_INSTALL_PLUGINS/get]/platforms -l$${lib_name}$$qtPlatformTargetSuffix()"
+        LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
         DEFINES += main=qt_main
     }
 }

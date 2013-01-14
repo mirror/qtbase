@@ -9,8 +9,7 @@ DEFINES += MESA_EGL_NO_X11_HEADERS
 #EGLFS_PLATFORM_HOOKS_SOURCES += qeglfshooks_x11.cpp
 #LIBS += -lX11
 
-SOURCES =   $$PWD/main.cpp \
-            $$PWD/qeglfsintegration.cpp \
+SOURCES +=  $$PWD/qeglfsintegration.cpp \
             $$PWD/qeglfswindow.cpp \
             $$PWD/qeglfsbackingstore.cpp \
             $$PWD/qeglfsscreen.cpp \
@@ -18,7 +17,7 @@ SOURCES =   $$PWD/main.cpp \
             $$PWD/qeglfscursor.cpp \
             $$PWD/qeglfscontext.cpp
 
-HEADERS =   $$PWD/qeglfsintegration.h \
+HEADERS +=  $$PWD/qeglfsintegration.h \
             $$PWD/qeglfswindow.h \
             $$PWD/qeglfsbackingstore.h \
             $$PWD/qeglfsscreen.h \

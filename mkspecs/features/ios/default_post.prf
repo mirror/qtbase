@@ -26,7 +26,7 @@ gui_app {
         # We link the iosmain library manually, since it's not really a plugin
         lib_name = qiosmain
         lib_path_and_base = $$[QT_INSTALL_PLUGINS/get]/platforms/lib$${lib_name}$$qtPlatformTargetSuffix()
-        LIBS += "-L$$[QT_INSTALL_PLUGINS/get]/platforms -l$${lib_name}$$qtPlatformTargetSuffix()"
+        LIBS += -L$$[QT_INSTALL_PLUGINS/get]/platforms -l$${lib_name}$$qtPlatformTargetSuffix()
         LIBS += $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
         DEFINES += main=qt_main
     }

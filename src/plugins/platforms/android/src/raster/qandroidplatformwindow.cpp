@@ -41,7 +41,7 @@
 
 #include "qandroidplatformwindow.h"
 
-QAndroidPlatformWindow::QAndroidPlatformWindow(QWindow *window):QFbWindow(window)
+QAndroidPlatformWindow::QAndroidPlatformWindow(QWindow *window) : QFbWindow(window)
 {
 }
 

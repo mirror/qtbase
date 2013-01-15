@@ -50,11 +50,11 @@ class AndroidAssetsFileEngineHandler: public QAbstractFileEngineHandler
 public:
     AndroidAssetsFileEngineHandler();
     virtual ~AndroidAssetsFileEngineHandler();
-    QAbstractFileEngine * create ( const QString & fileName ) const;
+    QAbstractFileEngine *create(const QString &fileName) const;
 
 private:
-    AAssetManager * m_assetManager;
-    mutable QByteArray path;
+    AAssetManager *m_assetManager;
+    mutable QByteArray m_path;
     mutable int m_necessitasApiLevel;
 };
 

@@ -54,7 +54,7 @@ QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
     mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
     mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
     initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+    qDebug() << "QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
 }
 
 void QAndroidPlatformScreen::topWindowChanged(QWindow *w)

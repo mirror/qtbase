@@ -50,37 +50,38 @@
 #include <qsharedpointer.h>
 #include <qthread.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
-static QAndroidInputContext * m_androidInputContext = 0;
-static char const * const QtNativeInputConnectionClassName = "org/kde/necessitas/industrius/QtNativeInputConnection";
-static char const * const QtExtractedTextClassName = "org/kde/necessitas/industrius/QtExtractedText";
+static QAndroidInputContext *m_androidInputContext = 0;
+static char const *const QtNativeInputConnectionClassName = "org/kde/necessitas/industrius/QtNativeInputConnection";
+static char const *const QtExtractedTextClassName = "org/kde/necessitas/industrius/QtExtractedText";
 static jclass m_extractedTextClass = 0;
-static jmethodID m_classConstructorMethodID=0;
-static jfieldID m_partialEndOffsetFieldID=0;
-static jfieldID m_partialStartOffsetFieldID=0;
-static jfieldID m_selectionEndFieldID=0;
-static jfieldID m_selectionStartFieldID=0;
-static jfieldID m_startOffsetFieldID=0;
-static jfieldID m_textFieldID=0;
+static jmethodID m_classConstructorMethodID = 0;
+static jfieldID m_partialEndOffsetFieldID = 0;
+static jfieldID m_partialStartOffsetFieldID = 0;
+static jfieldID m_selectionEndFieldID = 0;
+static jfieldID m_selectionStartFieldID = 0;
+static jfieldID m_startOffsetFieldID = 0;
+static jfieldID m_textFieldID = 0;
 
 static jboolean commitText(JNIEnv *env, jobject /*thiz*/, jstring text, jint newCursorPosition)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     jboolean isCopy;
-    const jchar * jstr = env->GetStringChars(text, &isCopy);
-    QString str((const QChar*)jstr,  env->GetStringLength(text));
+    const jchar *jstr = env->GetStringChars(text, &isCopy);
+    QString str(reinterpret_cast<const QChar *>(jstr), env->GetStringLength(text));
     env->ReleaseStringChars(text, jstr);
-    return m_androidInputContext->commitText( str
-                                            , newCursorPosition );
+
+    return m_androidInputContext->commitText(str, newCursorPosition);
 }
 
 static jboolean deleteSurroundingText(JNIEnv */*env*/, jobject /*thiz*/, jint leftLength, jint rightLength)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->deleteSurroundingText(leftLength, rightLength);
 }
 
@@ -88,6 +89,7 @@ static jboolean finishComposingText(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->finishComposingText();
 }
 
@@ -95,6 +97,7 @@ static jint getCursorCapsMode(JNIEnv */*env*/, jobject /*thiz*/, jint reqModes)
 {
     if (!m_androidInputContext)
         return 0;
+
     return m_androidInputContext->getCursorCapsMode(reqModes);
 }
 
@@ -103,49 +106,60 @@ static jobject getExtractedText(JNIEnv *env, jobject /*thiz*/, int hintMaxChars,
     if (!m_androidInputContext)
         return 0;
 
-    const QAndroidInputContext::ExtractedText & extractedText=m_androidInputContext->getExtractedText(hintMaxChars, hintMaxLines, flags);
+    const QAndroidInputContext::ExtractedText &extractedText =
+            m_androidInputContext->getExtractedText(hintMaxChars, hintMaxLines, flags);
+
     jobject object = env->NewObject(m_extractedTextClass, m_classConstructorMethodID);
     env->SetIntField(object, m_partialStartOffsetFieldID, extractedText.partialStartOffset);
     env->SetIntField(object, m_partialEndOffsetFieldID, extractedText.partialEndOffset);
     env->SetIntField(object, m_selectionStartFieldID, extractedText.selectionStart);
     env->SetIntField(object, m_selectionEndFieldID, extractedText.selectionEnd);
     env->SetIntField(object, m_startOffsetFieldID, extractedText.startOffset);
-    env->SetObjectField(object, m_textFieldID, env->NewString((jchar*)extractedText.text.constData(), (jsize)extractedText.text.length()));
+    env->SetObjectField(object,
+                        m_textFieldID,
+                        env->NewString(reinterpret_cast<const jchar *>(extractedText.text.constData()),
+                                       jsize(extractedText.text.length())));
+
     return object;
 }
 
-static jstring getSelectedText(JNIEnv * env, jobject /*thiz*/, jint flags)
+static jstring getSelectedText(JNIEnv *env, jobject /*thiz*/, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    const QString & text = m_androidInputContext->getSelectedText(flags);
-    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+
+    const QString &text = m_androidInputContext->getSelectedText(flags);
+    return env->NewString(reinterpret_cast<const jchar *>(text.constData()), jsize(text.length()));
 }
 
-static jstring getTextAfterCursor(JNIEnv * env, jobject /*thiz*/, jint length, jint flags)
+static jstring getTextAfterCursor(JNIEnv *env, jobject /*thiz*/, jint length, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    const QString & text = m_androidInputContext->getTextAfterCursor(length, flags);
-    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+
+    const QString &text = m_androidInputContext->getTextAfterCursor(length, flags);
+    return env->NewString(reinterpret_cast<const jchar *>(text.constData()), jsize(text.length()));
 }
 
-static jstring getTextBeforeCursor(JNIEnv * env, jobject /*thiz*/, jint length, jint flags)
+static jstring getTextBeforeCursor(JNIEnv *env, jobject /*thiz*/, jint length, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    const QString & text = m_androidInputContext->getTextBeforeCursor(length, flags);
-    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+
+    const QString &text = m_androidInputContext->getTextBeforeCursor(length, flags);
+    return env->NewString(reinterpret_cast<const jchar *>(text.constData()), jsize(text.length()));
 }
 
-static jboolean setComposingText(JNIEnv * env, jobject /*thiz*/, jstring text, jint newCursorPosition)
+static jboolean setComposingText(JNIEnv *env, jobject /*thiz*/, jstring text, jint newCursorPosition)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     jboolean isCopy;
-    const jchar * jstr = env->GetStringChars(text, &isCopy);
-    QString str((const QChar*)jstr,  env->GetStringLength(text));
+    const jchar *jstr = env->GetStringChars(text, &isCopy);
+    QString str(reinterpret_cast<const QChar *>(jstr), env->GetStringLength(text));
     env->ReleaseStringChars(text, jstr);
+
     return m_androidInputContext->setComposingText(str, newCursorPosition);
 }
 
@@ -153,6 +167,7 @@ static jboolean setSelection(JNIEnv */*env*/, jobject /*thiz*/, jint start, jint
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->setSelection(start, end);
 }
 
@@ -160,6 +175,7 @@ static jboolean selectAll(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->selectAll();
 }
 
@@ -167,6 +183,7 @@ static jboolean cut(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->cut();
 }
 
@@ -174,6 +191,7 @@ static jboolean copy(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->copy();
 }
 
@@ -181,6 +199,7 @@ static jboolean copyURL(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->copyURL();
 }
 
@@ -188,6 +207,7 @@ static jboolean paste(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
+
     return m_androidInputContext->paste();
 }
 
@@ -213,82 +233,79 @@ static JNINativeMethod methods[] = {
 
 QAndroidInputContext::QAndroidInputContext():QPlatformInputContext()
 {
-    JNIEnv * env = 0;
-    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL)<0)
-    {
-        qCritical()<<"AttachCurrentThread failed";
+    JNIEnv *env = 0;
+    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL) < 0) {
+        qCritical() << "AttachCurrentThread failed";
         return;
     }
+
     jclass clazz = QtAndroid::findClass(QtNativeInputConnectionClassName, env);
-    if (clazz == NULL)
-    {
-        qCritical()<<"Native registration unable to find class '"<<QtNativeInputConnectionClassName<<"'";
+    if (clazz == NULL) {
+        qCritical() << "Native registration unable to find class '"
+                    << QtNativeInputConnectionClassName
+                    << "'";
         return;
     }
-    if (env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) < 0)
-    {
-        qCritical()<<"RegisterNatives failed for '"<<QtNativeInputConnectionClassName<<"'";
+
+    if (env->RegisterNatives(clazz, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
+        qCritical() << "RegisterNatives failed for '"
+                    << QtNativeInputConnectionClassName
+                    << "'";
         return;
     }
 
     clazz = QtAndroid::findClass(QtExtractedTextClassName, env);
-    if (clazz == NULL)
-    {
-        qCritical()<<"Native registration unable to find class '"<<QtExtractedTextClassName<<"'";
+    if (clazz == NULL) {
+        qCritical() << "Native registration unable to find class '"
+                    << QtExtractedTextClassName
+                    << "'";
         return;
     }
 
-    m_extractedTextClass = (jclass)env->NewGlobalRef(clazz);
+    m_extractedTextClass = static_cast<jclass>(env->NewGlobalRef(clazz));
     m_classConstructorMethodID = env->GetMethodID(m_extractedTextClass, "<init>", "()V");
-    if (m_classConstructorMethodID == NULL)
-    {
-        qCritical()<<"GetMethodID failed";
+    if (m_classConstructorMethodID == NULL) {
+        qCritical() << "GetMethodID failed";
         return;
     }
 
     m_partialEndOffsetFieldID = env->GetFieldID(m_extractedTextClass, "partialEndOffset", "I");
-    if (m_partialEndOffsetFieldID == NULL)
-    {
-        qCritical()<<"Can't find field partialEndOffset";
+    if (m_partialEndOffsetFieldID == NULL) {
+        qCritical() << "Can't find field partialEndOffset";
         return;
     }
 
     m_partialStartOffsetFieldID = env->GetFieldID(m_extractedTextClass, "partialStartOffset", "I");
-    if (m_partialStartOffsetFieldID == NULL)
-    {
-        qCritical()<<"Can't find field partialStartOffset";
+    if (m_partialStartOffsetFieldID == NULL) {
+        qCritical() << "Can't find field partialStartOffset";
         return;
     }
 
     m_selectionEndFieldID = env->GetFieldID(m_extractedTextClass, "selectionEnd", "I");
-    if (m_selectionEndFieldID == NULL)
-    {
-        qCritical()<<"Can't find field selectionEnd";
+    if (m_selectionEndFieldID == NULL) {
+        qCritical() << "Can't find field selectionEnd";
         return;
     }
 
     m_selectionStartFieldID = env->GetFieldID(m_extractedTextClass, "selectionStart", "I");
-    if (m_selectionStartFieldID == NULL)
-    {
-        qCritical()<<"Can't find field selectionStart";
+    if (m_selectionStartFieldID == NULL) {
+        qCritical() << "Can't find field selectionStart";
         return;
     }
 
     m_startOffsetFieldID = env->GetFieldID(m_extractedTextClass, "startOffset", "I");
-    if (m_startOffsetFieldID == NULL)
-    {
-        qCritical()<<"Can't find field startOffset";
+    if (m_startOffsetFieldID == NULL) {
+        qCritical() << "Can't find field startOffset";
         return;
     }
 
     m_textFieldID = env->GetFieldID(m_extractedTextClass, "text", "Ljava/lang/String;");
-    if (m_textFieldID == NULL)
-    {
-        qCritical()<<"Can't find field text";
+    if (m_textFieldID == NULL) {
+        qCritical() << "Can't find field text";
         return;
     }
-    qRegisterMetaType<QInputMethodEvent*>("QInputMethodEvent*");
-    qRegisterMetaType<QInputMethodQueryEvent*>("QInputMethodQueryEvent*");
+    qRegisterMetaType<QInputMethodEvent *>("QInputMethodEvent*");
+    qRegisterMetaType<QInputMethodQueryEvent *>("QInputMethodQueryEvent*");
     m_androidInputContext = this;
 }
 
@@ -296,12 +313,12 @@ QAndroidInputContext::~QAndroidInputContext()
 {
     m_androidInputContext = 0;
     m_extractedTextClass = 0;
-    m_partialEndOffsetFieldID=0;
-    m_partialStartOffsetFieldID=0;
-    m_selectionEndFieldID=0;
-    m_selectionStartFieldID=0;
-    m_startOffsetFieldID=0;
-    m_textFieldID=0;
+    m_partialEndOffsetFieldID = 0;
+    m_partialStartOffsetFieldID = 0;
+    m_selectionEndFieldID = 0;
+    m_selectionStartFieldID = 0;
+    m_startOffsetFieldID = 0;
+    m_textFieldID = 0;
 }
 
 void QAndroidInputContext::reset()
@@ -349,8 +366,13 @@ void QAndroidInputContext::showInputPanel()
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return;
+
     QRect rect = query->value(Qt::ImWidgetScreenGeometry).toRect();
-    QtAndroidInput::showSoftwareKeyboard(rect.left(), rect.top(), rect.width(), rect.height(), query->value(Qt::ImHints).toUInt());
+    QtAndroidInput::showSoftwareKeyboard(rect.left(),
+                                         rect.top(),
+                                         rect.width(),
+                                         rect.height(),
+                                         query->value(Qt::ImHints).toUInt());
 }
 
 void QAndroidInputContext::hideInputPanel()
@@ -395,10 +417,12 @@ jboolean QAndroidInputContext::deleteSurroundingText(jint leftLength, jint right
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return JNI_TRUE;
-    const int cursorPos= query->value(Qt::ImCursorPosition).toInt();
-    setSelection(cursorPos-leftLength, cursorPos+rightLength);
+
+    const int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+    setSelection(cursorPos - leftLength, cursorPos + rightLength);
     m_composingText.clear();
     finishComposingText();
+
     return JNI_TRUE;
 }
 
@@ -408,6 +432,7 @@ jboolean QAndroidInputContext::finishComposingText()
     event.setCommitString(m_composingText);
     sendInputMethodEvent(&event);
     clear();
+
     return JNI_TRUE;
 }
 
@@ -420,30 +445,32 @@ jint QAndroidInputContext::getCursorCapsMode(jint /*reqModes*/)
 
     const uint qtInputMethodHints = query->value(Qt::ImHints).toUInt();
 
-    if ( qtInputMethodHints & Qt::ImhPreferUppercase )
+    if (qtInputMethodHints & Qt::ImhPreferUppercase)
         res = CAP_MODE_SENTENCES;
 
-    if ( qtInputMethodHints & Qt::ImhUppercaseOnly)
+    if (qtInputMethodHints & Qt::ImhUppercaseOnly)
         res = CAP_MODE_CHARACTERS;
 
     return res;
 }
 
-const QAndroidInputContext::ExtractedText & QAndroidInputContext::getExtractedText(jint hintMaxChars, jint /*hintMaxLines*/, jint /*flags*/)
+const QAndroidInputContext::ExtractedText &QAndroidInputContext::getExtractedText(jint hintMaxChars, jint /*hintMaxLines*/, jint /*flags*/)
 {
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return m_extractedText;
+
     if (hintMaxChars)
         m_extractedText.text = query->value(Qt::ImSurroundingText).toString().right(hintMaxChars);
+
     m_extractedText.startOffset = query->value(Qt::ImCursorPosition).toInt();
-    const QString & selection = query->value(Qt::ImCurrentSelection).toString();
-    const int selLen=selection.length();
-    if (selLen)
-    {
+    const QString &selection = query->value(Qt::ImCurrentSelection).toString();
+    const int selLen = selection.length();
+    if (selLen) {
         m_extractedText.selectionStart = query->value(Qt::ImAnchorPosition).toInt();
         m_extractedText.selectionEnd = m_extractedText.startOffset;
     }
+
     return m_extractedText;
 }
 
@@ -452,6 +479,7 @@ QString QAndroidInputContext::getSelectedText(jint /*flags*/)
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return QString();
+
     return query->value(Qt::ImCurrentSelection).toString();
 }
 
@@ -460,9 +488,11 @@ QString QAndroidInputContext::getTextAfterCursor(jint length, jint /*flags*/)
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return QString();
+
     QString text = query->value(Qt::ImSurroundingText).toString();
     if (!text.length())
         return text;
+
     int cursorPos = query->value(Qt::ImCursorPosition).toInt();
     return text.mid(cursorPos, length);
 }
@@ -472,27 +502,31 @@ QString QAndroidInputContext::getTextBeforeCursor(jint length, jint /*flags*/)
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return QString();
+
     QString text = query->value(Qt::ImSurroundingText).toString();
     if (!text.length())
         return text;
+
     int cursorPos = query->value(Qt::ImCursorPosition).toInt();
-    const int wordLeftPos=cursorPos-length;
-    return text.mid(wordLeftPos>0?wordLeftPos:0, cursorPos);
+    const int wordLeftPos = cursorPos - length;
+    return text.mid(wordLeftPos > 0 ? wordLeftPos : 0, cursorPos);
 }
 
-jboolean QAndroidInputContext::setComposingText(const QString & text, jint newCursorPosition)
+jboolean QAndroidInputContext::setComposingText(const QString &text, jint newCursorPosition)
 {
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return JNI_FALSE;
-    newCursorPosition+=text.length()-1;
+
+    newCursorPosition += text.length() - 1;
     int cursorPos = query->value(Qt::ImCursorPosition).toInt();
-    m_composingText=text;
+    m_composingText = text;
     QList<QInputMethodEvent::Attribute> attributes;
     attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Cursor,
-                                                cursorPos+newCursorPosition,
-                                                1,
-                                                QVariant()));
+                                                   cursorPos+newCursorPosition,
+                                                   1,
+                                                   QVariant()));
+
     QInputMethodEvent event(m_composingText, attributes);
     sendInputMethodEvent(&event);
     return JNI_TRUE;
@@ -502,9 +536,10 @@ jboolean QAndroidInputContext::setSelection(jint start, jint end)
 {
     QList<QInputMethodEvent::Attribute> attributes;
     attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Selection,
-                                                start,
-                                                end-start,
-                                                QVariant()));
+                                                   start,
+                                                   end - start,
+                                                   QVariant()));
+
     QInputMethodEvent event(QString(), attributes);
     sendInputMethodEvent(&event);
     return JNI_TRUE;
@@ -543,28 +578,40 @@ jboolean QAndroidInputContext::paste()
 QSharedPointer<QInputMethodQueryEvent> QAndroidInputContext::focusObjectInputMethodQuery(Qt::InputMethodQueries queries)
 {
 #warning TODO make qGuiApp->focusObject() thread safe !!!
-    QObject * focusObject = qGuiApp->focusObject();
+    QObject *focusObject = qGuiApp->focusObject();
     if (!focusObject)
         return QSharedPointer<QInputMethodQueryEvent>();
+
     QSharedPointer<QInputMethodQueryEvent> ret = QSharedPointer<QInputMethodQueryEvent>(new QInputMethodQueryEvent(queries));
-    if (qGuiApp->thread()==QThread::currentThread())
+    if (qGuiApp->thread()==QThread::currentThread()) {
         QCoreApplication::sendEvent(focusObject, ret.data());
-    else
-        QMetaObject::invokeMethod(this, "sendEvent", Qt::BlockingQueuedConnection, Q_ARG(QObject*, focusObject), Q_ARG(QInputMethodQueryEvent*, ret.data()));
+    } else {
+        QMetaObject::invokeMethod(this,
+                                  "sendEvent",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(QObject*, focusObject),
+                                  Q_ARG(QInputMethodQueryEvent*, ret.data()));
+    }
+
     return ret;
 }
 
 void QAndroidInputContext::sendInputMethodEvent(QInputMethodEvent *event)
 {
 #warning TODO make qGuiApp->focusObject() thread safe !!!
-    QObject * focusObject = qGuiApp->focusObject();
+    QObject *focusObject = qGuiApp->focusObject();
     if (!focusObject)
         return;
-    if (qGuiApp->thread()==QThread::currentThread())
+
+    if (qGuiApp->thread() == QThread::currentThread()) {
         QCoreApplication::sendEvent(focusObject, event);
-    else
-        QMetaObject::invokeMethod(this, "sendEvent", Qt::BlockingQueuedConnection, Q_ARG(QObject*, focusObject), Q_ARG(QInputMethodEvent*, event));
+    } else {
+        QMetaObject::invokeMethod(this,
+                                  "sendEvent",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(QObject*, focusObject),
+                                  Q_ARG(QInputMethodEvent*, event));
+    }
 }
 
 QT_END_NAMESPACE
-QT_END_HEADER

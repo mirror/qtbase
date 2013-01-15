@@ -58,22 +58,28 @@ QAndroidPlatformMenu::~QAndroidPlatformMenu()
 void QAndroidPlatformMenu::insertMenuItem(QPlatformMenuItem *menuItem, QPlatformMenuItem *before)
 {
     QMutexLocker lock(&m_menuItemsMutex);
-    m_menuItems.insert(qFind(m_menuItems.begin(), m_menuItems.end(), static_cast<QAndroidPlatformMenuItem*>(before))
-                       , static_cast<QAndroidPlatformMenuItem*>(menuItem));
+    m_menuItems.insert(qFind(m_menuItems.begin(),
+                             m_menuItems.end(),
+                             static_cast<QAndroidPlatformMenuItem *>(before)),
+                       static_cast<QAndroidPlatformMenuItem *>(menuItem));
 }
 
 void QAndroidPlatformMenu::removeMenuItem(QPlatformMenuItem *menuItem)
 {
     QMutexLocker lock(&m_menuItemsMutex);
-    m_menuItems.erase(qFind(m_menuItems.begin(), m_menuItems.end(), static_cast<QAndroidPlatformMenuItem*>(menuItem)));
+    m_menuItems.erase(qFind(m_menuItems.begin(),
+                            m_menuItems.end(),
+                            static_cast<QAndroidPlatformMenuItem *>(menuItem)));
 }
 
 void QAndroidPlatformMenu::syncMenuItem(QPlatformMenuItem *menuItem)
 {
     PlatformMenuItemsType::iterator it;
-    for(it = m_menuItems.begin(); it != m_menuItems.end();++it)
+    for (it = m_menuItems.begin(); it != m_menuItems.end(); ++it) {
         if ((*it)->tag() == menuItem->tag())
             break;
+    }
+
     if (it != m_menuItems.end())
         QtAndroidMenu::syncMenu(this);
 }
@@ -135,16 +141,18 @@ bool QAndroidPlatformMenu::isVisible()
 
 QPlatformMenuItem *QAndroidPlatformMenu::menuItemAt(int position) const
 {
-    if (position<m_menuItems.size())
+    if (position < m_menuItems.size())
         return m_menuItems[position];
     return 0;
 }
 
 QPlatformMenuItem *QAndroidPlatformMenu::menuItemForTag(quintptr tag) const
 {
-    foreach(QPlatformMenuItem *menuItem, m_menuItems)
+    foreach (QPlatformMenuItem *menuItem, m_menuItems) {
         if (menuItem->tag() == tag)
             return menuItem;
+    }
+
     return 0;
 }
 

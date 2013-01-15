@@ -46,25 +46,28 @@
 
 QAndroidPlatformServices::QAndroidPlatformServices()
 {
-    JNIEnv* env;
-    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL)<0)
-    {
-        qCritical()<<"AttachCurrentThread failed";
+    JNIEnv *env;
+    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL) < 0) {
+        qCritical() << "AttachCurrentThread failed";
         return;
     }
-    m_openURIMethodID=env->GetStaticMethodID(QtAndroid::applicationClass(), "openURL", "(Ljava/lang/String;)V");
+
+    m_openURIMethodID = env->GetStaticMethodID(QtAndroid::applicationClass(),
+                                               "openURL",
+                                               "(Ljava/lang/String;)V");
 }
 
-bool QAndroidPlatformServices::openUrl ( const QUrl & url )
+bool QAndroidPlatformServices::openUrl(const QUrl &url)
 {
-    JNIEnv* env;
-    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL)<0)
-    {
-        qCritical()<<"AttachCurrentThread failed";
+    JNIEnv *env;
+    if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL) < 0) {
+        qCritical() << "AttachCurrentThread failed";
         return false;
     }
-    jstring string = env->NewString((const jchar*)url.toString().constData(), url.toString().length());
-    env->CallStaticVoidMethod(QtAndroid::applicationClass(), m_openURIMethodID,string);
+
+    jstring string = env->NewString(reinterpret_cast<const jchar *>(url.toString().constData()),
+                                    url.toString().length());
+    env->CallStaticVoidMethod(QtAndroid::applicationClass(), m_openURIMethodID, string);
     env->DeleteLocalRef(string);
     return true;
 }

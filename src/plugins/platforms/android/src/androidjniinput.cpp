@@ -50,12 +50,12 @@ using namespace QtAndroid;
 
 namespace QtAndroidInput
 {
-    static jmethodID m_showSoftwareKeyboardMethodID=0;
-    static jmethodID m_resetSoftwareKeyboardMethodID=0;
-    static jmethodID m_hideSoftwareKeyboardMethodID=0;
-    static jmethodID m_isSoftwareKeyboardVisibleMethodID=0;
+    static jmethodID m_showSoftwareKeyboardMethodID = 0;
+    static jmethodID m_resetSoftwareKeyboardMethodID = 0;
+    static jmethodID m_hideSoftwareKeyboardMethodID = 0;
+    static jmethodID m_isSoftwareKeyboardVisibleMethodID = 0;
 
-    static bool m_ignoreMouseEvents=false;
+    static bool m_ignoreMouseEvents = false;
 
     static QList<QWindowSystemInterface::TouchPoint> m_touchPoints;
 
@@ -64,8 +64,15 @@ namespace QtAndroidInput
         AttachedJNIEnv env;
         if (!env.jniEnv)
             return;
-        qDebug()<<"showSoftwareKeyboard";
-        env.jniEnv->CallStaticVoidMethod(applicationClass(), m_showSoftwareKeyboardMethodID, left, top, width, height, inputHints);
+
+        qDebug() << "showSoftwareKeyboard";
+        env.jniEnv->CallStaticVoidMethod(applicationClass(),
+                                         m_showSoftwareKeyboardMethodID,
+                                         left,
+                                         top,
+                                         width,
+                                         height,
+                                         inputHints);
     }
 
     void resetSoftwareKeyboard()
@@ -73,7 +80,8 @@ namespace QtAndroidInput
         AttachedJNIEnv env;
         if (!env.jniEnv)
             return;
-        qDebug()<<"resetSoftwareKeyboard";
+
+        qDebug() << "resetSoftwareKeyboard";
         env.jniEnv->CallStaticVoidMethod(applicationClass(), m_resetSoftwareKeyboardMethodID);
     }
 
@@ -82,7 +90,8 @@ namespace QtAndroidInput
         AttachedJNIEnv env;
         if (!env.jniEnv)
             return;
-        qDebug()<<"hideSoftwareKeyboard";
+
+        qDebug() << "hideSoftwareKeyboard";
         env.jniEnv->CallStaticVoidMethod(applicationClass(), m_hideSoftwareKeyboardMethodID);
     }
 
@@ -91,7 +100,8 @@ namespace QtAndroidInput
         AttachedJNIEnv env;
         if (!env.jniEnv)
             return false;
-        qDebug()<<"isSoftwareKeyboardVisible";
+
+        qDebug() << "isSoftwareKeyboardVisible";
         return env.jniEnv->CallStaticBooleanMethod(applicationClass(), m_isSoftwareKeyboardVisibleMethodID);
     }
 
@@ -103,16 +113,18 @@ namespace QtAndroidInput
 
         QPoint globalPos(x,y);
         QWindow *tlw = topLevelWindowAt(globalPos);
-        QPoint localPos=tlw?globalPos-tlw->position():globalPos;
-        QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
-                                                , Qt::MouseButtons(Qt::LeftButton));
+        QPoint localPos = tlw ? (globalPos - tlw->position()) : globalPos;
+        QWindowSystemInterface::handleMouseEvent(tlw,
+                                                 localPos,
+                                                 globalPos,
+                                                 Qt::MouseButtons(Qt::LeftButton));
     }
 
     static void mouseUp(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint x, jint y)
     {
         QPoint globalPos(x,y);
         QWindow *tlw = topLevelWindowAt(globalPos);
-        QPoint localPos=tlw?globalPos-tlw->position():globalPos;
+        QPoint localPos = tlw ? (globalPos -tlw->position()) : globalPos;
         QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
                                                 , Qt::MouseButtons(Qt::NoButton));
         m_ignoreMouseEvents = false;
@@ -125,23 +137,31 @@ namespace QtAndroidInput
 
         QPoint globalPos(x,y);
         QWindow *tlw = topLevelWindowAt(globalPos);
-        QPoint localPos=tlw?globalPos-tlw->position():globalPos;
-        QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
-                                                , Qt::MouseButtons(Qt::LeftButton));
+        QPoint localPos = tlw ? (globalPos-tlw->position()) : globalPos;
+        QWindowSystemInterface::handleMouseEvent(tlw,
+                                                 localPos,
+                                                 globalPos,
+                                                 Qt::MouseButtons(Qt::LeftButton));
     }
 
-    static void longPress (JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint x, jint y)
+    static void longPress(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint x, jint y)
     {
         m_ignoreMouseEvents = true;
         QPoint globalPos(x,y);
         QWindow *tlw = topLevelWindowAt(globalPos);
-        QPoint localPos=tlw?globalPos-tlw->position():globalPos;
+        QPoint localPos = tlw ? (globalPos-tlw->position()) : globalPos;
+
         // Release left button
-        QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
-                                                , Qt::MouseButtons(Qt::NoButton));
+        QWindowSystemInterface::handleMouseEvent(tlw,
+                                                 localPos,
+                                                 globalPos,
+                                                 Qt::MouseButtons(Qt::NoButton));
+
         // Press right button
-        QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
-                                                , Qt::MouseButtons(Qt::RightButton));
+        QWindowSystemInterface::handleMouseEvent(tlw,
+                                                 localPos,
+                                                 globalPos,
+                                                 Qt::MouseButtons(Qt::RightButton));
     }
 
     static void touchBegin(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/)
@@ -151,65 +171,66 @@ namespace QtAndroidInput
 
     static void touchAdd(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint id, jint action, jboolean /*primary*/, jint x, jint y, jfloat size, jfloat pressure)
     {
-        Qt::TouchPointState state=Qt::TouchPointStationary;
-        switch(action)
-        {
+        Qt::TouchPointState state = Qt::TouchPointStationary;
+        switch (action) {
         case 0:
-            state=Qt::TouchPointPressed;
+            state = Qt::TouchPointPressed;
             break;
         case 1:
-            state=Qt::TouchPointMoved;
+            state = Qt::TouchPointMoved;
             break;
         case 2:
-            state=Qt::TouchPointStationary;
+            state = Qt::TouchPointStationary;
             break;
         case 3:
-            state=Qt::TouchPointReleased;
+            state = Qt::TouchPointReleased;
             break;
         }
-        const int dw=desktopWidthPixels(), dh=desktopHeightPixels();
+
+        const int dw = desktopWidthPixels();
+        const int dh = desktopHeightPixels();
         QWindowSystemInterface::TouchPoint touchPoint;
-        touchPoint.id=id;
-        touchPoint.pressure=pressure;
-        touchPoint.normalPosition=QPointF((double)x/dw, (double)y/dh);
-        touchPoint.state=state;
-        touchPoint.area=QRectF(x-((double)dw*size)/2,
-                            y-((double)dh*size)/2,
-                            (double)dw*size,
-                            (double)dh*size);
+        touchPoint.id = id;
+        touchPoint.pressure = pressure;
+        touchPoint.normalPosition = QPointF(double(x / dw), double(y / dh));
+        touchPoint.state = state;
+        touchPoint.area = QRectF(x - double(dw*size) / 2.0,
+                                 y - double(dh*size) / 2.0,
+                                 double(dw*size),
+                                 double(dh*size));
         m_touchPoints.push_back(touchPoint);
     }
 
     static void touchEnd(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint action)
     {
-        QEvent::Type eventType=QEvent::None;
-        switch (action)
-        {
+        QEvent::Type eventType = QEvent::None;
+        switch (action) {
             case 0:
-                eventType=QEvent::TouchBegin;
+                eventType = QEvent::TouchBegin;
                 break;
             case 1:
-                eventType=QEvent::TouchUpdate;
+                eventType = QEvent::TouchUpdate;
                 break;
             case 2:
-                eventType=QEvent::TouchEnd;
+                eventType = QEvent::TouchEnd;
                 break;
         }
+
     // FIXME
     //    QWindowSystemInterface::handleTouchEvent(0, 0, eventType, QTouchEvent::TouchScreen, m_touchPoints);
     }
 
     static int mapAndroidKey(int key)
     {
-        //0--9        0x00000007 -- 0x00000010
-        if (key>=0x00000007 && key<=0x00000010)
-            return Qt::Key_0+key-0x00000007;
-        //A--Z        0x0000001d -- 0x00000036
-        if (key>=0x0000001d && key<=0x00000036)
-            return Qt::Key_A+key-0x0000001d;
+        // 0--9        0x00000007 -- 0x00000010
+        if (key >= 0x00000007 && key <= 0x00000010)
+            return Qt::Key_0 + key - 0x00000007;
 
-        switch(key)
-        {
+        // A--Z        0x0000001d -- 0x00000036
+        if (key >= 0x0000001d && key <= 0x00000036)
+            return Qt::Key_A + key - 0x0000001d;
+
+        switch (key) {
             case 0x00000039:
             case 0x0000003a:
                 return Qt::Key_Alt;
@@ -217,8 +238,8 @@ namespace QtAndroidInput
             case 0x0000004b:
                 return Qt::Key_Apostrophe;
 
-            case 0x00000004: //KEYCODE_BACK
-                qDebug()<<"KEYCODE_BACK !!!!";
+            case 0x00000004: // KEYCODE_BACK
+                qDebug() << "KEYCODE_BACK !!!!";
                 return Qt::Key_Close;
 
             case 0x00000049:
@@ -362,40 +383,51 @@ namespace QtAndroidInput
 
             default:
                 return 0;
-
         }
     }
 
     static void keyDown(JNIEnv */*env*/, jobject /*thiz*/, jint key, jint unicode, jint modifier)
     {
-        qDebug()<<"keyDown";
+        qDebug() << "keyDown";
+
         Qt::KeyboardModifiers modifiers;
         if (modifier & 1)
-            modifiers|=Qt::ShiftModifier;
+            modifiers |= Qt::ShiftModifier;
 
         if (modifier & 2)
-            modifiers|=Qt::AltModifier;
+            modifiers |= Qt::AltModifier;
 
         if (modifier & 4)
-            modifiers|=Qt::MetaModifier;
+            modifiers |= Qt::MetaModifier;
 
-        QWindowSystemInterface::handleKeyEvent(0, QEvent::KeyPress, mapAndroidKey(key), modifiers, QChar(unicode),true);
+        QWindowSystemInterface::handleKeyEvent(0,
+                                               QEvent::KeyPress,
+                                               mapAndroidKey(key),
+                                               modifiers,
+                                               QChar(unicode),
+                                               true);
     }
 
     static void keyUp(JNIEnv */*env*/, jobject /*thiz*/, jint key, jint unicode, jint modifier)
     {
-        qDebug()<<"keyUp";
+        qDebug() << "keyUp";
+
         Qt::KeyboardModifiers modifiers;
         if (modifier & 1)
-            modifiers|=Qt::ShiftModifier;
+            modifiers |= Qt::ShiftModifier;
 
         if (modifier & 2)
-            modifiers|=Qt::AltModifier;
+            modifiers |= Qt::AltModifier;
 
         if (modifier & 4)
-            modifiers|=Qt::MetaModifier;
+            modifiers |= Qt::MetaModifier;
 
-        QWindowSystemInterface::handleKeyEvent(0, QEvent::KeyRelease, mapAndroidKey(key), modifiers, QChar(unicode),true);
+        QWindowSystemInterface::handleKeyEvent(0,
+                                               QEvent::KeyRelease,
+                                               mapAndroidKey(key),
+                                               modifiers,
+                                               QChar(unicode),
+                                               true);
     }
 
 
@@ -411,20 +443,18 @@ namespace QtAndroidInput
         {"keyUp", "(III)V", (void *)keyUp}
     };
 
-#define GET_AND_CHECK_STATIC_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATUE) \
-    VAR = env->GetStaticMethodID(CLASS, METHOD_NAME, METHOD_SIGNATUE); \
-    if (!VAR) \
-    { \
-        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATUE); \
+#define GET_AND_CHECK_STATIC_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATURE) \
+    VAR = env->GetStaticMethodID(CLASS, METHOD_NAME, METHOD_SIGNATURE); \
+    if (!VAR) { \
+        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATURE); \
         return false; \
     }
 
-    bool registerNatives(JNIEnv* env)
+    bool registerNatives(JNIEnv *env)
     {
         jclass appClass = QtAndroid::applicationClass();
 
-        if (env->RegisterNatives(appClass, methods,  sizeof(methods) / sizeof(methods[0])) < 0)
-        {
+        if (env->RegisterNatives(appClass, methods, sizeof(methods) / sizeof(methods[0])) < 0) {
             __android_log_print(ANDROID_LOG_FATAL,"Qt", "RegisterNatives failed");
             return false;
         }

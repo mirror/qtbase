@@ -47,21 +47,24 @@
 #include <qmutex.h>
 
 class QAndroidPlatformMenu;
-class QAndroidPlatformMenuBar : public QPlatformMenuBar
+class QAndroidPlatformMenuBar: public QPlatformMenuBar
 {
 public:
     typedef QVector<QAndroidPlatformMenu *> PlatformMenusType;
 public:
     QAndroidPlatformMenuBar();
     ~QAndroidPlatformMenuBar();
+
     virtual void insertMenu(QPlatformMenu *menu, QPlatformMenu *before);
     virtual void removeMenu(QPlatformMenu *menu);
     virtual void syncMenu(QPlatformMenu *menu);
     virtual void handleReparent(QWindow *newParentWindow);
     virtual QPlatformMenu *menuForTag(quintptr tag) const;
-    QWindow * parentWindow();
+
+    QWindow *parentWindow();
     const PlatformMenusType &menus();
     QMutex *menusListMutext();
+
 private:
     PlatformMenusType m_menus;
     QWindow *m_parentWindow;

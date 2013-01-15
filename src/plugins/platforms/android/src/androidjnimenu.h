@@ -52,7 +52,7 @@ class QWindow;
 namespace QtAndroidMenu
 {
     // Menu support
-    void showContextMenu(QAndroidPlatformMenu *menu, JNIEnv* env = 0);
+    void showContextMenu(QAndroidPlatformMenu *menu, JNIEnv *env = 0);
     void hideContextMenu(QAndroidPlatformMenu *menu);
     void syncMenu(QAndroidPlatformMenu *menu);
     void androidPlatformMenuDestroyed(QAndroidPlatformMenu *menu);
@@ -63,7 +63,7 @@ namespace QtAndroidMenu
     void removeMenuBar(QAndroidPlatformMenuBar *menuBar);
 
     // Menu support
-    bool registerNatives(JNIEnv* env);
+    bool registerNatives(JNIEnv *env);
 }
 
 #endif // ANDROIDJNIMENU_H

@@ -49,7 +49,7 @@
 QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
-class QAndroidInputContext : public QPlatformInputContext
+class QAndroidInputContext: public QPlatformInputContext
 {
     Q_OBJECT
     enum CapsMode
@@ -62,12 +62,14 @@ class QAndroidInputContext : public QPlatformInputContext
 public:
     struct ExtractedText
     {
-        ExtractedText() {clear();}
+        ExtractedText() { clear(); }
+
         void clear()
         {
-            partialEndOffset=partialStartOffset=selectionEnd=selectionStart=startOffset = -1;
+            partialEndOffset = partialStartOffset = selectionEnd = selectionStart = startOffset = -1;
             text.clear();
         }
+
         int partialEndOffset;
         int partialStartOffset;
         int selectionEnd;
@@ -79,7 +81,7 @@ public:
 public:
     QAndroidInputContext();
     ~QAndroidInputContext();
-    virtual bool isValid() const {return true;}
+    virtual bool isValid() const { return true; }
 
     virtual void reset();
     virtual void commit();
@@ -91,19 +93,19 @@ public:
     virtual void hideInputPanel();
     virtual bool isInputPanelVisible() const;
 
-    bool isComposing () const;
+    bool isComposing() const;
     void clear();
 
     //---------------//
-    jboolean commitText(const QString & text, jint newCursorPosition);
+    jboolean commitText(const QString &text, jint newCursorPosition);
     jboolean deleteSurroundingText(jint leftLength, jint rightLength);
     jboolean finishComposingText();
     jint getCursorCapsMode(jint reqModes);
-    const ExtractedText & getExtractedText(jint hintMaxChars, jint hintMaxLines, jint flags);
+    const ExtractedText &getExtractedText(jint hintMaxChars, jint hintMaxLines, jint flags);
     QString getSelectedText(jint flags);
     QString getTextAfterCursor(jint length, jint flags);
     QString getTextBeforeCursor(jint length, jint flags);
-    jboolean setComposingText(const QString & text, jint newCursorPosition);
+    jboolean setComposingText(const QString &text, jint newCursorPosition);
     jboolean setSelection(jint start, jint end);
     jboolean selectAll();
     jboolean cut();
@@ -112,12 +114,12 @@ public:
     jboolean paste();
 
 private:
-    QSharedPointer<QInputMethodQueryEvent> focusObjectInputMethodQuery(Qt::InputMethodQueries queries=Qt::ImQueryAll);
+    QSharedPointer<QInputMethodQueryEvent> focusObjectInputMethodQuery(Qt::InputMethodQueries queries = Qt::ImQueryAll);
     void sendInputMethodEvent(QInputMethodEvent *event);
 
 private slots:
-    virtual void sendEvent(QObject *receiver, QInputMethodEvent * event);
-    virtual void sendEvent(QObject *receiver, QInputMethodQueryEvent * event);
+    virtual void sendEvent(QObject *receiver, QInputMethodEvent *event);
+    virtual void sendEvent(QObject *receiver, QInputMethodQueryEvent *event);
 
 private:
     ExtractedText m_extractedText;

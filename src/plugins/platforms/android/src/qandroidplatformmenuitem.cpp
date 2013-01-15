@@ -90,9 +90,10 @@ const QIcon &QAndroidPlatformMenuItem::icon()
 
 void QAndroidPlatformMenuItem::setMenu(QPlatformMenu *menu)
 {
-    m_menu = static_cast<QAndroidPlatformMenu*>(menu);
+    m_menu = static_cast<QAndroidPlatformMenu *>(menu);
     if (!m_menu)
         return;
+
     m_menu->setText(m_text);
     m_menu->setIcon(m_icon);
     m_menu->setVisible(m_isVisible);

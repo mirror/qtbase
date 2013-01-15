@@ -45,7 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidPlatformIntegrationPlugin : public QPlatformIntegrationPlugin
+class QAndroidPlatformIntegrationPlugin: public QPlatformIntegrationPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QPA.QPlatformIntegrationFactoryInterface.5.1" FILE "android.json")
@@ -54,10 +54,10 @@ public:
 };
 
 
-QPlatformIntegration* QAndroidPlatformIntegrationPlugin::create(const QString &key, const QStringList &paramList)
+QPlatformIntegration *QAndroidPlatformIntegrationPlugin::create(const QString &key, const QStringList &paramList)
 {
     Q_UNUSED(paramList);
-    qDebug()<<"QAndroidPlatformIntegrationPlugin::create"<<key;
+    qDebug() << "QAndroidPlatformIntegrationPlugin::create" << key;
     if (key.toLower() == "android")
         return new QAndroidPlatformIntegration(paramList);
     return 0;

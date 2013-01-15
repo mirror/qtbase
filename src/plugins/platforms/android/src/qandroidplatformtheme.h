@@ -44,12 +44,12 @@
 
 #include <qpa/qplatformtheme.h>
 
-class QAndroidPlatformTheme : public QPlatformTheme
+class QAndroidPlatformTheme: public QPlatformTheme
 {
 public:
-    virtual QPlatformMenuBar* createPlatformMenuBar() const;
-    virtual QPlatformMenu* createPlatformMenu() const;
-    virtual QPlatformMenuItem* createPlatformMenuItem() const;
+    virtual QPlatformMenuBar *createPlatformMenuBar() const;
+    virtual QPlatformMenu *createPlatformMenu() const;
+    virtual QPlatformMenuItem *createPlatformMenuItem() const;
 };
 
 #endif // QANDROIDPLATFORMTHEME_H

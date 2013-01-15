@@ -87,16 +87,14 @@ namespace QtAndroidMenu
     void showContextMenu(QAndroidPlatformMenu *menu, JNIEnv *env)
     {
         QMutexLocker lock(&visibleMenuMutex);
-        if (visibleMenu)
+        if (visibleMenu) {
             pendingContextMenus.enqueue(menu);
-        else
-        {
+        } else {
             visibleMenu = menu;
             menu->aboutToShow();
-            if (env)
+            if (env) {
                 env->CallStaticVoidMethod(applicationClass(), openContextMenuMethodID);
-            else
-            {
+            } else {
                 AttachedJNIEnv aenv;
                 if (aenv.jniEnv)
                     aenv.jniEnv->CallStaticVoidMethod(applicationClass(), openContextMenuMethodID);
@@ -107,14 +105,13 @@ namespace QtAndroidMenu
     void hideContextMenu(QAndroidPlatformMenu *menu)
     {
         QMutexLocker lock(&visibleMenuMutex);
-        if (visibleMenu == menu)
-        {
+        if (visibleMenu == menu) {
             AttachedJNIEnv env;
             if (env.jniEnv)
                 env.jniEnv->CallStaticVoidMethod(applicationClass(), openContextMenuMethodID);
-        }
-        else
+        } else {
             pendingContextMenus.removeOne(menu);
+        }
     }
 
     void syncMenu(QAndroidPlatformMenu */*menu*/)
@@ -136,8 +133,7 @@ namespace QtAndroidMenu
 
     void setMenuBar(QAndroidPlatformMenuBar *menuBar, QWindow *window)
     {
-        if (activeTopLevelWindow == window && visibleMenuBar != menuBar)
-        {
+        if (activeTopLevelWindow == window && visibleMenuBar != menuBar) {
             visibleMenuBar = menuBar;
             resetMenuBar();
         }
@@ -148,14 +144,16 @@ namespace QtAndroidMenu
         QMutexLocker lock(&menuBarMutex);
         if (activeTopLevelWindow == window)
             return;
+
         visibleMenuBar = 0;
         activeTopLevelWindow = window;
-        foreach(QAndroidPlatformMenuBar *menuBar, menuBars)
-            if (menuBar->parentWindow() == window)
-            {
+        foreach (QAndroidPlatformMenuBar *menuBar, menuBars) {
+            if (menuBar->parentWindow() == window) {
                 visibleMenuBar = menuBar;
                 break;
             }
+        }
+
         resetMenuBar();
     }
 
@@ -178,30 +176,46 @@ namespace QtAndroidMenu
         env->CallObjectMethod(menuItem, setCheckableMenuItemMethodID, checkable);
         env->CallObjectMethod(menuItem, setCheckedMenuItemMethodID, checked);
         env->CallObjectMethod(menuItem, setEnabledMenuItemMethodID, enabled);
-        if (!icon.isNull())
-        {
+
+        if (!icon.isNull()) {
             int sz = qMax(36, qgetenv("QT_ANDROID_APP_ICON_SIZE").toInt());
-            QImage img = icon.pixmap(QSize(sz,sz), enabled?QIcon::Normal:QIcon::Disabled, QIcon::On).toImage();
-            env->CallObjectMethod(menuItem, setIconMenuItemMethodID, createBitmapDrawable(createBitmap(img, env), env));
+            QImage img = icon.pixmap(QSize(sz,sz),
+                                     enabled
+                                        ? QIcon::Normal
+                                        : QIcon::Disabled,
+                                     QIcon::On).toImage();
+            env->CallObjectMethod(menuItem,
+                                  setIconMenuItemMethodID,
+                                  createBitmapDrawable(createBitmap(img, env), env));
         }
+
         env->CallObjectMethod(menuItem, setVisibleMenuItemMethodID, visible);
     }
 
-    static int addAllMenuItemsToMenu(JNIEnv *env, jobject menu, QAndroidPlatformMenu * platformMenu)
-    {
+    static int addAllMenuItemsToMenu(JNIEnv *env, jobject menu, QAndroidPlatformMenu *platformMenu) {
          int order = 0;
          QMutexLocker lock(platformMenu->menuItemsMutex());
-         foreach(QAndroidPlatformMenuItem * item, platformMenu->menuItems())
-         {
+         foreach (QAndroidPlatformMenuItem *item, platformMenu->menuItems()) {
              if (item->isSeparator())
                  continue;
-             jstring jtext = env->NewString(reinterpret_cast<const jchar*>(item->text().data()), item->text().length());
-             jobject menuItem = env->CallObjectMethod(menu, addMenuItemMethodID, menuNoneValue, (int)item->tag(), order++, jtext);
+             jstring jtext = env->NewString(reinterpret_cast<const jchar *>(item->text().data()),
+                                            item->text().length());
+             jobject menuItem = env->CallObjectMethod(menu,
+                                                      addMenuItemMethodID,
+                                                      menuNoneValue,
+                                                      int(item->tag()),
+                                                      order++,
+                                                      jtext);
              env->DeleteLocalRef(jtext);
-             fillMenuItem(env, menuItem, item->isCheckable(), item->isChecked()
-                          , item->isEnabled(), item->isVisible()
-                          , item->icon());
+             fillMenuItem(env,
+                          menuItem,
+                          item->isCheckable(),
+                          item->isChecked(),
+                          item->isEnabled(),
+                          item->isVisible(),
+                          item->icon());
          }
+
          return order;
     }
 
@@ -212,24 +226,33 @@ namespace QtAndroidMenu
         if (!visibleMenuBar)
             return JNI_FALSE;
 
-        const QAndroidPlatformMenuBar::PlatformMenusType & menus = visibleMenuBar->menus();
+        const QAndroidPlatformMenuBar::PlatformMenusType &menus = visibleMenuBar->menus();
         int order = 0;
         QMutexLocker lockMenuBarMutex(visibleMenuBar->menusListMutext());
-        if (menus.size() == 1)
-        {// expand the menu
+        if (menus.size() == 1) { // Expand the menu
             order = addAllMenuItemsToMenu(env, menu, static_cast<QAndroidPlatformMenu *>(menus.front()));
-        }
-        else
-        {
-            foreach(QAndroidPlatformMenu * item, menus)
-            {
-                jstring jtext = env->NewString(reinterpret_cast<const jchar*>(item->text().data()), item->text().length());
-                jobject menuItem = env->CallObjectMethod(menu, addMenuItemMethodID, menuNoneValue, (int)item->tag(), order++, jtext);
+        } else {
+            foreach (QAndroidPlatformMenu *item, menus) {
+                jstring jtext = env->NewString(reinterpret_cast<const jchar *>(item->text().data()),
+                                               item->text().length());
+                jobject menuItem = env->CallObjectMethod(menu,
+                                                         addMenuItemMethodID,
+                                                         menuNoneValue,
+                                                         int(item->tag()),
+                                                         order++,
+                                                         jtext);
                 env->DeleteLocalRef(jtext);
-                fillMenuItem(env, menuItem, false, false, item->isEnabled(), item->isVisible(), item->icon());
+
+                fillMenuItem(env,
+                             menuItem,
+                             false,
+                             false,
+                             item->isEnabled(),
+                             item->isVisible(),
+                             item->icon());
             }
         }
-        return order?JNI_TRUE:JNI_FALSE;
+        return order ? JNI_TRUE : JNI_FALSE;
     }
 
     static jboolean onOptionsItemSelected(JNIEnv *env, jobject /*thiz*/, jint menuId, jboolean checked)
@@ -238,28 +261,24 @@ namespace QtAndroidMenu
         if (!visibleMenuBar)
             return JNI_FALSE;
 
-        const QAndroidPlatformMenuBar::PlatformMenusType & menus = visibleMenuBar->menus();
-        if (menus.size() == 1)
-        {// expanded menu
-            QAndroidPlatformMenuItem * item = static_cast<QAndroidPlatformMenuItem *>(menus.front()->menuItemForTag(menuId));
-            if(item)
-            {
-                if(item->menu())
+        const QAndroidPlatformMenuBar::PlatformMenusType &menus = visibleMenuBar->menus();
+        if (menus.size() == 1) { // Expanded menu
+            QAndroidPlatformMenuItem *item = static_cast<QAndroidPlatformMenuItem *>(menus.front()->menuItemForTag(menuId));
+            if (item) {
+                if (item->menu()) {
                     showContextMenu(item->menu(), env);
-                else
-                {
+                } else {
                     if (item->isCheckable())
                         item->setChecked(checked);
                     item->activated();
                 }
             }
-        }
-        else
-        {
-            QAndroidPlatformMenu * menu = static_cast<QAndroidPlatformMenu *>(visibleMenuBar->menuForTag(menuId));
+        } else {
+            QAndroidPlatformMenu *menu = static_cast<QAndroidPlatformMenu *>(visibleMenuBar->menuForTag(menuId));
             if (menu)
                 showContextMenu(menu, env);
         }
+
         return JNI_TRUE;
     }
 
@@ -273,7 +292,9 @@ namespace QtAndroidMenu
         QMutexLocker lock(&visibleMenuMutex);
         if (!visibleMenu)
             return;
-        jstring jtext = env->NewString(reinterpret_cast<const jchar*>(visibleMenu->text().data()), visibleMenu->text().length());
+
+        jstring jtext = env->NewString(reinterpret_cast<const jchar*>(visibleMenu->text().data()),
+                                       visibleMenu->text().length());
         env->CallObjectMethod(menu, setHeaderTitleContextMenuMethodID, jtext);
         env->DeleteLocalRef(jtext);
         addAllMenuItemsToMenu(env, menu, visibleMenu);
@@ -283,12 +304,10 @@ namespace QtAndroidMenu
     {
         QMutexLocker lock(&visibleMenuMutex);
         QAndroidPlatformMenuItem * item = static_cast<QAndroidPlatformMenuItem *>(visibleMenu->menuItemForTag(menuId));
-        if(item)
-        {
-            if(item->menu())
+        if (item) {
+            if (item->menu()) {
                 showContextMenu(item->menu(), env);
-            else
-            {
+            } else {
                 if (item->isCheckable())
                     item->setChecked(checked);
                 item->activated();
@@ -319,42 +338,37 @@ namespace QtAndroidMenu
 
 #define FIND_AND_CHECK_CLASS(CLASS_NAME) \
     clazz = env->FindClass(CLASS_NAME); \
-    if (!clazz) \
-    { \
+    if (!clazz) { \
         __android_log_print(ANDROID_LOG_FATAL, qtTagText(), classErrorMsgFmt(), CLASS_NAME); \
         return false; \
     }
 
-#define GET_AND_CHECK_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATUE) \
-    VAR = env->GetMethodID(CLASS, METHOD_NAME, METHOD_SIGNATUE); \
-    if (!VAR) \
-    { \
-        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATUE); \
+#define GET_AND_CHECK_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATURE) \
+    VAR = env->GetMethodID(CLASS, METHOD_NAME, METHOD_SIGNATURE); \
+    if (!VAR) { \
+        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATURE); \
         return false; \
     }
 
-#define GET_AND_CHECK_STATIC_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATUE) \
-    VAR = env->GetStaticMethodID(CLASS, METHOD_NAME, METHOD_SIGNATUE); \
-    if (!VAR) \
-    { \
-        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATUE); \
+#define GET_AND_CHECK_STATIC_METHOD(VAR, CLASS, METHOD_NAME, METHOD_SIGNATURE) \
+    VAR = env->GetStaticMethodID(CLASS, METHOD_NAME, METHOD_SIGNATURE); \
+    if (!VAR) { \
+        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), METHOD_NAME, METHOD_SIGNATURE); \
         return false; \
     }
 
-#define GET_AND_CHECK_STATIC_FIELD(VAR, CLASS, FIELD_NAME, FIELD_SIGNATUE) \
-    VAR = env->GetStaticFieldID(CLASS, FIELD_NAME, FIELD_SIGNATUE); \
-    if (!VAR) \
-    { \
-        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), FIELD_NAME, FIELD_SIGNATUE); \
+#define GET_AND_CHECK_STATIC_FIELD(VAR, CLASS, FIELD_NAME, FIELD_SIGNATURE) \
+    VAR = env->GetStaticFieldID(CLASS, FIELD_NAME, FIELD_SIGNATURE); \
+    if (!VAR) { \
+        __android_log_print(ANDROID_LOG_FATAL, qtTagText(), methodErrorMsgFmt(), FIELD_NAME, FIELD_SIGNATURE); \
         return false; \
     }
 
-    bool registerNatives(JNIEnv* env)
+    bool registerNatives(JNIEnv *env)
     {
         jclass appClass = applicationClass();
 
-        if (env->RegisterNatives(appClass, methods,  sizeof(methods) / sizeof(methods[0])) < 0)
-        {
+        if (env->RegisterNatives(appClass, methods,  sizeof(methods) / sizeof(methods[0])) < 0) {
             __android_log_print(ANDROID_LOG_FATAL,"Qt", "RegisterNatives failed");
             return false;
         }

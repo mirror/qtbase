@@ -133,21 +133,21 @@ private:
     mutable QEglFSWindow *m_primaryWindow;
 #endif
 
-    QThread * m_mainThread;
-    static int m_defaultGeometryWidth,m_defaultGeometryHeight,m_defaultPhysicalSizeWidth,m_defaultPhysicalSizeHeight;
+    QThread *m_mainThread;
+
+    static int m_defaultGeometryWidth;
+    static int m_defaultGeometryHeight;
+    static int m_defaultPhysicalSizeWidth;
+    static int m_defaultPhysicalSizeHeight;
+
     QPlatformFontDatabase *m_androidFDB;
-    QImage * mFbScreenImage;
-    QPainter *compositePainter;
+    QImage *m_FbScreenImage;
+    QPainter *m_compositePainter;
     QAndroidPlatformNativeInterface *m_androidPlatformNativeInterface;
     QAndroidPlatformServices *m_androidPlatformServices;
     QPlatformClipboard *m_androidPlatformClipboard;
+
     mutable QAndroidInputContext m_platformInputContext;
-
-#if 0
-public:
-    void surfaceChanged();
-#endif
-
 };
 
 QT_END_NAMESPACE

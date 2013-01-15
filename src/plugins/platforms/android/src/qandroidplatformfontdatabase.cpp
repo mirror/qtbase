@@ -52,9 +52,9 @@ void QAndroidPlatformFontDatabase::populateFontDatabase()
 {
     QString fontpath = fontDir();
 
-    if(!QFile::exists(fontpath)) {
+    if (!QFile::exists(fontpath)) {
         qFatal("QFontDatabase: Cannot find font directory %s - is Qt installed correctly?",
-            qPrintable(fontpath));
+               qPrintable(fontpath));
     }
 
     QDir dir(fontpath, QLatin1String("*.ttf"));
@@ -64,13 +64,16 @@ void QAndroidPlatformFontDatabase::populateFontDatabase()
     }
 }
 
-QStringList QAndroidPlatformFontDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
+QStringList QAndroidPlatformFontDatabase::fallbacksForFamily(const QString &family,
+                                                             QFont::Style style,
+                                                             QFont::StyleHint styleHint,
+                                                             QChar::Script script) const
 {
     Q_UNUSED(family);
     Q_UNUSED(style);
     Q_UNUSED(script);
     if (styleHint == QFont::Monospace)
-            return QString(qgetenv("QT_ANDROID_FONTS_MONOSPACE")).split(";");
+        return QString(qgetenv("QT_ANDROID_FONTS_MONOSPACE")).split(";");
 
     return QString(qgetenv("QT_ANDROID_FONTS")).split(";");
 }

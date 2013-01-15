@@ -52,7 +52,7 @@ namespace QtAndroidInput
     bool isSoftwareKeyboardVisible();
     // Software keyboard support
 
-    bool registerNatives(JNIEnv* env);
+    bool registerNatives(JNIEnv *env);
 }
 
 #endif // ANDROIDJNIINPUT_H

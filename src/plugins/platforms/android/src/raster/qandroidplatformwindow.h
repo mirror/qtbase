@@ -44,7 +44,7 @@
 #include <qobject.h>
 #include <QtPlatformSupport/private/qfbwindow_p.h>
 
-class QAndroidPlatformWindow : public QObject, public QFbWindow
+class QAndroidPlatformWindow: public QObject, public QFbWindow
 {
     Q_OBJECT
 public:

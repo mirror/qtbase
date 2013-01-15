@@ -44,12 +44,15 @@
 
 #include <QtPlatformSupport/private/qbasicfontdatabase_p.h>
 
-class QAndroidPlatformFontDatabase : public QBasicFontDatabase
+class QAndroidPlatformFontDatabase: public QBasicFontDatabase
 {
 public:
     virtual QString fontDir() const;
     virtual void populateFontDatabase();
-    virtual QStringList fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const;
+    virtual QStringList fallbacksForFamily(const QString &family,
+                                           QFont::Style style,
+                                           QFont::StyleHint styleHint,
+                                           QChar::Script script) const;
 };
 
 #endif // QANDROIDPLATFORMFONTDATABASE_H

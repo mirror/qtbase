@@ -48,15 +48,14 @@
 class QAndroidPlatformClipboard;
 namespace QtAndroidClipboard
 {
-
     // Clipboard support
-    void setClipboardListener(QAndroidPlatformClipboard* listener);
+    void setClipboardListener(QAndroidPlatformClipboard *listener);
     void setClipboardText(const QString &text);
     bool hasClipboardText();
     QString clipboardText();
     // Clipboard support
 
-    bool registerNatives(JNIEnv* env);
+    bool registerNatives(JNIEnv *env);
 }
 
 #endif // ANDROIDJNICLIPBOARD_H

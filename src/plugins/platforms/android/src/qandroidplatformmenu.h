@@ -47,7 +47,7 @@
 #include <qmutex.h>
 
 class QAndroidPlatformMenuItem;
-class QAndroidPlatformMenu : public QPlatformMenu
+class QAndroidPlatformMenu: public QPlatformMenu
 {
 public:
     typedef QVector<QAndroidPlatformMenuItem *> PlatformMenuItemsType;

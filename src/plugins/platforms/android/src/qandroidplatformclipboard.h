@@ -48,7 +48,7 @@
 QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
-class QAndroidPlatformClipboard : public QPlatformClipboard
+class QAndroidPlatformClipboard: public QPlatformClipboard
 {
 public:
     QAndroidPlatformClipboard();

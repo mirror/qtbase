@@ -64,48 +64,50 @@ class QWindow;
 
 namespace QtAndroid
 {
-    void setAndroidPlatformIntegration(QAndroidPlatformIntegration * androidPlatformIntegration);
-    void setQtThread(QThread * thread);
+    void setAndroidPlatformIntegration(QAndroidPlatformIntegration *androidPlatformIntegration);
+    void setQtThread(QThread *thread);
 
-    void setFullScreen(QWidget * widget);
+    void setFullScreen(QWidget *widget);
 
 #ifndef ANDROID_PLUGIN_OPENGL
     void flushImage(const QPoint &pos, const QImage &image, const QRect &rect);
 #else
-    EGLNativeWindowType nativeWindow(bool waitToCreate=true);
+    EGLNativeWindowType nativeWindow(bool waitToCreate = true);
     QSize nativeWindowSize();
 #endif
-    QWindow * topLevelWindowAt(const QPoint &globalPos);
+
+    QWindow *topLevelWindowAt(const QPoint &globalPos);
     int desktopWidthPixels();
     int desktopHeightPixels();
-    JavaVM * javaVM();
-    jclass findClass(const QString & className, JNIEnv * env);
-    AAssetManager * assetManager();
+    JavaVM *javaVM();
+    jclass findClass(const QString &className, JNIEnv *env);
+    AAssetManager *assetManager();
     jclass applicationClass();
 
-    jobject createBitmap(QImage img, JNIEnv * env = 0);
-    jobject createBitmapDrawable(jobject bitmap, JNIEnv * env = 0);
+    jobject createBitmap(QImage img, JNIEnv *env = 0);
+    jobject createBitmapDrawable(jobject bitmap, JNIEnv *env = 0);
+
     struct AttachedJNIEnv
     {
         AttachedJNIEnv()
         {
-            if (QtAndroid::javaVM()->AttachCurrentThread(&jniEnv, NULL)<0)
-            {
+            if (QtAndroid::javaVM()->AttachCurrentThread(&jniEnv, NULL) < 0) {
                 __android_log_print(ANDROID_LOG_ERROR, "Qt", "AttachCurrentThread failed");
                 jniEnv = 0;
                 return;
             }
         }
+
         ~AttachedJNIEnv()
         {
              QtAndroid::javaVM()->DetachCurrentThread();
         }
 
-        JNIEnv * jniEnv;
+        JNIEnv *jniEnv;
     };
-    const char * classErrorMsgFmt();
-    const char * methodErrorMsgFmt();
-    const char * qtTagText();
+    const char *classErrorMsgFmt();
+    const char *methodErrorMsgFmt();
+    const char *qtTagText();
 
 }
 #endif // ANDROID_APP_H

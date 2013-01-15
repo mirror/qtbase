@@ -44,12 +44,12 @@
 
 #include <QtPlatformSupport/private/qfbscreen_p.h>
 
-class QAndroidPlatformScreen : public QFbScreen
+class QAndroidPlatformScreen: public QFbScreen
 {
     Q_OBJECT
 public:
     QAndroidPlatformScreen();
-    virtual void topWindowChanged(QWindow * w);
+    virtual void topWindowChanged(QWindow *w);
 
 public slots:
     QRegion doRedraw();

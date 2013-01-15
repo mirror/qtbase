@@ -43,7 +43,7 @@
 #include "androidjniclipboard.h"
 #ifndef QT_NO_CLIPBOARD
 #include <QMimeData>
-QT_BEGIN_HEADER
+
 QT_BEGIN_NAMESPACE
 
 QAndroidPlatformClipboard::QAndroidPlatformClipboard()
@@ -55,7 +55,8 @@ QMimeData *QAndroidPlatformClipboard::mimeData(QClipboard::Mode mode)
 {
     if (QClipboard::Clipboard != mode || !QtAndroidClipboard::hasClipboardText())
         return 0;
-    QMimeData * mimeData = new QMimeData();
+
+    QMimeData *mimeData = new QMimeData();
     mimeData->setText(QtAndroidClipboard::clipboardText());
     return mimeData;
 }
@@ -64,6 +65,7 @@ void QAndroidPlatformClipboard::setMimeData(QMimeData *data, QClipboard::Mode mo
 {
     if (!data || !data->hasText() || QClipboard::Clipboard != mode)
         return;
+
     QtAndroidClipboard::setClipboardText(data->text());
 }
 
@@ -73,5 +75,5 @@ bool QAndroidPlatformClipboard::supportsMode(QClipboard::Mode mode) const
 }
 
 QT_END_NAMESPACE
-QT_END_HEADER
+
 #endif // QT_NO_CLIPBOARD

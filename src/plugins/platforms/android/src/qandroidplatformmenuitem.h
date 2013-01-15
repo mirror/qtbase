@@ -45,7 +45,7 @@
 
 class QAndroidPlatformMenu;
 
-class QAndroidPlatformMenuItem : public QPlatformMenuItem
+class QAndroidPlatformMenuItem: public QPlatformMenuItem
 {
 public:
     QAndroidPlatformMenuItem();
@@ -54,22 +54,32 @@ public:
 
     virtual void setText(const QString &text);
     const QString &text();
+
     virtual void setIcon(const QIcon &icon);
     const QIcon &icon();
+
     virtual void setMenu(QPlatformMenu *menu);
     QAndroidPlatformMenu *menu();
+
     virtual void setVisible(bool isVisible);
     bool isVisible();
+
     virtual void setIsSeparator(bool isSeparator);
     bool isSeparator();
+
     virtual void setFont(const QFont &font);
+
     virtual void setRole(MenuRole role);
     MenuRole role();
+
     virtual void setCheckable(bool checkable);
     bool isCheckable();
+
     virtual void setChecked(bool isChecked);
     bool isChecked();
-    virtual void setShortcut(const QKeySequence& shortcut);
+
+    virtual void setShortcut(const QKeySequence &shortcut);
+
     virtual void setEnabled(bool enabled);
     bool isEnabled();
 

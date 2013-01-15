@@ -539,6 +539,7 @@ public class QtNative
     public static native void setDisplayMetrics(int screenWidthPixels,
                     int screenHeightPixels, int desktopWidthPixels,
                     int desktopHeightPixels, double XDpi, double YDpi);
+    public static native void handleOrientationChanged(int newOrientation);
     // screen methods
 
     // pointer methods

@@ -97,6 +97,7 @@ public:
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     void invalidateNativeSurface();
     void surfaceChanged();
+    QEglFSWindow *primaryWindow() const { return m_primaryWindow; }
 #endif
 
     bool isVirtualDesktop() { return true; }

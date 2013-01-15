@@ -67,6 +67,12 @@
 #include "qandroidassetsfileenginehandler.h"
 #include <android/api-level.h>
 
+#include <qpa/qwindowsysteminterface.h>
+
+#ifdef ANDROID_PLUGIN_OPENGL
+#  include "qeglfswindow.h"
+#endif
+
 #if __ANDROID_API__ > 8
 # include <android/native_window_jni.h>
 #endif
@@ -593,16 +599,34 @@ static void setSurface(JNIEnv *env, jobject /*thiz*/, jobject jSurface)
     m_surface = env->NewGlobalRef(jSurface);
 #else
     m_surfaceMutex.lock();
-    m_nativeWindow = ANativeWindow_fromSurface(env, jSurface);
+    EGLNativeWindowType nativeWindow = ANativeWindow_fromSurface(env, jSurface);
+    bool sameNativeWindow = (nativeWindow != 0 && nativeWindow == m_nativeWindow);
+
     qDebug() << "setSurface"
              << ANativeWindow_fromSurface(env, jSurface)
              << (EGLNativeWindowType)env->GetIntField(jSurface, m_surfaceFieldID);
 
+    m_nativeWindow = nativeWindow;
     if (m_waitForWindow)
-        m_waitForWindowSemaphore.release();    
-    if (m_androidPlatformIntegration) {
+        m_waitForWindowSemaphore.release();
+    if (m_androidPlatformIntegration && !sameNativeWindow) {
         m_surfaceMutex.unlock();
         m_androidPlatformIntegration->surfaceChanged();
+    } else if (m_androidPlatformIntegration && sameNativeWindow) {
+        QSize size = QtAndroid::nativeWindowSize();
+        QRect geometry = QRect(QPoint(0, 0), size);
+        QPlatformScreen *screen = m_androidPlatformIntegration->screen();
+        QPlatformWindow *window = m_androidPlatformIntegration->primaryWindow();
+
+        QWindowSystemInterface::handleScreenAvailableGeometryChange(screen->screen(),
+                                                                    geometry);
+        QWindowSystemInterface::handleScreenGeometryChange(screen->screen(),
+                                                           geometry);
+        if (window != 0) {
+            window->setGeometry(geometry);
+            QWindowSystemInterface::handleExposeEvent(window->window(), QRegion(geometry));
+        }
+        m_surfaceMutex.unlock();
     } else {
         m_surfaceMutex.unlock();
     }
@@ -676,6 +700,19 @@ static void updateWindow(JNIEnv */*env*/, jobject /*thiz*/)
 #endif
 }
 
+static void handleOrientationChanged(JNIEnv */*env*/, jobject /*thiz*/, jint newOrientation)
+{
+    if (m_androidPlatformIntegration == 0)
+        return;
+
+    Qt::ScreenOrientation screenOrientation = newOrientation == 1
+                                              ? Qt::PortraitOrientation
+                                              : Qt::LandscapeOrientation;
+    QPlatformScreen *screen = m_androidPlatformIntegration->screen();
+    QWindowSystemInterface::handleScreenOrientationChange(screen->screen(),
+                                                          screenOrientation);
+}
+
 static JNINativeMethod methods[] = {
     {"startQtAndroidPlugin", "()Z", (void *)startQtAndroidPlugin},
     {"startQtApplication", "(Ljava/lang/String;Ljava/lang/String;)V", (void *)startQtApplication},
@@ -688,7 +725,8 @@ static JNINativeMethod methods[] = {
     {"destroySurface", "()V", (void *)destroySurface},
     {"lockSurface", "()V", (void *)lockSurface},
     {"unlockSurface", "()V", (void *)unlockSurface},
-    {"updateWindow", "()V", (void *)updateWindow}
+    {"updateWindow", "()V", (void *)updateWindow},
+    {"handleOrientationChanged", "(I)V", (void *)handleOrientationChanged}
 };
 
 #define FIND_AND_CHECK_CLASS(CLASS_NAME) \

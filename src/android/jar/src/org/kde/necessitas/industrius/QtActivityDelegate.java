@@ -37,6 +37,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
@@ -63,6 +64,7 @@ public class QtActivityDelegate
     private Method m_super_onSaveInstanceState = null;
     private Method m_super_onKeyDown = null;
     private Method m_super_onKeyUp = null;
+    private Method m_super_onConfigurationChanged = null;
 
     private static final String NATIVE_LIBRARIES_KEY="native.libraries";
     private static final String BUNDLED_LIBRARIES_KEY="bundled.libraries";
@@ -75,6 +77,7 @@ public class QtActivityDelegate
     private static String m_environmentVariables = null;
     private static String m_applicationParameters = null;
 
+    private int m_currentOrientation = Configuration.ORIENTATION_UNDEFINED;
 
     private String m_mainLib;
     private long m_metaState;
@@ -296,6 +299,7 @@ public class QtActivityDelegate
             m_super_onSaveInstanceState = m_activity.getClass().getMethod("super_onSaveInstanceState", Bundle.class);
             m_super_onKeyDown = m_activity.getClass().getMethod("super_onKeyDown", Integer.TYPE, KeyEvent.class);
             m_super_onKeyUp = m_activity.getClass().getMethod("super_onKeyUp", Integer.TYPE, KeyEvent.class);
+            m_super_onConfigurationChanged = m_activity.getClass().getMethod("super_onConfigurationChanged", Configuration.class);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -411,8 +415,26 @@ public class QtActivityDelegate
                         ViewGroup.LayoutParams.FILL_PARENT));
         m_layout.bringChildToFront(m_surface);
         m_activity.registerForContextMenu(m_layout);
+
+        m_currentOrientation = m_activity.getResources().getConfiguration().orientation;
     }
 
+    public void onConfigurationChanged(Configuration configuration)
+    {
+        try {
+            m_super_onConfigurationChanged.invoke(m_activity, configuration);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Log.i(QtNative.QtTAG, "onConfigurationChanged");
+        if (configuration.orientation != m_currentOrientation
+            && m_currentOrientation != Configuration.ORIENTATION_UNDEFINED) {
+            QtNative.handleOrientationChanged(configuration.orientation);
+        }
+
+        m_currentOrientation = configuration.orientation;
+    }
 
     public void onDestroy()
     {

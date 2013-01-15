@@ -93,7 +93,11 @@ void QEglFSWindow::invalidateSurface()
 {
     // Native surface has been deleted behind our backs
     m_window = 0;
-    m_surface = 0;
+    if (m_surface != 0) {
+        EGLDisplay display = (static_cast<QEglFSScreen *>(window()->screen()->handle()))->display();
+        eglDestroySurface(display, m_surface);
+        m_surface = 0;
+    }
 }
 
 void QEglFSWindow::resetSurface()

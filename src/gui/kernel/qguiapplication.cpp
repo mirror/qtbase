@@ -1502,13 +1502,13 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     modifier_buttons = e->modifiers;
     if (e->nullWindow
        #ifdef Q_OS_ANDROID
-           || (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Close) || e->key == Qt::Key_Menu
+           || (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back) || e->key == Qt::Key_Menu
        #endif
             )
         window = QGuiApplication::focusWindow();
     if (!window
        #ifdef Q_OS_ANDROID
-           && e->keyType != QEvent::KeyRelease && e->key != Qt::Key_Close
+           && e->keyType != QEvent::KeyRelease && e->key != Qt::Key_Back
        #endif
             )
         return;
@@ -1523,14 +1523,14 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     ev.setTimestamp(e->timestamp);
 
 #ifdef Q_OS_ANDROID
-    if (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Close)
+    if (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back)
     {
         if (!window)
             qApp->quit();
         else
         {
             QGuiApplication::sendEvent(window, &ev);
-            if (!ev.isAccepted() && e->key == Qt::Key_Close)
+            if (!ev.isAccepted() && e->key == Qt::Key_Back)
                 QWindowSystemInterface::handleCloseEvent(window);
         }
     }

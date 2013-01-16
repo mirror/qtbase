@@ -239,8 +239,7 @@ namespace QtAndroidInput
                 return Qt::Key_Apostrophe;
 
             case 0x00000004: // KEYCODE_BACK
-                qDebug() << "KEYCODE_BACK !!!!";
-                return Qt::Key_Close;
+                return Qt::Key_Back;
 
             case 0x00000049:
                 return Qt::Key_Backslash;

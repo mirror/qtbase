@@ -147,6 +147,12 @@ namespace QtAndroidMenu
 
         visibleMenuBar = 0;
         activeTopLevelWindow = window;
+#ifdef ANDROID_PLUGIN_OPENGL
+        //only one toplevel window, so the menu bar always belongs to us
+        if (menuBars.size() == 1) {
+            visibleMenuBar = *menuBars.constBegin(); //since QSet doesn't have first()
+        } else
+#endif
         foreach (QAndroidPlatformMenuBar *menuBar, menuBars) {
             if (menuBar->parentWindow() == window) {
                 visibleMenuBar = menuBar;

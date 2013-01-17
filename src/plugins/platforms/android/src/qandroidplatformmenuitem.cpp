@@ -44,7 +44,7 @@
 
 QAndroidPlatformMenuItem::QAndroidPlatformMenuItem()
 {
-    m_tag = 0;
+    m_tag = reinterpret_cast<quintptr>(this); // QMenu will overwrite this later, but we need a unique ID for QtQuick
     m_menu = 0;
     m_isVisible = true;
     m_isSeparator = false;

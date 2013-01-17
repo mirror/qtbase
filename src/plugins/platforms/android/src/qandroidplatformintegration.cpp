@@ -59,6 +59,7 @@
 #  include <QtPlatformSupport/private/qfbbackingstore_p.h>
 #else
 #  include "qeglfswindow.h"
+# include "androidjnimenu.h"
 #endif
 
 #include "qandroidplatformtheme.h"
@@ -153,6 +154,7 @@ QPlatformWindow *QAndroidPlatformIntegration::createPlatformWindow(QWindow *wind
 
     m_primaryWindow = new QEglFSWindow(window);
     m_primaryWindow->requestActivateWindow();
+    QtAndroidMenu::setActiveTopLevelWindow(window);
 
     return m_primaryWindow;
 }

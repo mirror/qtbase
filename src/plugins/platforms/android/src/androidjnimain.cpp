@@ -423,10 +423,9 @@ static void androidMessageHandler(QtMsgType type,
     case QtFatalMsg: priority = ANDROID_LOG_FATAL; break;
     };
 
-    __android_log_print(priority,
-                        qPrintable(QString::fromLatin1("Qt (%1:%2 (%3)")
-                                   .arg(context.file).arg(context.line).arg(context.function)),
-                        qPrintable(message));
+    __android_log_print(priority, "Qt",
+                        qPrintable(QString::fromLatin1("Qt (%1:%2 (%3): %4")
+                                   .arg(context.file).arg(context.line).arg(context.function).arg(message)));
 }
 
 static void *startMainMethod(void */*data*/)

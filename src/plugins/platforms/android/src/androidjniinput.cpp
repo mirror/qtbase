@@ -45,6 +45,7 @@
 #include <qpa/qwindowsysteminterface.h>
 #include <QDebug>
 #include <QTouchEvent>
+#include <QPointer>
 
 using namespace QtAndroid;
 
@@ -58,6 +59,8 @@ namespace QtAndroidInput
     static bool m_ignoreMouseEvents = false;
 
     static QList<QWindowSystemInterface::TouchPoint> m_touchPoints;
+
+    static QPointer<QWindow> m_mouseGrabber;
 
     void showSoftwareKeyboard(int left, int top, int width, int height, int inputHints)
     {
@@ -113,6 +116,7 @@ namespace QtAndroidInput
 
         QPoint globalPos(x,y);
         QWindow *tlw = topLevelWindowAt(globalPos);
+        m_mouseGrabber = tlw;
         QPoint localPos = tlw ? (globalPos - tlw->position()) : globalPos;
         QWindowSystemInterface::handleMouseEvent(tlw,
                                                  localPos,
@@ -123,20 +127,26 @@ namespace QtAndroidInput
     static void mouseUp(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint x, jint y)
     {
         QPoint globalPos(x,y);
-        QWindow *tlw = topLevelWindowAt(globalPos);
+        QWindow *tlw = m_mouseGrabber.data();
+        if (!tlw)
+            tlw = topLevelWindowAt(globalPos);
         QPoint localPos = tlw ? (globalPos -tlw->position()) : globalPos;
         QWindowSystemInterface::handleMouseEvent(tlw, localPos, globalPos
                                                 , Qt::MouseButtons(Qt::NoButton));
         m_ignoreMouseEvents = false;
+        m_mouseGrabber = 0;
     }
 
     static void mouseMove(JNIEnv */*env*/, jobject /*thiz*/, jint /*winId*/, jint x, jint y)
     {
+
         if (m_ignoreMouseEvents)
             return;
 
         QPoint globalPos(x,y);
-        QWindow *tlw = topLevelWindowAt(globalPos);
+        QWindow *tlw = m_mouseGrabber.data();
+        if (!tlw)
+            tlw = topLevelWindowAt(globalPos);
         QPoint localPos = tlw ? (globalPos-tlw->position()) : globalPos;
         QWindowSystemInterface::handleMouseEvent(tlw,
                                                  localPos,

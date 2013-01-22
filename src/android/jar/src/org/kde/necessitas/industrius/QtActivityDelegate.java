@@ -136,6 +136,7 @@ public class QtActivityDelegate
     // layout
     private final int ImhHiddenText=0x1;
     private final int ImhPreferNumbers=0x4;
+    private final int ImhMultiLine = 0x400;
     private final int ImhDigitsOnly=0x10000;
     private final int ImhFormattedNumbersOnly=0x20000;
     private final int ImhDialableCharactersOnly=0x100000;
@@ -166,6 +167,12 @@ public class QtActivityDelegate
         int initialCapsMode = 0;
         int imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
         int inputType = android.text.InputType.TYPE_CLASS_TEXT;
+
+        if ( (inputHints & ImhMultiLine) != 0 ) {
+            inputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+            imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+        }
+
         if ( ((inputHints & ImhNoAutoUppercase) !=0 || (inputHints & ImhPreferUppercase) !=0 )
                 && (inputHints & ImhLowercaseOnly) ==0 )
             initialCapsMode = android.text.TextUtils.CAP_MODE_SENTENCES;

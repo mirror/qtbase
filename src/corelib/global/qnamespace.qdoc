@@ -2313,6 +2313,8 @@
     \value ImhTime                   The text editor functions as a time field.
     \value ImhPreferLatin            Latin characters are preferred (but not required).
 
+    \value ImhMultiLine              Multiple lines can be entered into the text field.
+
     Flags that restrict input (exclusive flags):
 
     \value ImhDigitsOnly             Only digits are allowed.

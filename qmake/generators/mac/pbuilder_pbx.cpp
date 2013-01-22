@@ -595,8 +595,11 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                     sources.append(ProjectBuilderSources(inputs.at(input).toQString(), true,
                             QString(), (*it).toQString(), isObj));
 
-                    if (isObj)
-                        quc.erase(it); // We'll let Xcode build this source
+                    if (isObj) {
+                        it = quc.erase(it); // We'll let Xcode build this source
+                        if (it == quc.end())
+                            break;
+                    }
                 }
             }
         }

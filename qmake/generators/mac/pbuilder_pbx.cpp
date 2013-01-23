@@ -566,14 +566,17 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
     sources.append(ProjectBuilderSources("HEADERS"));
     sources.append(ProjectBuilderSources("QMAKE_INTERNAL_INCLUDED_FILES"));
     if(!project->isEmpty("QMAKE_EXTRA_COMPILERS")) {
-        ProStringList &quc = project->values("QMAKE_EXTRA_COMPILERS");
-        for (ProStringList::Iterator it = quc.begin(); it != quc.end(); ++it) {
+        const ProStringList &quc = project->values("QMAKE_EXTRA_COMPILERS");
+        for (ProStringList::ConstIterator it = quc.begin(); it != quc.end(); ++it) {
             if (project->isEmpty(ProKey(*it + ".output")))
                 continue;
-            const ProStringList &inputs = project->values(ProKey(*it + ".input"));
-            for(int input = 0; input < inputs.size(); ++input) {
-                if (project->isEmpty(inputs.at(input).toKey()))
+            ProStringList &inputs = project->values(ProKey(*it + ".input"));
+            int input = 0;
+            while (input < inputs.size()) {
+                if (project->isEmpty(inputs.at(input).toKey())) {
+                    ++input;
                     continue;
+                }
                 bool duplicate = false;
                 bool isObj = project->values(ProKey(*it + ".CONFIG")).indexOf("no_link") == -1;
                 if (!isObj) {
@@ -596,11 +599,12 @@ ProjectBuilderMakefileGenerator::writeMakeParts(QTextStream &t)
                             QString(), (*it).toQString(), isObj));
 
                     if (isObj) {
-                        it = quc.erase(it); // We'll let Xcode build this source
-                        if (it == quc.end())
-                            break;
+                        inputs.removeAt(input);
+                        continue;
                     }
                 }
+
+                ++input;
             }
         }
     }

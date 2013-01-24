@@ -56,7 +56,7 @@
 
 #include <linux/ashmem.h>
 
-#define ASHMEM_DEVICE "/"ASHMEM_NAME_DEF
+#define ASHMEM_DEVICE "/" ASHMEM_NAME_DEF
 
 /*
  * ashmem_create_region - creates a new ashmem region and returns the file

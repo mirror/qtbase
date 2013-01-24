@@ -78,7 +78,7 @@ HEADERS += qcocoaintegration.h \
 
 RESOURCES += qcocoaresources.qrc
 
-LIBS += -framework Cocoa -framework Carbon -framework IOKit
+LIBS += -framework Cocoa -framework Carbon -framework IOKit -framework ApplicationServices
 
 QT += core-private gui-private platformsupport-private
 

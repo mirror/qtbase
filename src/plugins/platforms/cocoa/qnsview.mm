@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -49,6 +49,7 @@
 #include "qcocoaautoreleasepool.h"
 #include "qmultitouch_mac_p.h"
 #include "qcocoadrag.h"
+#include "qmacmime.h"
 #include <qpa/qplatformintegration.h>
 
 #include <qpa/qwindowsysteminterface.h>
@@ -330,8 +331,25 @@ static QTouchDevice *touchDevice = 0;
     return YES;
 }
 
+- (BOOL)becomeFirstResponder
+{
+    QWindow *focusWindow = m_window;
+
+    // For widgets we need to do a bit of trickery as the window
+    // to activate is the window of the top-level widget.
+    if (m_window->metaObject()->className() == QStringLiteral("QWidgetWindow")) {
+        while (focusWindow->parent()) {
+            focusWindow = focusWindow->parent();
+        }
+    }
+    QWindowSystemInterface::handleWindowActivated(focusWindow);
+    return YES;
+}
+
 - (BOOL)acceptsFirstResponder
 {
+    if ((m_window->flags() & Qt::ToolTip) == Qt::ToolTip)
+        return NO;
     return YES;
 }
 
@@ -1106,8 +1124,7 @@ static QTouchDevice *touchDevice = 0;
 -(void)registerDragTypes
 {
     QCocoaAutoReleasePool pool;
-    // ### Custom types disabled.
-    QStringList customTypes;  // = qEnabledDraggedTypes();
+    QStringList customTypes = qt_mac_enabledDraggedTypes();
     if (currentCustomDragTypes == 0 || *currentCustomDragTypes != customTypes) {
         if (currentCustomDragTypes == 0)
             currentCustomDragTypes = new QStringList();

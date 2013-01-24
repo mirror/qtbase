@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -238,7 +238,7 @@ private slots:
 #ifdef QT_USE_ICU
     void toUpperLower_icu();
 #endif
-#if defined(QT_UNICODE_LITERAL) && (defined(Q_COMPILER_LAMBDA) || defined(Q_CC_GNU))
+#if !defined(QT_NO_UNICODE_LITERAL) && defined(Q_COMPILER_LAMBDA)
     void literals();
 #endif
     void eightBitLiterals_data();
@@ -1003,10 +1003,12 @@ void tst_QString::sprintf()
     a.sprintf("%s%n%s", "hello", &n1, "goodbye");
     QCOMPARE(n1, 5);
     QCOMPARE(a, QString("hellogoodbye"));
+#ifndef Q_CC_MINGW // does not know %ll
     qlonglong n2;
     a.sprintf("%s%s%lln%s", "foo", "bar", &n2, "whiz");
     QCOMPARE((int)n2, 6);
     QCOMPARE(a, QString("foobarwhiz"));
+#endif
 }
 
 /*
@@ -5236,6 +5238,9 @@ void tst_QString::QCharRefDetaching() const
 
 void tst_QString::sprintfZU() const
 {
+#ifdef Q_CC_MINGW
+    QSKIP("MinGW does not support '%zu'.");
+#else
     {
         QString string;
         size_t s = 6;
@@ -5264,6 +5269,7 @@ void tst_QString::sprintfZU() const
         string.sprintf("%zu %s\n", s, "foo");
         QCOMPARE(string, QString::fromLatin1("6 foo\n"));
     }
+#endif // !Q_CC_MINGW
 }
 
 void tst_QString::repeatedSignature() const
@@ -5431,7 +5437,7 @@ void tst_QString::toUpperLower_icu()
 }
 #endif
 
-#if defined(QT_UNICODE_LITERAL) && (defined(Q_COMPILER_LAMBDA) || defined(Q_CC_GNU))
+#if !defined(QT_NO_UNICODE_LITERAL) && defined(Q_COMPILER_LAMBDA)
 // Only tested on c++0x compliant compiler or gcc
 void tst_QString::literals()
 {

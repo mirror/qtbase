@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -68,7 +68,7 @@
 #  endif
 #endif
 
-#if defined(Q_OS_VXWORKS)
+#if defined(Q_OS_VXWORKS) && defined(_WRS_KERNEL)
 #  include <envLib.h>
 #endif
 
@@ -1829,6 +1829,8 @@ const QSysInfo::WinVersion QSysInfo::WindowsVersion = QSysInfo::windowsVersion()
     that the current code execution cannot be reached. That is, Q_ASSUME(false)
     is equivalent to Q_UNREACHABLE().
 
+    In debug builds the condition is enforced by an assert to facilitate debugging.
+
     \note Q_LIKELY() tells the compiler that the expression is likely, but not
     the only possibility. Q_ASSUME tells the compiler that it is the only
     possibility.
@@ -1862,6 +1864,8 @@ const QSysInfo::WinVersion QSysInfo::WindowsVersion = QSysInfo::windowsVersion()
 
     By using this macro in impossible conditions, code coverage may be improved
     as dead code paths may be eliminated.
+
+    In debug builds the condition is enforced by an assert to facilitate debugging.
 
     \sa Q_ASSERT(), Q_ASSUME(), qFatal()
 */

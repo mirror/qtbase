@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -43,8 +43,12 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "qelapsedtimer.h"
+#ifdef Q_OS_VXWORKS
+#include "qfunctions_vxworks.h"
+#else
 #include <sys/time.h>
 #include <time.h>
+#endif
 #include <unistd.h>
 
 #include <qatomic.h>

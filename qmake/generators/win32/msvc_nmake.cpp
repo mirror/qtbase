@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -364,16 +364,6 @@ void NmakeMakefileGenerator::writeImplicitRulesPart(QTextStream &t)
             t << (*cit) << Option::obj_ext << ":\n\t" << var("QMAKE_RUN_CC_IMP") << endl << endl;
     }
 
-}
-
-static QString cQuoted(const QString &str)
-{
-    QString ret = str;
-    ret.replace(QLatin1Char('"'), QStringLiteral("\\\""));
-    ret.replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
-    ret.prepend(QLatin1Char('"'));
-    ret.append(QLatin1Char('"'));
-    return ret;
 }
 
 void NmakeMakefileGenerator::writeBuildRulesPart(QTextStream &t)

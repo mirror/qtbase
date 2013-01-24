@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -95,7 +95,7 @@ public:
     void resizeEvent(QResizeEvent *event);
     void paintEvent(QPaintEvent *event);
     QVistaBackButton *backButton() const { return backButton_; }
-    void disconnectBackButton() { if (backButton_) backButton_->disconnect(); }
+    void disconnectBackButton();
     void hideBackButton() { if (backButton_) backButton_->hide(); }
     QColor basicWindowFrameColor();
     enum VistaState { VistaAero, VistaBasic, Classic, Dirty };

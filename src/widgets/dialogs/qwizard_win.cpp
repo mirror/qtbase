@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -313,6 +313,12 @@ QVistaHelper::VistaState QVistaHelper::vistaState()
         cachedVistaState =
             isCompositionEnabled() ? VistaAero : isThemeActive() ? VistaBasic : Classic;
     return cachedVistaState;
+}
+
+void QVistaHelper::disconnectBackButton()
+{
+    if (backButton_) // Leave QStyleSheetStyle's connections on destroyed() intact.
+        backButton_->disconnect(SIGNAL(clicked()));
 }
 
 QColor QVistaHelper::basicWindowFrameColor()

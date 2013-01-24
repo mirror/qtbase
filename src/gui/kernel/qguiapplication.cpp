@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -709,10 +709,9 @@ QList<QScreen *> QGuiApplication::screens()
     device-independent pixels.
 
     Use this function only when you don't know which window you are targeting.
-    If you do know the target window use QWindow::devicePixelRatio() instead.
+    If you do know the target window, use QWindow::devicePixelRatio() instead.
 
-    \sa QWindow::devicePixelRatio();
-    \sa QGuiApplicaiton::devicePixelRatio();
+    \sa QWindow::devicePixelRatio()
 */
 qreal QGuiApplication::devicePixelRatio() const
 {
@@ -2294,6 +2293,7 @@ void QGuiApplication::setPalette(const QPalette &pal)
 */
 QFont QGuiApplication::font()
 {
+    Q_ASSERT_X(QGuiApplicationPrivate::self, "QGuiApplication::font()", "no QGuiApplication instance");
     QMutexLocker locker(&applicationFontMutex);
     initFontUnlocked();
     return *QGuiApplicationPrivate::app_font;
@@ -2629,6 +2629,13 @@ static inline void applyCursor(QWindow *w, QCursor c)
             cursor->changeCursor(&c, w);
 }
 
+static inline void unsetCursor(QWindow *w)
+{
+    if (const QScreen *screen = w->screen())
+        if (QPlatformCursor *cursor = screen->handle()->cursor())
+            cursor->changeCursor(0, w);
+}
+
 static inline void applyCursor(const QList<QWindow *> &l, const QCursor &c)
 {
     for (int i = 0; i < l.size(); ++i) {
@@ -2642,8 +2649,13 @@ static inline void applyWindowCursor(const QList<QWindow *> &l)
 {
     for (int i = 0; i < l.size(); ++i) {
         QWindow *w = l.at(i);
-        if (w->handle() && w->type() != Qt::Desktop)
-            applyCursor(w, w->cursor());
+        if (w->handle() && w->type() != Qt::Desktop) {
+            if (qt_window_private(w)->hasCursor) {
+                applyCursor(w, w->cursor());
+            } else {
+                unsetCursor(w);
+            }
+        }
     }
 }
 

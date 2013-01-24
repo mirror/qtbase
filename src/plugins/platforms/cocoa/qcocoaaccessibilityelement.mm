@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -68,9 +68,9 @@ static QAccessibleInterface *acast(void *ptr)
     return self;
 }
 
-+ (QCocoaAccessibleElement *)elementWithInterface:(void *)anQAccessibleInterface parent:(id)aParent
++ (QCocoaAccessibleElement *)createElementWithInterface:(void *)anQAccessibleInterface parent:(id)aParent
 {
-    return [[[self alloc] initWithInterface:anQAccessibleInterface parent:aParent] autorelease];
+    return [[self alloc] initWithInterface:anQAccessibleInterface parent:aParent];
 }
 
 - (void)dealloc {
@@ -136,7 +136,9 @@ static QAccessibleInterface *acast(void *ptr)
         NSMutableArray *kids = [NSMutableArray arrayWithCapacity:numKids];
         for (int i = 0; i < numKids; ++i) {
             QAccessibleInterface *childInterface = acast(accessibleInterface)->child(i);
-            [kids addObject:[QCocoaAccessibleElement elementWithInterface:(void*)childInterface parent:self]];
+            QCocoaAccessibleElement *element = [QCocoaAccessibleElement createElementWithInterface:(void*)childInterface parent:self];
+            [kids addObject: element];
+            [element release];
         }
 
         return kids;
@@ -251,7 +253,9 @@ static QAccessibleInterface *acast(void *ptr)
     }
 
     // hit a child, forward to child accessible interface.
-    QCocoaAccessibleElement *accessibleElement = [QCocoaAccessibleElement elementWithInterface:childInterface parent:self];
+    QCocoaAccessibleElement *accessibleElement = [QCocoaAccessibleElement createElementWithInterface:childInterface parent:self];
+    [accessibleElement autorelease];
+
     return [accessibleElement accessibilityHitTest:point];
 }
 

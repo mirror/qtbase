@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -87,8 +87,9 @@ public:
         Qt_4_7 = Qt_4_6,
         Qt_4_8 = Qt_4_7,
         Qt_4_9 = Qt_4_8,
-        Qt_5_0 = 13
-#if QT_VERSION >= 0x050100
+        Qt_5_0 = 13,
+        Qt_5_1 = Qt_5_0
+#if QT_VERSION >= 0x050200
 #error Add the datastream version for this Qt version
 #endif
     };

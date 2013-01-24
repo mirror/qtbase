@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -555,7 +555,10 @@ bool QDocIndexFiles::generateIndexSection(QXmlStreamWriter& writer,
                                           Node* node,
                                           bool generateInternalNodes)
 {
-    if (node->subType() == Node::DitaMap)
+    /*
+      Don't include index nodes in a new index file. Or DITA map nodes.
+     */
+    if (node->isIndexNode() || node->subType() == Node::DitaMap)
         return false;
 
     QString nodeName;

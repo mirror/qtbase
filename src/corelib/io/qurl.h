@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Intel Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
@@ -322,6 +322,9 @@ public:
     static QString fromAce(const QByteArray &);
     static QByteArray toAce(const QString &);
     static QStringList idnWhitelist();
+    static QStringList toStringList(const QList<QUrl> &uris, FormattingOptions options = FormattingOptions(PrettyDecoded));
+    static QList<QUrl> fromStringList(const QStringList &uris, ParsingMode mode = TolerantMode);
+
     static void setIdnWhitelist(const QStringList &);
     friend Q_CORE_EXPORT uint qHash(const QUrl &url, uint seed = 0) Q_DECL_NOTHROW;
 

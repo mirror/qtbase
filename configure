@@ -1,7 +1,7 @@
 #!/bin/sh
 #############################################################################
 ##
-## Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+## Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ## Contact: http://www.qt-project.org/legal
 ##
 ## This file is the build configuration utility of the Qt Toolkit.
@@ -854,6 +854,7 @@ CFG_GETADDRINFO=auto
 CFG_IPV6IFNAME=auto
 CFG_GETIFADDRS=auto
 CFG_INOTIFY=auto
+CFG_EVENTFD=auto
 CFG_RPATH=yes
 CFG_FRAMEWORK=auto
 CFG_MAC_HARFBUZZ=no
@@ -2620,6 +2621,11 @@ if [ "$XPLATFORM_IOS" = "yes" ]; then
     CFG_SHARED="no"
 fi
 
+# disable GTK style support auto-detection on Mac
+if [ "$BUILD_ON_MAC" = "yes" ] && [ "$CFG_QGTKSTYLE" = "auto" ]; then
+    CFG_QGTKSTYLE=no
+fi
+
 QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`
 
 TEST_COMPILER=$QMAKE_CONF_COMPILER
@@ -2736,6 +2742,7 @@ libdirs=`echo "$gccout" | sed -n -e 's/^LIBRARY_PATH=\(.*\)/\1/p'`
 DEFAULT_LIBDIRS=`IFS=:; for i in $libdirs; do test -d "$i" && cd "$i" && pwd; done | sort -u`
 DEFAULT_INCDIRS=`echo "$gccout" | awk '
 /^End of search/ { yup=0 }
+/ \(framework directory\)$/ { next }
 yup { print substr($0, 2) }
 /^\#include </ { yup=1 }
 ' | sort -u`
@@ -5103,6 +5110,23 @@ if [ "$CFG_INOTIFY" != "no" ]; then
     fi
 fi
 
+# find if the platform provides eventfd
+if [ "$CFG_EVENTFD" != "no" ]; then
+    if compileTest unix/eventfd "eventfd"; then
+        CFG_EVENTFD=yes
+    else
+        if [ "$CFG_EVENTFD" = "yes" ] && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
+            echo "eventfd support cannot be enabled due to functionality tests!"
+            echo " Turn on verbose messaging (-v) to $0 to see the final report."
+            echo " If you believe this message is in error you may use the continue"
+            echo " switch (-continue) to $0 to continue."
+            exit 101
+        else
+            CFG_EVENTFD=no
+        fi
+    fi
+fi
+
 # find if the platform provides if_nametoindex (ipv6 interface name support)
 if [ "$CFG_IPV6IFNAME" != "no" ]; then
     if compileTest unix/ipv6ifname "IPv6 interface name"; then
@@ -5389,6 +5413,9 @@ if [ "$CFG_GETIFADDRS" = "yes" ]; then
 fi
 if [ "$CFG_INOTIFY" = "yes" ]; then
     QT_CONFIG="$QT_CONFIG inotify"
+fi
+if [ "$CFG_EVENTFD" = "yes" ]; then
+    QT_CONFIG="$QT_CONFIG eventfd"
 fi
 if [ "$CFG_LIBJPEG" = "no" ]; then
     CFG_JPEG="no"
@@ -5711,6 +5738,13 @@ if [ "$CFG_QML_DEBUG" = "no" ]; then
 fi
 
 case "$QMAKE_CONF_COMPILER" in
+*clang++*)
+    # Clang
+    COMPILER_VERSION=`${QMAKE_CONF_COMPILER} -v 2>&1 | sed -n '
+/^Apple clang version /{s///; s/^\([0-9]*\)\.\([0-9]*\).*$/QT_APPLE_CLANG_MAJOR_VERSION=\1; QT_APPLE_CLANG_MINOR_VERSION=\2/;p;q;}
+/^clang version /{s///; s/^\([0-9]*\)\.\([0-9]*\).*$/QT_CLANG_MAJOR_VERSION=\1; QT_CLANG_MINOR_VERSION=\2/;p;q;}'`
+    eval "$COMPILER_VERSION"
+    ;;
 *g++*)
     # GNU C++
     COMPILER_VERSION=`${QMAKE_CONF_COMPILER} -dumpversion 2>/dev/null`
@@ -5866,6 +5900,7 @@ QMakeVar set sql-plugins "$SQL_PLUGINS"
 [ "$CFG_IPV6IFNAME" = "no" ] && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_IPV6IFNAME"
 [ "$CFG_GETIFADDRS" = "no" ] && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_GETIFADDRS"
 [ "$CFG_INOTIFY" = "no" ]    && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_INOTIFY"
+[ "$CFG_EVENTFD" = "no" ]    && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_EVENTFD"
 [ "$CFG_NIS" = "no" ]        && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_NIS"
 [ "$CFG_OPENSSL" = "no" ]    && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_OPENSSL QT_NO_SSL"
 [ "$CFG_OPENSSL" = "linked" ]&& QCONFIG_FLAGS="$QCONFIG_FLAGS QT_LINKED_OPENSSL"
@@ -6049,6 +6084,14 @@ if [ -n "$QT_GCC_MAJOR_VERSION" ]; then
     echo "QT_GCC_MAJOR_VERSION = $QT_GCC_MAJOR_VERSION" >> "$QTCONFIG.tmp"
     echo "QT_GCC_MINOR_VERSION = $QT_GCC_MINOR_VERSION" >> "$QTCONFIG.tmp"
     echo "QT_GCC_PATCH_VERSION = $QT_GCC_PATCH_VERSION" >> "$QTCONFIG.tmp"
+fi
+if [ -n "$QT_CLANG_MAJOR_VERSION" ]; then
+    echo "QT_CLANG_MAJOR_VERSION = $QT_CLANG_MAJOR_VERSION" >> "$QTCONFIG.tmp"
+    echo "QT_CLANG_MINOR_VERSION = $QT_CLANG_MINOR_VERSION" >> "$QTCONFIG.tmp"
+fi
+if [ -n "$QT_APPLE_CLANG_MAJOR_VERSION" ]; then
+    echo "QT_APPLE_CLANG_MAJOR_VERSION = $QT_APPLE_CLANG_MAJOR_VERSION" >> "$QTCONFIG.tmp"
+    echo "QT_APPLE_CLANG_MINOR_VERSION = $QT_APPLE_CLANG_MINOR_VERSION" >> "$QTCONFIG.tmp"
 fi
 
 if [ -n "$QMAKE_INCDIR_OPENGL_ES2" ]; then

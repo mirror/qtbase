@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -267,7 +267,7 @@ static void setWindowOpacity(HWND hwnd, Qt::WindowFlags flags, qreal level)
 struct WindowCreationData
 {
     typedef QWindowsWindow::WindowData WindowData;
-    enum Flags { ForceChild = 0x1 };
+    enum Flags { ForceChild = 0x1, ForceTopLevel = 0x2 };
 
     WindowCreationData() : parentHandle(0), type(Qt::Widget), style(0), exStyle(0),
         topLevel(false), popup(false), dialog(false), desktop(false),
@@ -319,7 +319,13 @@ void WindowCreationData::fromWindow(const QWindow *w, const Qt::WindowFlags flag
         parentHandle = (HWND)prop.value<WId>();
     }
 
-    topLevel = ((creationFlags & ForceChild) || embedded) ? false : w->isTopLevel();
+    if (creationFlags & ForceChild) {
+        topLevel = false;
+    } else if (creationFlags & ForceTopLevel) {
+        topLevel = true;
+    } else {
+        topLevel = w->isTopLevel();
+    }
 
     if (topLevel && flags == 1) {
         flags |= Qt::WindowTitleHint|Qt::WindowSystemMenuHint|Qt::WindowMinimizeButtonHint
@@ -733,7 +739,6 @@ QWindowsWindow::QWindowsWindow(QWindow *aWindow, const WindowData &data) :
     m_hdc(0),
     m_windowState(Qt::WindowNoState),
     m_opacity(1.0),
-    m_cursor(QWindowsScreen::screenOf(aWindow)->windowsCursor()->standardWindowCursor()),
     m_dropTarget(0),
     m_savedStyle(0),
     m_format(aWindow->format()),
@@ -1022,10 +1027,9 @@ void QWindowsWindow::setParent_sys(const QPlatformWindow *parent) const
 
         // WS_CHILD/WS_POPUP must be manually set/cleared in addition
         // to dialog frames, etc (see  SetParent() ) if the top level state changes.
-        if (wasTopLevel != isTopLevel) {
-            const unsigned flags = isTopLevel ? unsigned(0) : unsigned(WindowCreationData::ForceChild);
-            setWindowFlags_sys(window()->flags(), flags);
-        }
+        // Force toplevel state as QWindow::isTopLevel cannot be relied upon here.
+        if (wasTopLevel != isTopLevel)
+            setWindowFlags_sys(window()->flags(), unsigned(isTopLevel ? WindowCreationData::ForceTopLevel : WindowCreationData::ForceChild));
     }
 }
 
@@ -1293,6 +1297,10 @@ void QWindowsWindow::handleWindowStateChange(Qt::WindowState state)
     setFlag(FrameDirty);
     m_windowState = state;
     QWindowSystemInterface::handleWindowStateChanged(window(), state);
+    if (state == Qt::WindowMinimized) {
+        handleHidden();
+        QWindowSystemInterface::flushWindowSystemEvents(); // Tell QQuickWindow to stop rendering now.
+    }
 }
 
 void QWindowsWindow::setWindowState(Qt::WindowState state)
@@ -1663,18 +1671,40 @@ void QWindowsWindow::getSizeHints(MINMAXINFO *mmi) const
 
 void QWindowsWindow::applyCursor()
 {
-    SetCursor(m_cursor.handle());
+    if (m_cursor.isNull()) { // Recurse up to parent with non-null cursor.
+        if (const QWindow *p = window()->parent())
+            QWindowsWindow::baseWindowOf(p)->applyCursor();
+    } else {
+        SetCursor(m_cursor.handle());
+    }
+}
+
+// Check whether to apply a new cursor. Either the window in question is
+// currently under mouse, or it is the parent of the window under mouse and
+// there is no other window with an explicitly set cursor in-between.
+static inline bool applyNewCursor(const QWindow *w)
+{
+    const QWindow *underMouse = QWindowsContext::instance()->windowUnderMouse();
+    if (underMouse == w)
+        return true;
+    for (const QWindow *p = underMouse; p ; p = p->parent()) {
+        if (p == w)
+            return true;
+        if (!QWindowsWindow::baseWindowOf(p)->cursor().isNull())
+            return false;
+    }
+    return false;
 }
 
 void QWindowsWindow::setCursor(const QWindowsWindowCursor &c)
 {
     if (c.handle() != m_cursor.handle()) {
-        const bool underMouse = QWindowsContext::instance()->windowUnderMouse() == window();
+        const bool apply = applyNewCursor(window());
         if (QWindowsContext::verboseWindows)
             qDebug() << window() << __FUNCTION__ << "Shape=" << c.cursor().shape()
-                     << " isWUM=" << underMouse;
+                     << " doApply=" << apply;
         m_cursor = c;
-        if (underMouse)
+        if (apply)
             applyCursor();
     }
 }

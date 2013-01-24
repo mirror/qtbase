@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1147,7 +1147,7 @@ void tst_QUdpSocket::multicastLeaveAfterClose()
     QFETCH(QHostAddress, groupAddress);
     if (setProxy)
         QSKIP("UDP Multicast does not work with proxies");
-    if (groupAddress.protocol() == QAbstractSocket::IPv6Protocol)
+    if (!QtNetworkSettings::hasIPv6() && groupAddress.protocol() == QAbstractSocket::IPv6Protocol)
         QSKIP("system doesn't support ipv6!");
 
     QUdpSocket udpSocket;

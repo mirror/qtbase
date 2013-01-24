@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -98,6 +98,7 @@ public:
         , screen(0)
 #ifndef QT_NO_CURSOR
         , cursor(Qt::ArrowCursor)
+        , hasCursor(false)
 #endif
     {
         isWindow = true;
@@ -109,6 +110,7 @@ public:
 
     void maybeQuitOnLastWindowClosed();
 #ifndef QT_NO_CURSOR
+    void setCursor(const QCursor *c = 0);
     void applyCursor();
 #endif
 
@@ -119,6 +121,8 @@ public:
             offset += p->position();
         return offset;
     }
+
+    virtual QWindow *eventReceiver() { Q_Q(QWindow); return q; }
 
     QWindow::SurfaceType surfaceType;
     Qt::WindowFlags windowFlags;
@@ -151,6 +155,7 @@ public:
 
 #ifndef QT_NO_CURSOR
     QCursor cursor;
+    bool hasCursor;
 #endif
 };
 

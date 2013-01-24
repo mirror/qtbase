@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -301,17 +301,19 @@ void QXcbCursor::changeCursor(QCursor *cursor, QWindow *widget)
         // No X11 cursor control when there is no widget under the cursor
         return;
     
-    xcb_cursor_t c;
-    if (cursor->shape() == Qt::BitmapCursor) {
-        qint64 id = cursor->pixmap().cacheKey();
-        if (!m_bitmapCursorMap.contains(id))
-            m_bitmapCursorMap.insert(id, createBitmapCursor(cursor));
-        c = m_bitmapCursorMap.value(id);
-    } else {
-        int id = cursor->shape();
-        if (!m_shapeCursorMap.contains(id))
-            m_shapeCursorMap.insert(id, createFontCursor(cursor->shape()));
-        c = m_shapeCursorMap.value(id);
+    xcb_cursor_t c = XCB_CURSOR_NONE;
+    if (cursor) {
+        if (cursor->shape() == Qt::BitmapCursor) {
+            qint64 id = cursor->pixmap().cacheKey();
+            if (!m_bitmapCursorMap.contains(id))
+                m_bitmapCursorMap.insert(id, createBitmapCursor(cursor));
+            c = m_bitmapCursorMap.value(id);
+        } else {
+            int id = cursor->shape();
+            if (!m_shapeCursorMap.contains(id))
+                m_shapeCursorMap.insert(id, createFontCursor(cursor->shape()));
+            c = m_shapeCursorMap.value(id);
+        }
     }
 
     w->setCursor(c);

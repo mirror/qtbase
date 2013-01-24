@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -3042,7 +3042,7 @@ void Configure::generateQConfigPri()
             configStream << " slog2";
 
         if (dictionary["DIRECTWRITE"] == "yes")
-            configStream << "directwrite";
+            configStream << " directwrite";
 
         // ### For compatibility only, should be removed later.
         configStream << " qpa";

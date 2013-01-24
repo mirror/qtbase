@@ -56,7 +56,7 @@
 
 #include <linux/ashmem.h>
 
-#define ASHMEM_DEVICE	"/"ASHMEM_NAME_DEF
+#define ASHMEM_DEVICE "/"ASHMEM_NAME_DEF
 
 /*
  * ashmem_create_region - creates a new ashmem region and returns the file
@@ -67,47 +67,47 @@
  */
 int ashmem_create_region(const char *name, size_t size)
 {
-	int fd, ret;
+    int fd, ret;
 
-	fd = open(ASHMEM_DEVICE, O_RDWR);
-	if (fd < 0)
-		return fd;
+    fd = open(ASHMEM_DEVICE, O_RDWR);
+    if (fd < 0)
+        return fd;
 
-	if (name) {
-		char buf[ASHMEM_NAME_LEN];
+    if (name) {
+        char buf[ASHMEM_NAME_LEN];
 
-		strlcpy(buf, name, sizeof(buf));
-		ret = ioctl(fd, ASHMEM_SET_NAME, buf);
-		if (ret < 0)
-			goto error;
-	}
+        strlcpy(buf, name, sizeof(buf));
+        ret = ioctl(fd, ASHMEM_SET_NAME, buf);
+        if (ret < 0)
+            goto error;
+    }
 
-	ret = ioctl(fd, ASHMEM_SET_SIZE, size);
-	if (ret < 0)
-		goto error;
+    ret = ioctl(fd, ASHMEM_SET_SIZE, size);
+    if (ret < 0)
+        goto error;
 
-	return fd;
+    return fd;
 
 error:
-	close(fd);
-	return ret;
+    close(fd);
+    return ret;
 }
 //PROT_READ | PROT_WRITE
 int ashmem_set_prot_region(int fd, int prot)
 {
-	return ioctl(fd, ASHMEM_SET_PROT_MASK, prot);
+    return ioctl(fd, ASHMEM_SET_PROT_MASK, prot);
 }
 
 int ashmem_pin_region(int fd, size_t offset, size_t len)
 {
-	struct ashmem_pin pin = { offset, len };
-	return ioctl(fd, ASHMEM_PIN, &pin);
+    struct ashmem_pin pin = { offset, len };
+    return ioctl(fd, ASHMEM_PIN, &pin);
 }
 
 int ashmem_unpin_region(int fd, size_t offset, size_t len)
 {
-	struct ashmem_pin pin = { offset, len };
-	return ioctl(fd, ASHMEM_UNPIN, &pin);
+    struct ashmem_pin pin = { offset, len };
+    return ioctl(fd, ASHMEM_UNPIN, &pin);
 }
 
 int ashmem_get_size_region(int fd)
@@ -187,7 +187,7 @@ bool QSharedMemoryPrivate::create(int sz)
     {
         QString function = QLatin1String("QSharedMemory::create");
         setErrorString(function);
-	return false;
+        return false;
     }
     size=sz;
     return true;
@@ -222,7 +222,7 @@ bool QSharedMemoryPrivate::attach(QSharedMemory::AccessMode mode)
 bool QSharedMemoryPrivate::detach()
 {
     if (ashmem_unpin_region(ashmem_fd, 0, 0)<0)
-	return false;
+        return false;
     return true;
 }
 

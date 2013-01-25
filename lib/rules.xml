@@ -86,6 +86,17 @@
             </depends>
         </lib>
 
+        <lib name="Qt5Quick">
+            <depends>
+            <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
+                <lib file="plugins/platforms/android/libandroidGL-%1.so"/>
+            </depends>
+            <replaces>
+            <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
+                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+            </replaces>
+        </lib>
+
         <lib name="Qt53DQuick">
             <depends>
                 <lib file="libs/libQtOpenGL.so"/>

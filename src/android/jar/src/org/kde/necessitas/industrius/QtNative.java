@@ -397,6 +397,16 @@ public class QtNative
         }
     }
 
+    private static void updateSelection(final int selStart, final int selEnd, final int candidatesStart, final int candidatesEnd)
+    {
+        runAction(new Runnable() {
+            @Override
+            public void run() {
+                m_activityDelegate.updateSelection(selStart, selEnd, candidatesStart, candidatesEnd);
+            }
+        });
+    }
+
     private static void showSoftwareKeyboard(final int x, final int y
                                         , final int width, final int height
                                         , final int inputHints )

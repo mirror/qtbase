@@ -50,6 +50,7 @@ namespace QtAndroidInput
     void resetSoftwareKeyboard();
     void hideSoftwareKeyboard();
     bool isSoftwareKeyboardVisible();
+    void updateSelection(int selStart, int selEnd, int candidatesStart, int candidatesEnd);
     // Software keyboard support
 
     bool registerNatives(JNIEnv *env);

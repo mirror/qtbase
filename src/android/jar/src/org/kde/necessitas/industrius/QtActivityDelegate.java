@@ -261,6 +261,14 @@ public class QtActivityDelegate
         return "\tQT_ANDROID_APP_ICON_SIZE="+size;
     }
 
+    public void updateSelection(int selStart, int selEnd, int candidatesStart, int candidatesEnd)
+    {
+        if (m_imm == null)
+            return;
+
+        m_imm.updateSelection(m_editText, selStart, selEnd, candidatesStart, candidatesEnd);
+    }
+
     public boolean loadApplication(Activity activity, ClassLoader classLoader, Bundle loaderParams)
     {
         /// check parameters integrity

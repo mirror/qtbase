@@ -55,12 +55,23 @@ namespace QtAndroidInput
     static jmethodID m_resetSoftwareKeyboardMethodID = 0;
     static jmethodID m_hideSoftwareKeyboardMethodID = 0;
     static jmethodID m_isSoftwareKeyboardVisibleMethodID = 0;
+    static jmethodID m_updateSelectionMethodID = 0;
 
     static bool m_ignoreMouseEvents = false;
 
     static QList<QWindowSystemInterface::TouchPoint> m_touchPoints;
 
     static QPointer<QWindow> m_mouseGrabber;
+
+    void updateSelection(int selStart, int selEnd, int candidatesStart, int candidatesEnd)
+    {
+        AttachedJNIEnv env;
+        if (!env.jniEnv)
+            return;
+
+        env.jniEnv->CallStaticVoidMethod(applicationClass(), m_updateSelectionMethodID,
+                                         selStart, selEnd, candidatesStart, candidatesEnd);
+    }
 
     void showSoftwareKeyboard(int left, int top, int width, int height, int inputHints)
     {
@@ -472,6 +483,7 @@ namespace QtAndroidInput
         GET_AND_CHECK_STATIC_METHOD(m_resetSoftwareKeyboardMethodID, appClass, "resetSoftwareKeyboard", "()V");
         GET_AND_CHECK_STATIC_METHOD(m_hideSoftwareKeyboardMethodID, appClass, "hideSoftwareKeyboard", "()V");
         GET_AND_CHECK_STATIC_METHOD(m_isSoftwareKeyboardVisibleMethodID, appClass, "isSoftwareKeyboardVisible", "()Z");
+        GET_AND_CHECK_STATIC_METHOD(m_updateSelectionMethodID, appClass, "updateSelection", "(IIII)V");
         return true;
     }
 }

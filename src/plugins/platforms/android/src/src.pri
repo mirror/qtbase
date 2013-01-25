@@ -8,8 +8,6 @@ OTHER_FILES += $$PWD/android.json
 
 INCLUDEPATH += $$PWD
 
-contains(QT, opengl): DEFINES += ANDROID_PLUGIN_OPENGL
-
 SOURCES += $$PWD/androidplatformplugin.cpp \
            $$PWD/androidjnimain.cpp \
            $$PWD/androidjniinput.cpp \

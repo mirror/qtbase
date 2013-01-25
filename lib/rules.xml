@@ -69,7 +69,7 @@
         <lib name="Qt5Sensors">
             <depends>
                 <lib file="plugins/sensors/libqtsensors_android.so"/>
-                <jar file="jar/QtSensors.jar" initClass="org.qt_project.android.mobile.QtSensors"/>
+                <jar file="jar/QtSensors.jar" initClass="org.qtproject.qt5.android.sensors.QtSensors"/>
             </depends>
         </lib>
 

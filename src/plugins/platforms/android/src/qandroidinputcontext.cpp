@@ -356,7 +356,9 @@ void QAndroidInputContext::invokeAction(QInputMethod::Action action, int cursorP
 #warning TODO Handle at least QInputMethod::ContextMenu action
     Q_UNUSED(action)
     Q_UNUSED(cursorPosition)
-    QPlatformInputContext::invokeAction(action, cursorPosition);
+
+    if (action == QInputMethod::Click)
+        commit();
 }
 
 QRectF QAndroidInputContext::keyboardRect() const

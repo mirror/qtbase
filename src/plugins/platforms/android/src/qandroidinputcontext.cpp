@@ -333,6 +333,12 @@ void QAndroidInputContext::reset()
 void QAndroidInputContext::commit()
 {
     finishComposingText();
+
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (!query.isNull()) {
+        const int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+        QtAndroidInput::updateSelection(cursorPos, cursorPos, -1, -1); //selection empty and no pre-edit text
+    }
 }
 
 void QAndroidInputContext::update(Qt::InputMethodQueries queries)

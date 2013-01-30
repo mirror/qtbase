@@ -418,10 +418,12 @@ jboolean QAndroidInputContext::deleteSurroundingText(jint leftLength, jint right
     if (query.isNull())
         return JNI_TRUE;
 
-    const int cursorPos = query->value(Qt::ImCursorPosition).toInt();
-    setSelection(cursorPos - leftLength, cursorPos + rightLength);
     m_composingText.clear();
-    finishComposingText();
+
+    QInputMethodEvent event;
+    event.setCommitString(QString(), -leftLength, leftLength+rightLength);
+    sendInputMethodEvent(&event);
+    clear();
 
     return JNI_TRUE;
 }

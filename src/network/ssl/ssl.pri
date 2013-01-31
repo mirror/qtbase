@@ -1,5 +1,5 @@
 # OpenSSL support; compile in QSslSocket.
-contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) | CONFIG(android){
+contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
     HEADERS += ssl/qssl.h \
                ssl/qsslcertificate.h \
                ssl/qsslcertificate_p.h \
@@ -32,15 +32,13 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) | CONFIG(andr
     #   - also needs -lUser32 -lAdvapi32 -lGdi32 -lCrypt32
     #   - libs in <OPENSSL_DIR>\lib\VC\static
     #   - configure: -openssl -openssl-linked -I <OPENSSL_DIR>\include -L <OPENSSL_DIR>\lib\VC\static OPENSSL_LIBS="-lUser32 -lAdvapi32 -lGdi32" OPENSSL_LIBS_DEBUG="-lssleay32MDd -llibeay32MDd" OPENSSL_LIBS_RELEASE="-lssleay32MD -llibeay32MD"
-    CONFIG(android) : include($$QT_SOURCE_TREE/src/3rdparty/android/src/openssl/openssl.pri)
-    else {
-        CONFIG(debug, debug|release) {
-            LIBS_PRIVATE += $$OPENSSL_LIBS_DEBUG
-        } else {
-            LIBS_PRIVATE += $$OPENSSL_LIBS_RELEASE
-        }
-        LIBS_PRIVATE += $$OPENSSL_LIBS
+    CONFIG(debug, debug|release) {
+        LIBS_PRIVATE += $$OPENSSL_LIBS_DEBUG
+    } else {
+        LIBS_PRIVATE += $$OPENSSL_LIBS_RELEASE
     }
+
+    LIBS_PRIVATE += $$OPENSSL_LIBS
     windows:LIBS += -lcrypt32
 
     !isEmpty(OPENSSL_PATH) {

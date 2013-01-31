@@ -101,7 +101,3 @@ OTHER_FILES += \
     header.LGPL-ONLY \
     sync.profile
 
-android {
-    QtJar.commands = $$QT_SOURCE_TREE/android/buildQtJar.sh $$QT_SOURCE_TREE/src/android/jar $$QT_BUILD_TREE/jar
-    QMAKE_EXTRA_TARGETS += QtJar
-}

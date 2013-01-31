@@ -1,21 +1,5 @@
 <rules>
     <platforms>
-        <libs>
-            <version value="4"/>
-            <version value="5"/>
-            <version value="6" symlink="5"/>
-            <version value="7" symlink="5"/>
-            <version value="8"/>
-            <version value="9"/>
-            <version value="10" symlink="9"/>
-            <version value="11" symlink="9"/>
-            <version value="12" symlink="9"/>
-            <version value="13" symlink="9"/>
-            <version value="14" symlink="9"/>
-            <version value="15" symlink="9"/>
-            <version value="16" symlink="9"/>
-            <version value="17" symlink="9"/>
-        </libs>
         <jars>
             <version value="4"/>
             <version value="5" symlink="7"/>
@@ -36,8 +20,7 @@
     <dependencies> <!-- The order is very important -->
         <lib name="Qt5Core">
             <depends>
-                <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
-                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+                <lib file="plugins/platforms/android/libqtforandroid.so"/>
                 <lib file="libs/libgnustl_shared.so"/>
                 <jar file="jar/QtIndustrius-%1.jar"/>
             </depends>
@@ -45,12 +28,11 @@
 
         <lib name="Qt5OpenGL">
             <depends>
-            <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
-                <lib file="plugins/platforms/android/libandroidGL-%1.so"/>
+                <lib file="plugins/platforms/android/libqtforandroidGL.so"/>
             </depends>
             <replaces>
             <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
-                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+                <lib file="plugins/platforms/android/libqtforandroid.so"/>
             </replaces>
         </lib>
 
@@ -89,11 +71,11 @@
         <lib name="Qt5Quick">
             <depends>
             <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
-                <lib file="plugins/platforms/android/libandroidGL-%1.so"/>
+                <lib file="plugins/platforms/android/libqtforandroidGL.so"/>
             </depends>
             <replaces>
             <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
-                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+                <lib file="plugins/platforms/android/libqtforandroid.so"/>
             </replaces>
         </lib>
 

@@ -522,16 +522,12 @@ QString QAndroidInputContext::getTextBeforeCursor(jint length, jint /*flags*/)
 
 jboolean QAndroidInputContext::setComposingText(const QString &text, jint newCursorPosition)
 {
-    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
-    if (query.isNull())
-        return JNI_FALSE;
-
-    newCursorPosition += text.length() - 1;
-    int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+    if (newCursorPosition > 0)
+        newCursorPosition += text.length() - 1;
     m_composingText = text;
     QList<QInputMethodEvent::Attribute> attributes;
     attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Cursor,
-                                                   cursorPos+newCursorPosition,
+                                                   newCursorPosition,
                                                    1,
                                                    QVariant()));
 

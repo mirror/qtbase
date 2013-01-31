@@ -50,6 +50,8 @@
 #include <qsharedpointer.h>
 #include <qthread.h>
 
+#include <QTextCharFormat>
+
 QT_BEGIN_NAMESPACE
 
 static QAndroidInputContext *m_androidInputContext = 0;
@@ -530,6 +532,11 @@ jboolean QAndroidInputContext::setComposingText(const QString &text, jint newCur
                                                    newCursorPosition,
                                                    1,
                                                    QVariant()));
+    // Show compose text underlined
+    QTextCharFormat underlined;
+    underlined.setFontUnderline(true);
+    attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::TextFormat,0, text.length(),
+                                                   QVariant(underlined)));
 
     QInputMethodEvent event(m_composingText, attributes);
     sendInputMethodEvent(&event);

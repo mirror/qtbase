@@ -75,6 +75,8 @@ void *QAndroidPlatformNativeInterface::nativeResourceForIntegration(const QByteA
 {
     if (resource=="JavaVM")
         return QtAndroid::javaVM();
+    if (resource == "QtActivity")
+        return QtAndroid::activity();
 
     return 0;
 }

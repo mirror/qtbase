@@ -83,6 +83,7 @@ namespace QtAndroid
     jclass findClass(const QString &className, JNIEnv *env);
     AAssetManager *assetManager();
     jclass applicationClass();
+    jobject activity();
 
     jobject createBitmap(QImage img, JNIEnv *env = 0);
     jobject createBitmapDrawable(jobject bitmap, JNIEnv *env = 0);

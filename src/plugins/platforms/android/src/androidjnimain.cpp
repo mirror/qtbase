@@ -87,6 +87,7 @@ static jobject m_classLoaderObject = NULL;
 static jmethodID m_loadClassMethodID = NULL;
 static AAssetManager *m_assetManager = NULL;
 static jobject m_resourcesObj;
+static jobject m_activityObject = NULL;
 
 static jclass m_bitmapClass  = 0;
 static jmethodID m_createBitmapMethodID = 0;
@@ -321,6 +322,11 @@ namespace QtAndroid
     jclass applicationClass()
     {
         return m_applicationClass;
+    }
+
+    jobject activity()
+    {
+        return m_activityObject;
     }
 
     jobject createBitmap(QImage img, JNIEnv *env)
@@ -558,6 +564,7 @@ static void terminateQt(JNIEnv *env, jclass /*clazz*/)
     env->DeleteGlobalRef(m_applicationClass);
     env->DeleteGlobalRef(m_classLoaderObject);
     env->DeleteGlobalRef(m_resourcesObj);
+    env->DeleteGlobalRef(m_activityObject);
     env->DeleteGlobalRef(m_bitmapClass);
     env->DeleteGlobalRef(m_ARGB_8888_BitmapConfigValue);
     env->DeleteGlobalRef(m_RGB_565_BitmapConfigValue);
@@ -790,6 +797,7 @@ static int registerNatives(JNIEnv *env)
     jmethodID methodID;
     GET_AND_CHECK_STATIC_METHOD(methodID, m_applicationClass, "activity", "()Landroid/app/Activity;");
     jobject activityObject = env->CallStaticObjectMethod(m_applicationClass, methodID);
+    m_activityObject = env->NewGlobalRef(activityObject);
     GET_AND_CHECK_STATIC_METHOD(methodID, m_applicationClass, "classLoader", "()Ljava/lang/ClassLoader;");
     m_classLoaderObject = env->NewGlobalRef(env->CallStaticObjectMethod(m_applicationClass, methodID));
 

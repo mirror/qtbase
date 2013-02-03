@@ -1,6 +1,7 @@
 TEMPLATE = lib
 android {
     isEmpty(SDK_ROOT): SDK_ROOT = $$(ANDROID_SDK_ROOT)
+    isEmpty(SDK_ROOT): SDK_ROOT = $$DEFAULT_ANDROID_SDK_ROOT
     isEmpty(API_VERSION) {
         API_VERSION = $$(ANDROID_API_VERSION)
         isEmpty(API_VERSION): API_VERSION = android-10

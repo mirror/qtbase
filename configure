@@ -2183,6 +2183,10 @@ while [ "$#" -gt 0 ]; do
             else
                 UNKNOWN_OPT=yes
             fi
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
     android-sdk)
         if [ "$XPLATFORM_ANDROID" = "yes" ]; then
             CFG_DEFAULT_ANDROID_SDK_ROOT="$VAL"

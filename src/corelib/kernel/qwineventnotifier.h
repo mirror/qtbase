@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -42,15 +42,10 @@
 #ifndef QWINEVENTNOTIFIER_H
 #define QWINEVENTNOTIFIER_H
 
-#if 0
-// inform syncqt
-#pragma qt_no_master_include
-#endif
-
 #include "QtCore/qobject.h"
-#include "QtCore/qt_windows.h"
 
-QT_BEGIN_HEADER
+#ifdef Q_OS_WIN
+#include "QtCore/qt_windows.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -75,7 +70,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void activated(HANDLE hEvent
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
     , QPrivateSignal
 #endif
     );
@@ -86,6 +81,6 @@ protected:
 
 QT_END_NAMESPACE
 
-QT_END_HEADER
+#endif // Q_OS_WIN
 
 #endif // QWINEVENTNOTIFIER_H

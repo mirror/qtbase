@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -50,6 +50,7 @@
 #include <qsqlfield.h>
 #include <qsqlindex.h>
 #include <qsqlquery.h>
+#include <QtSql/private/qsqlcachedresult_p.h>
 #include <qstringlist.h>
 #include <qvector.h>
 
@@ -93,6 +94,30 @@ QSQLite2DriverPrivate::QSQLite2DriverPrivate() : access(0)
 {
     utf8 = (qstrcmp(sqlite_encoding, "UTF-8") == 0);
 }
+
+class QSQLite2ResultPrivate;
+
+class QSQLite2Result : public QSqlCachedResult
+{
+    friend class QSQLite2Driver;
+    friend class QSQLite2ResultPrivate;
+public:
+    explicit QSQLite2Result(const QSQLite2Driver* db);
+    ~QSQLite2Result();
+    QVariant handle() const;
+
+protected:
+    bool gotoNext(QSqlCachedResult::ValueCache& row, int idx);
+    bool reset (const QString& query);
+    int size();
+    int numRowsAffected();
+    QSqlRecord record() const;
+    void detachFromResultSet();
+    void virtual_hook(int id, void *data);
+
+private:
+    QSQLite2ResultPrivate* d;
+};
 
 class QSQLite2ResultPrivate
 {

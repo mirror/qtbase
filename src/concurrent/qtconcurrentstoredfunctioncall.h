@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -48,11 +48,10 @@
 #ifndef QT_NO_CONCURRENT
 #include <QtConcurrent/qtconcurrentrunbase.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 
-#ifndef qdoc
+#ifndef Q_QDOC
 
 namespace QtConcurrent {
 template <typename T, typename FunctionPointer>
@@ -1302,10 +1301,9 @@ private:
 
 } //namespace QtConcurrent
 
-#endif // qdoc
+#endif // Q_QDOC
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif // QT_NO_CONCURRENT
 

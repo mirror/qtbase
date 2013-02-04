@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -118,8 +118,8 @@ void QRadioButtonPrivate::init()
     \table 100%
     \row \li \inlineimage fusion-radiobutton.png Screenshot of a Fusion radio button
          \li A radio button shown in the \l{Fusion Style Widget Gallery}{Fusion widget style}.
-    \row \li \inlineimage windows-radiobutton.png Screenshot of a Windows XP radio button
-         \li A radio button shown in the \l{Windows XP Style Widget Gallery}{Windows XP widget style}.
+    \row \li \inlineimage windowsvista-radiobutton.png Screenshot of a Windows Vista radio button
+         \li A radio button shown in the \l{Windows Vista Style Widget Gallery}{Windows Vista widget style}.
     \row \li \inlineimage macintosh-radiobutton.png Screenshot of a Macintosh radio button
          \li A radio button shown in the \l{Macintosh Style Widget Gallery}{Macintosh widget style}.
     \endtable

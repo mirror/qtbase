@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -41,19 +41,11 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QBrush>
-#include <QFont>
-#include <QImage>
-#include <QPen>
 #include <QGLWidget>
 #include <QTimer>
 
 class Bubble;
 class QtLogo;
-QT_BEGIN_NAMESPACE
-class QPaintEvent;
-class QWidget;
-QT_END_NAMESPACE
 
 //! [0]
 class GLWidget : public QGLWidget
@@ -108,4 +100,4 @@ private:
 //! [4]
 };
 
-#endif
+#endif // GLWIDGET_H

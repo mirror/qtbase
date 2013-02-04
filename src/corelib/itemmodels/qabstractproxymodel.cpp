@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -124,6 +124,10 @@ QAbstractProxyModel::~QAbstractProxyModel()
 
 /*!
     Sets the given \a sourceModel to be processed by the proxy model.
+
+    Subclasses should call beginResetModel() at the beginning of the method,
+    disconnect from the old model, call this method, connect to the new model,
+    and call endResetModel().
 */
 void QAbstractProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
 {
@@ -141,6 +145,15 @@ void QAbstractProxyModel::setSourceModel(QAbstractItemModel *sourceModel)
         d->roleNames = d->model->roleNames();
         emit sourceModelChanged(QPrivateSignal());
     }
+}
+
+/*!
+    Clears the roleNames of this proxy model.
+*/
+void QAbstractProxyModel::resetInternalData()
+{
+    Q_D(QAbstractProxyModel);
+    d->roleNames = d->model->roleNames();
 }
 
 /*!

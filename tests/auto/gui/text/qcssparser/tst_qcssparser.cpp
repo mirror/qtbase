@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -382,8 +382,6 @@ void tst_QCssParser::term()
         }
     }
 }
-
-Q_DECLARE_METATYPE(QVector<QCss::Value>)
 
 void tst_QCssParser::expr_data()
 {
@@ -842,7 +840,6 @@ void tst_QCssParser::invalidAtKeywords()
     QCOMPARE(rule.declarations.at(0).d->values.at(0).variant.toString(), QString("blue"));
 }
 
-Q_DECLARE_METATYPE(QColor)
 
 void tst_QCssParser::colorValue_data()
 {

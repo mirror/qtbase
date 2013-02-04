@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -66,6 +66,7 @@ QT_END_NAMESPACE
     QString m_composingText;
     bool m_sendKeyEvent;
     QStringList *currentCustomDragTypes;
+    bool m_sendUpAsRightButton;
     Qt::KeyboardModifiers currentWheelModifiers;
     bool m_subscribesForGlobalFrameNotifications;
 }
@@ -81,6 +82,7 @@ QT_END_NAMESPACE
 
 - (BOOL)isFlipped;
 - (BOOL)acceptsFirstResponder;
+- (BOOL)becomeFirstResponder;
 
 - (void)handleMouseEvent:(NSEvent *)theEvent;
 - (void)mouseDown:(NSEvent *)theEvent;

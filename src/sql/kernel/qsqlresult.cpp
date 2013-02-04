@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -162,8 +162,6 @@ QString QSqlResultPrivate::positionalToNamedBinding()
     for (int i = 0; i < n; ++i) {
         QChar ch = sql.at(i);
         if (ch == QLatin1Char('?') && !inQuote) {
-            // Update the holder position since we are changing the holder name lengths
-            holders[count].holderPos = result.size();
             result += qFieldSerial(count++);
         } else {
             if (ch == QLatin1Char('\''))

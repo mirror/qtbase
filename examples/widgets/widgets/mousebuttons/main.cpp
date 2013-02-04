@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Rick Stockton <rickstockton@reno-computerhelp.com>
 ** Contact: http://www.qt-project.org/legal
 **
@@ -48,6 +48,10 @@ int main(int argv, char **args)
 
     ButtonTester *testArea = new ButtonTester;
     testArea->setMinimumSize(500, 350);
+
+//  For this test, Qt::RightButton behaves like any other button.
+    testArea->setContextMenuPolicy(Qt::NoContextMenu);
+    testArea->setTextInteractionFlags(Qt::TextSelectableByMouse);
     testArea->setText("To test your mouse with Qt, press buttons in this area.\nYou may also scroll or tilt your mouse wheel.");
     QPushButton *quitButton = new QPushButton("Quit");
 

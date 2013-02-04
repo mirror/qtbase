@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -77,7 +77,7 @@ static bool isFatal(QtMsgType msgType)
         return true;
 
     if (msgType == QtWarningMsg) {
-        static bool fatalWarnings = qEnvironmentVariableIsSet("QT_FATAL_WARNINGS");
+        static bool fatalWarnings = !qEnvironmentVariableIsEmpty("QT_FATAL_WARNINGS");
         return fatalWarnings;
     }
 
@@ -87,7 +87,6 @@ static bool isFatal(QtMsgType msgType)
 /*!
     \class QMessageLogContext
     \inmodule QtCore
-    \relates <QtGlobal>
     \brief The QMessageLogContext class provides additional information about a log message.
     \since 5.0
 
@@ -100,7 +99,6 @@ static bool isFatal(QtMsgType msgType)
 /*!
     \class QMessageLogger
     \inmodule QtCore
-    \relates <QtGlobal>
     \brief The QMessageLogger class generates log messages.
     \since 5.0
 
@@ -121,6 +119,7 @@ static bool isFatal(QtMsgType msgType)
 extern bool usingWinMain;
 #endif
 
+#ifdef Q_OS_WIN
 static inline void convert_to_wchar_t_elided(wchar_t *d, size_t space, const char *s) Q_DECL_NOEXCEPT
 {
     size_t len = qstrlen(s);
@@ -134,6 +133,7 @@ static inline void convert_to_wchar_t_elided(wchar_t *d, size_t space, const cha
         *d++ = *s++;
     *d++ = 0;
 }
+#endif
 
 #if !defined(QT_NO_EXCEPTIONS)
 /*!

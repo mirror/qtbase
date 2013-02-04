@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1545,9 +1545,6 @@ void tst_QList::constSharedNullComplex() const
     constSharedNull<Complex>();
     QCOMPARE(liveCount, Complex::getLiveCount());
 }
-
-Q_DECLARE_METATYPE(QList<int>);
-Q_DECLARE_METATYPE(QList<Complex>);
 
 template <class T>
 void generateSetSharableData()

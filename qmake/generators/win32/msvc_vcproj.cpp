@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -944,7 +944,6 @@ void VcprojGenerator::initConfiguration()
         conf.PrimaryOutput = project->first("TARGET").toQString();
         if ( !conf.PrimaryOutput.isEmpty() && !project->first("TARGET_VERSION_EXT").isEmpty() && project->isActiveConfig("shared"))
             conf.PrimaryOutput.append(project->first("TARGET_VERSION_EXT").toQString());
-        conf.PrimaryOutputExtension = project->first("TARGET_EXT").toQString();
     }
 
     conf.Name = project->values("BUILD_NAME").join(' ');
@@ -1071,6 +1070,17 @@ void VcprojGenerator::initResourceTool()
 {
     VCConfiguration &conf = vcProject.Configuration;
     conf.resource.PreprocessorDefinitions = conf.compiler.PreprocessorDefinitions;
+
+    foreach (const ProString &path, project->values("RC_INCLUDEPATH")) {
+        QString fixedPath = fileFixify(path.toQString());
+        if (fileInfo(fixedPath).isRelative()) {
+            if (fixedPath == QStringLiteral("."))
+                fixedPath = QStringLiteral("$(ProjectDir)");
+            else
+                fixedPath.prepend(QStringLiteral("$(ProjectDir)\\"));
+        }
+        conf.resource.AdditionalIncludeDirectories << escapeFilePath(fixedPath);
+    }
 
     // We need to add _DEBUG for the debug version of the project, since the normal compiler defines
     // do not contain it. (The compiler defines this symbol automatically, which is wy we don't need

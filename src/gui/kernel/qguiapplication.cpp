@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -60,6 +60,7 @@
 #include <QtCore/private/qthread_p.h>
 #include <QtCore/qdir.h>
 #include <QtDebug>
+#include "qaccessible.h"
 #include <qpalette.h>
 #include <qscreen.h>
 #include "qsessionmanager.h"
@@ -219,7 +220,7 @@ static inline void clearFontUnlocked()
     For any GUI application using Qt, there is precisely \b one QGuiApplication
     object no matter whether the application has 0, 1, 2 or more windows at
     any given time. For non-GUI Qt applications, use QCoreApplication instead,
-    as it does not depend on the \l QtGui library. For QWidget based Qt applications,
+    as it does not depend on the Qt GUI module. For QWidget based Qt applications,
     use QApplication instead, as it provides some functionality needed for creating
     QWidget instances.
 
@@ -708,10 +709,9 @@ QList<QScreen *> QGuiApplication::screens()
     device-independent pixels.
 
     Use this function only when you don't know which window you are targeting.
-    If you do know the target window use QWindow::devicePixelRatio() instead.
+    If you do know the target window, use QWindow::devicePixelRatio() instead.
 
-    \sa QWindow::devicePixelRatio();
-    \sa QGuiApplicaiton::devicePixelRatio();
+    \sa QWindow::devicePixelRatio()
 */
 qreal QGuiApplication::devicePixelRatio() const
 {
@@ -1065,10 +1065,13 @@ QGuiApplicationPrivate::~QGuiApplicationPrivate()
 
     QPixmapCache::clear();
 
-    delete  platform_theme;
+    delete platform_theme;
+    platform_theme = 0;
     delete platform_integration;
     platform_integration = 0;
     delete m_gammaTables.load();
+
+    window_list.clear();
 }
 
 #if 0
@@ -1183,6 +1186,9 @@ QPlatformNativeInterface *QGuiApplication::platformNativeInterface()
 */
 int QGuiApplication::exec()
 {
+#ifndef QT_NO_ACCESSIBILITY
+    QAccessible::setRootObject(qApp);
+#endif
     return QCoreApplication::exec();
 }
 
@@ -1387,7 +1393,7 @@ void QGuiApplicationPrivate::processMouseEvent(QWindowSystemInterfacePrivate::Mo
             // Ignore mouse events that don't change the current state.
             return;
         }
-        buttons = e->buttons;
+        mouse_buttons = buttons = e->buttons;
         if (button & e->buttons) {
             ulong doubleClickInterval = static_cast<ulong>(qApp->styleHints()->mouseDoubleClickInterval());
             doubleClick = e->timestamp - mousePressTime < doubleClickInterval && button == mousePressButton;
@@ -1706,7 +1712,10 @@ void QGuiApplicationPrivate::processTabletEvent(QWindowSystemInterfacePrivate::T
         type = e->down ? QEvent::TabletPress : QEvent::TabletRelease;
         tabletState = e->down;
     }
+
     QWindow *window = e->window.data();
+    modifier_buttons = e->modifiers;
+
     bool localValid = true;
     // If window is null, pick one based on the global position and make sure all
     // subsequent events up to the release are delivered to that same window.
@@ -1737,7 +1746,7 @@ void QGuiApplicationPrivate::processTabletEvent(QWindowSystemInterfacePrivate::T
     QTabletEvent ev(type, local, e->global,
                     e->device, e->pointerType, e->pressure, e->xTilt, e->yTilt,
                     e->tangentialPressure, e->rotation, e->z,
-                    e->mods, e->uid);
+                    e->modifiers, e->uid);
     ev.setTimestamp(e->timestamp);
     QGuiApplication::sendSpontaneousEvent(window, &ev);
 #else
@@ -2309,6 +2318,7 @@ void QGuiApplication::setPalette(const QPalette &pal)
 */
 QFont QGuiApplication::font()
 {
+    Q_ASSERT_X(QGuiApplicationPrivate::self, "QGuiApplication::font()", "no QGuiApplication instance");
     QMutexLocker locker(&applicationFontMutex);
     initFontUnlocked();
     return *QGuiApplicationPrivate::app_font;
@@ -2644,6 +2654,13 @@ static inline void applyCursor(QWindow *w, QCursor c)
             cursor->changeCursor(&c, w);
 }
 
+static inline void unsetCursor(QWindow *w)
+{
+    if (const QScreen *screen = w->screen())
+        if (QPlatformCursor *cursor = screen->handle()->cursor())
+            cursor->changeCursor(0, w);
+}
+
 static inline void applyCursor(const QList<QWindow *> &l, const QCursor &c)
 {
     for (int i = 0; i < l.size(); ++i) {
@@ -2657,8 +2674,13 @@ static inline void applyWindowCursor(const QList<QWindow *> &l)
 {
     for (int i = 0; i < l.size(); ++i) {
         QWindow *w = l.at(i);
-        if (w->handle() && w->type() != Qt::Desktop)
-            applyCursor(w, w->cursor());
+        if (w->handle() && w->type() != Qt::Desktop) {
+            if (qt_window_private(w)->hasCursor) {
+                applyCursor(w, w->cursor());
+            } else {
+                unsetCursor(w);
+            }
+        }
     }
 }
 
@@ -2789,111 +2811,6 @@ QInputMethod *QGuiApplication::inputMethod()
     QFontDatabase::removeAllApplicationFonts(),
     QFontDatabase::removeApplicationFont()
 */
-
-// These pixmaps approximate the images in the Windows User Interface Guidelines.
-
-// XPM
-
-static const char * const move_xpm[] = {
-"11 20 3 1",
-".        c None",
-"a        c #FFFFFF",
-"X        c #000000", // X11 cursor is traditionally black
-"aa.........",
-"aXa........",
-"aXXa.......",
-"aXXXa......",
-"aXXXXa.....",
-"aXXXXXa....",
-"aXXXXXXa...",
-"aXXXXXXXa..",
-"aXXXXXXXXa.",
-"aXXXXXXXXXa",
-"aXXXXXXaaaa",
-"aXXXaXXa...",
-"aXXaaXXa...",
-"aXa..aXXa..",
-"aa...aXXa..",
-"a.....aXXa.",
-"......aXXa.",
-".......aXXa",
-".......aXXa",
-"........aa."};
-
-
-/* XPM */
-static const char * const copy_xpm[] = {
-"24 30 3 1",
-".        c None",
-"a        c #000000",
-"X        c #FFFFFF",
-"XX......................",
-"XaX.....................",
-"XaaX....................",
-"XaaaX...................",
-"XaaaaX..................",
-"XaaaaaX.................",
-"XaaaaaaX................",
-"XaaaaaaaX...............",
-"XaaaaaaaaX..............",
-"XaaaaaaaaaX.............",
-"XaaaaaaXXXX.............",
-"XaaaXaaX................",
-"XaaXXaaX................",
-"XaX..XaaX...............",
-"XX...XaaX...............",
-"X.....XaaX..............",
-"......XaaX..............",
-".......XaaX.............",
-".......XaaX.............",
-"........XX...aaaaaaaaaaa",
-".............aXXXXXXXXXa",
-".............aXXXXXXXXXa",
-".............aXXXXaXXXXa",
-".............aXXXXaXXXXa",
-".............aXXaaaaaXXa",
-".............aXXXXaXXXXa",
-".............aXXXXaXXXXa",
-".............aXXXXXXXXXa",
-".............aXXXXXXXXXa",
-".............aaaaaaaaaaa"};
-
-/* XPM */
-static const char * const link_xpm[] = {
-"24 30 3 1",
-".        c None",
-"a        c #000000",
-"X        c #FFFFFF",
-"XX......................",
-"XaX.....................",
-"XaaX....................",
-"XaaaX...................",
-"XaaaaX..................",
-"XaaaaaX.................",
-"XaaaaaaX................",
-"XaaaaaaaX...............",
-"XaaaaaaaaX..............",
-"XaaaaaaaaaX.............",
-"XaaaaaaXXXX.............",
-"XaaaXaaX................",
-"XaaXXaaX................",
-"XaX..XaaX...............",
-"XX...XaaX...............",
-"X.....XaaX..............",
-"......XaaX..............",
-".......XaaX.............",
-".......XaaX.............",
-"........XX...aaaaaaaaaaa",
-".............aXXXXXXXXXa",
-".............aXXXaaaaXXa",
-".............aXXXXaaaXXa",
-".............aXXXaaaaXXa",
-".............aXXaaaXaXXa",
-".............aXXaaXXXXXa",
-".............aXXaXXXXXXa",
-".............aXXXaXXXXXa",
-".............aXXXXXXXXXa",
-".............aaaaaaaaaaa"};
 
 QPixmap QGuiApplicationPrivate::getPixmapCursor(Qt::CursorShape cshape)
 {

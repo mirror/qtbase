@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -137,7 +137,7 @@ QUnhandledException *QUnhandledException::clone() const
     return new QUnhandledException(*this);
 }
 
-#ifndef qdoc
+#ifndef Q_QDOC
 
 namespace QtPrivate {
 
@@ -200,7 +200,7 @@ bool ExceptionStore::hasThrown() const { return exceptionHolder.base->hasThrown;
 
 } // namespace QtPrivate
 
-#endif //qdoc
+#endif //Q_QDOC
 
 QT_END_NAMESPACE
 

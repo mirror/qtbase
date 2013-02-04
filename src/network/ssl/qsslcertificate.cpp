@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
@@ -245,7 +245,7 @@ bool QSslCertificate::isNull() const
     expiryDate() and effectiveDate() with QDateTime::currentDateTime()
 
     This function checks that the current
-    data-time is within the date-time range during which the
+    date-time is within the date-time range during which the
     certificate is considered valid, and checks that the
     certificate is not in a blacklist of fraudulent certificates.
 
@@ -1211,6 +1211,9 @@ static const char *certificate_blacklist[] = {
     "4c:0e:63:6a",                                     "Digisign Server ID - (Enrich)", // (Malaysian) Digicert Sdn. Bhd. cross-signed by Entrust
     "72:03:21:05:c5:0c:08:57:3d:8e:a5:30:4e:fe:e8:b0", "UTN-USERFirst-Hardware", // comodogate test certificate
     "41",                                              "MD5 Collisions Inc. (http://www.phreedom.org/md5)", // http://www.phreedom.org/research/rogue-ca/
+
+    "08:27",                                           "*.EGO.GOV.TR", // Turktrust mis-issued intermediate certificate
+    "08:64",                                           "e-islem.kktcmerkezbankasi.org", // Turktrust mis-issued intermediate certificate
     0
 };
 

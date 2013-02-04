@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -117,7 +117,7 @@ void QFbScreen::lower(QFbWindow *window)
 QWindow * QFbScreen::topWindow()
 {
     foreach (QFbWindow * fbw, mWindowStack )
-        if ( fbw->window()->windowType()==Qt::Window || fbw->window()->windowType()==Qt::Dialog )
+        if (fbw->window()->type() == Qt::Window || fbw->window()->type() == Qt::Dialog)
             return fbw->window();
     return 0;
 }

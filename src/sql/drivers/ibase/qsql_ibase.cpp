@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -47,6 +47,7 @@
 #include <qsqlfield.h>
 #include <qsqlindex.h>
 #include <qsqlquery.h>
+#include <QtSql/private/qsqlcachedresult_p.h>
 #include <qlist.h>
 #include <qvector.h>
 #include <qtextcodec.h>
@@ -345,6 +346,54 @@ static void qFreeEventBuffer(QIBaseEventBuffer* eBuffer)
     qMutex()->unlock();
     delete eBuffer;
 }
+
+class QIBaseResult : public QSqlCachedResult
+{
+    friend class QIBaseResultPrivate;
+
+public:
+    explicit QIBaseResult(const QIBaseDriver* db);
+    virtual ~QIBaseResult();
+
+    bool prepare(const QString& query);
+    bool exec();
+    QVariant handle() const;
+
+protected:
+    bool gotoNext(QSqlCachedResult::ValueCache& row, int rowIdx);
+    bool reset (const QString& query);
+    int size();
+    int numRowsAffected();
+    QSqlRecord record() const;
+
+private:
+    QIBaseResultPrivate* d;
+};
+
+class QIBaseResultPrivate;
+
+class QIBaseResult : public QSqlCachedResult
+{
+    friend class QIBaseResultPrivate;
+
+public:
+    explicit QIBaseResult(const QIBaseDriver* db);
+    virtual ~QIBaseResult();
+
+    bool prepare(const QString& query);
+    bool exec();
+    QVariant handle() const;
+
+protected:
+    bool gotoNext(QSqlCachedResult::ValueCache& row, int rowIdx);
+    bool reset (const QString& query);
+    int size();
+    int numRowsAffected();
+    QSqlRecord record() const;
+
+private:
+    QIBaseResultPrivate* d;
+};
 
 class QIBaseResultPrivate
 {

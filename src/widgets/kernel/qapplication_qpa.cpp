@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -421,8 +421,11 @@ void qt_init(QApplicationPrivate *priv, int type)
 
     QColormap::initialize();
 
+#ifndef QT_NO_TOOLTIP
     if (const QPalette *toolTipPalette = QGuiApplicationPrivate::platformTheme()->palette(QPlatformTheme::ToolTipPalette))
         QToolTip::setPalette(*toolTipPalette);
+#endif
+
     QApplicationPrivate::initializeWidgetFontHash();
 }
 

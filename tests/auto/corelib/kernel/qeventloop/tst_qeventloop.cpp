@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -571,8 +571,6 @@ void tst_QEventLoop::processEventsExcludeTimers()
     QCOMPARE(timerReceiver.gotTimerEvent, timerId);
     timerReceiver.gotTimerEvent = -1;
 }
-
-Q_DECLARE_METATYPE(QThread*)
 
 namespace DeliverInDefinedOrder {
     enum { NbThread = 3,  NbObject = 500, NbEventQueue = 5, NbEvent = 50 };

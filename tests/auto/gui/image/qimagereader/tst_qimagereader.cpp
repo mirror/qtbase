@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -57,13 +57,6 @@
 
 typedef QMap<QString, QString> QStringMap;
 typedef QList<int> QIntList;
-Q_DECLARE_METATYPE(QImage)
-Q_DECLARE_METATYPE(QRect)
-Q_DECLARE_METATYPE(QSize)
-Q_DECLARE_METATYPE(QColor)
-Q_DECLARE_METATYPE(QStringMap)
-Q_DECLARE_METATYPE(QIntList)
-Q_DECLARE_METATYPE(QIODevice *)
 Q_DECLARE_METATYPE(QImage::Format)
 
 class tst_QImageReader : public QObject
@@ -101,6 +94,7 @@ private slots:
     void multiWordNamedColorXPM();
 
     void supportedFormats();
+    void supportedMimeTypes();
 
     void readFromDevice_data();
     void readFromDevice();
@@ -575,6 +569,26 @@ void tst_QImageReader::supportedFormats()
 
     // check that the list does not contain duplicates
     QCOMPARE(formatSet.size(), formats.size());
+}
+
+void tst_QImageReader::supportedMimeTypes()
+{
+    QList<QByteArray> mimeTypes = QImageReader::supportedMimeTypes();
+    QList<QByteArray> sortedMimeTypes = mimeTypes;
+    qSort(sortedMimeTypes);
+
+    // check that the list is sorted
+    QCOMPARE(mimeTypes, sortedMimeTypes);
+
+    QSet<QByteArray> mimeTypeSet;
+    foreach (QByteArray mimeType, mimeTypes)
+        mimeTypeSet << mimeType;
+
+    // check the list as a minimum contains image/bmp
+    QVERIFY(mimeTypeSet.contains("image/bmp"));
+
+    // check that the list does not contain duplicates
+    QCOMPARE(mimeTypeSet.size(), mimeTypes.size());
 }
 
 void tst_QImageReader::setBackgroundColor_data()

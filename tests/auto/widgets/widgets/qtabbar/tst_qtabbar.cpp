@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -435,7 +435,6 @@ void tst_QTabBar::tabButton()
 
 typedef QList<int> IntList;
 Q_DECLARE_METATYPE(QTabBar::SelectionBehavior)
-Q_DECLARE_METATYPE(IntList)
 #define ONE(x) (IntList() << x)
 void tst_QTabBar::selectionBehaviorOnRemove_data()
 {

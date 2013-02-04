@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -196,7 +196,13 @@ bool QPlatformWindow::isEmbedded(const QPlatformWindow *parentWindow) const
 */
 QPoint QPlatformWindow::mapToGlobal(const QPoint &pos) const
 {
-    return pos;
+    const QPlatformWindow *p = this;
+    QPoint result = pos;
+    while (p) {
+        result += p->geometry().topLeft();
+        p = p->parent();
+    }
+    return result;
 }
 
 /*!
@@ -208,7 +214,13 @@ QPoint QPlatformWindow::mapToGlobal(const QPoint &pos) const
 */
 QPoint QPlatformWindow::mapFromGlobal(const QPoint &pos) const
 {
-    return pos;
+    const QPlatformWindow *p = this;
+    QPoint result = pos;
+    while (p) {
+        result -= p->geometry().topLeft();
+        p = p->parent();
+    }
+    return result;
 }
 
 /*!
@@ -247,7 +259,12 @@ void QPlatformWindow::setParent(const QPlatformWindow *parent)
 }
 
 /*!
-  Reimplement to set the window title to \a title
+  Reimplement to set the window title to \a title.
+
+  The implementation might want to append the application display name to
+  the window title, like Windows and Linux do.
+
+  \sa QGuiApplication::applicationDisplayName()
 */
 void QPlatformWindow::setWindowTitle(const QString &title) { Q_UNUSED(title); }
 
@@ -328,31 +345,6 @@ void QPlatformWindow::requestActivateWindow()
 void QPlatformWindow::handleContentOrientationChange(Qt::ScreenOrientation orientation)
 {
     Q_UNUSED(orientation);
-}
-
-/*!
-  Request a different orientation of the platform window.
-
-  This tells the window manager how the window wants to be rotated in order
-  to be displayed, and how input events should be translated.
-
-  As an example, a portrait compositor might rotate the window by 90 degrees,
-  if the window is in landscape. It will also rotate input coordinates from
-  portrait to landscape such that top right in portrait gets mapped to top
-  left in landscape.
-
-  If the implementation doesn't support the requested orientation it should
-  signal this by returning an actual supported orientation.
-
-  If the implementation doesn't support rotating the window at all it should
-  return Qt::PrimaryOrientation, this is also the default value.
-
-  \sa QWindow::requestWindowOrientation()
-*/
-Qt::ScreenOrientation QPlatformWindow::requestWindowOrientation(Qt::ScreenOrientation orientation)
-{
-    Q_UNUSED(orientation);
-    return Qt::PrimaryOrientation;
 }
 
 /*!
@@ -468,9 +460,6 @@ bool QPlatformWindow::frameStrutEventsEnabled() const
 
     QPlatformWindow is also the way QPA defines how native child windows should be supported
     through the setParent function.
-
-    The only way to retrieve a QPlatformOpenGLContext in QPA is by calling the glContext() function
-    on QPlatformWindow.
 
     \section1 Implementation Aspects
 

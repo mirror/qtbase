@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -71,6 +71,7 @@ QT_BEGIN_NAMESPACE
 
 bool qt_debug_component();
 
+class QLibraryStore;
 class QLibraryPrivate
 {
 public:
@@ -82,16 +83,20 @@ public:
 #endif
     pHnd;
 
+    enum UnloadFlag { UnloadSys, NoUnloadSys };
+
     QString fileName, qualifiedFileName;
     QString fullVersion;
 
     bool load();
     bool loadPlugin(); // loads and resolves instance
-    bool unload();
+    bool unload(UnloadFlag flag = UnloadSys);
     void release();
     QFunctionPointer resolve(const char *);
 
     static QLibraryPrivate *findOrCreate(const QString &fileName, const QString &version = QString());
+    static QStringList suffixes_sys(const QString &fullVersion);
+    static QStringList prefixes_sys();
 
     static QVector<QStaticPlugin> staticPlugins();
 
@@ -126,7 +131,7 @@ private:
     QAtomicInt libraryUnloadCount;
 
     enum { IsAPlugin, IsNotAPlugin, MightBeAPlugin } pluginState;
-    friend class QLibraryPrivateHasFriends;
+    friend class QLibraryStore;
 };
 
 QT_END_NAMESPACE

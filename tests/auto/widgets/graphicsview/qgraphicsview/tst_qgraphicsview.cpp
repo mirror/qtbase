@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -68,15 +68,15 @@
 #include <private/qinputmethod_p.h>
 
 #include "../../../qtest-config.h"
+#include "tst_qgraphicsview.h"
 
+Q_DECLARE_METATYPE(ExpectedValueDescription)
 Q_DECLARE_METATYPE(QList<int>)
 Q_DECLARE_METATYPE(QList<QRectF>)
 Q_DECLARE_METATYPE(QMatrix)
 Q_DECLARE_METATYPE(QPainterPath)
-Q_DECLARE_METATYPE(QPointF)
-Q_DECLARE_METATYPE(QPolygonF)
-Q_DECLARE_METATYPE(QRectF)
 Q_DECLARE_METATYPE(Qt::ScrollBarPolicy)
+Q_DECLARE_METATYPE(ScrollBarCount)
 
 #ifdef Q_OS_MAC
 //On mac we get full update. So check that the expected region is contained inside the actual
@@ -138,6 +138,14 @@ class FriendlyGraphicsScene : public QGraphicsScene
     Q_DECLARE_PRIVATE(QGraphicsScene);
 };
 #endif
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QGraphicsView : public QObject
 {
@@ -372,6 +380,7 @@ void tst_QGraphicsView::alignment()
     scene.addRect(QRectF(-10, -10, 20, 20));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.show();
     QVERIFY(QTest::qWaitForWindowExposed(&view));
 
@@ -655,6 +664,7 @@ void tst_QGraphicsView::dragMode_scrollHand()
 {
     for (int j = 0; j < 2; ++j) {
         QGraphicsView view;
+        setFrameless(&view);
         QCOMPARE(view.dragMode(), QGraphicsView::NoDrag);
 
         view.setSceneRect(-1000, -1000, 2000, 2000);
@@ -881,6 +891,7 @@ void tst_QGraphicsView::dragMode_rubberBand()
 void tst_QGraphicsView::rubberBandSelectionMode()
 {
     QWidget toplevel;
+    setFrameless(&toplevel);
 
     QGraphicsScene scene;
     QGraphicsRectItem *rect = scene.addRect(QRectF(10, 10, 80, 80));
@@ -1100,6 +1111,7 @@ void tst_QGraphicsView::matrix_combine()
 void tst_QGraphicsView::centerOnPoint()
 {
     QWidget toplevel;
+    setFrameless(&toplevel);
 
     QGraphicsScene scene;
     scene.addEllipse(QRectF(-100, -100, 50, 50));
@@ -1763,6 +1775,7 @@ void tst_QGraphicsView::mapToScenePoint()
 {
     QGraphicsScene scene;
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.rotate(90);
     view.setFixedSize(117, 117);
     view.show();
@@ -1822,6 +1835,7 @@ void tst_QGraphicsView::mapToScenePoly()
 {
     QGraphicsScene scene;
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.translate(100, 100);
     view.setFixedSize(117, 117);
     view.show();
@@ -2203,6 +2217,7 @@ void tst_QGraphicsView::transformationAnchor()
     scene.addRect(QRectF(-50, -50, 100, 100), QPen(Qt::black), QBrush(Qt::blue));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     for (int i = 0; i < 2; ++i) {
         view.resize(100, 100);
@@ -2241,6 +2256,7 @@ void tst_QGraphicsView::resizeAnchor()
     scene.addRect(QRectF(-50, -50, 100, 100), QPen(Qt::black), QBrush(Qt::blue));
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     for (int i = 0; i < 2; ++i) {
         view.resize(100, 100);
@@ -2746,32 +2762,32 @@ public:
 
 void tst_QGraphicsView::scrollBarRanges()
 {
+    QFETCH(QString, style);
     QFETCH(QSize, viewportSize);
     QFETCH(QRectF, sceneRect);
+    QFETCH(ScrollBarCount, sceneRectOffsetFactors);
     QFETCH(QTransform, transform);
     QFETCH(Qt::ScrollBarPolicy, hbarpolicy);
     QFETCH(Qt::ScrollBarPolicy, vbarpolicy);
-    QFETCH(int, hmin);
-    QFETCH(int, hmax);
-    QFETCH(int, vmin);
-    QFETCH(int, vmax);
-    QFETCH(bool, useMotif);
+    QFETCH(ExpectedValueDescription, hmin);
+    QFETCH(ExpectedValueDescription, hmax);
+    QFETCH(ExpectedValueDescription, vmin);
+    QFETCH(ExpectedValueDescription, vmax);
     QFETCH(bool, useStyledPanel);
 
-    QGraphicsScene scene(sceneRect);
-    scene.addRect(sceneRect, QPen(Qt::blue), QBrush(QColor(Qt::green)));
+    if (style == QLatin1String("GTK+") && useStyledPanel)
+        QSKIP("GTK + style test skipped, see QTBUG-29002");
+
+    QGraphicsScene scene;
     QGraphicsView view(&scene);
     view.setRenderHint(QPainter::Antialiasing);
     view.setTransform(transform);
     view.setFrameStyle(useStyledPanel ? QFrame::StyledPanel : QFrame::NoFrame);
 
-    if (useMotif) {
+    if (style == QString("motif"))
         view.setStyle(new FauxMotifStyle);
-    } else {
-#if !defined(QT_NO_STYLE_WINDOWS)
-        view.setStyle(QStyleFactory::create("windows"));
-#endif
-    }
+    else
+        view.setStyle(QStyleFactory::create(style));
     view.setStyleSheet(" "); // enables style propagation ;-)
 
     int adjust = 0;
@@ -2785,10 +2801,31 @@ void tst_QGraphicsView::scrollBarRanges()
     view.show();
     QVERIFY(QTest::qWaitForWindowExposed(&view));
 
-    QCOMPARE(view.horizontalScrollBar()->minimum(), hmin);
-    QCOMPARE(view.verticalScrollBar()->minimum(), vmin);
-    QCOMPARE(view.horizontalScrollBar()->maximum(), hmax);
-    QCOMPARE(view.verticalScrollBar()->maximum(), vmax);
+    const int offset = view.style()->pixelMetric(QStyle::PM_ScrollBarExtent, 0, 0);
+
+    QRectF actualSceneRect;
+    actualSceneRect.setLeft(sceneRect.left() + sceneRectOffsetFactors.left * offset);
+    actualSceneRect.setWidth(sceneRect.width() + sceneRectOffsetFactors.right * offset);
+    actualSceneRect.setTop(sceneRect.top() + sceneRectOffsetFactors.top * offset);
+    actualSceneRect.setHeight(sceneRect.height() + sceneRectOffsetFactors.bottom * offset);
+    scene.setSceneRect(actualSceneRect);
+    scene.addRect(actualSceneRect, QPen(Qt::blue), QBrush(QColor(Qt::green)));
+
+    int expectedHmin = hmin.value + hmin.scrollBarExtentsToAdd * offset;
+    int expectedVmin = vmin.value + vmin.scrollBarExtentsToAdd * offset;
+    int expectedHmax = hmax.value + hmax.scrollBarExtentsToAdd * offset;
+    int expectedVmax = vmax.value + vmax.scrollBarExtentsToAdd* offset;
+    if (useStyledPanel && view.style()->styleHint(QStyle::SH_ScrollView_FrameOnlyAroundContents)) {
+        int spacing = view.style()->pixelMetric(QStyle::PM_ScrollView_ScrollBarSpacing);
+        expectedHmin += hmin.spacingsToAdd * spacing;
+        expectedVmin += vmin.spacingsToAdd * spacing;
+        expectedHmax += hmax.spacingsToAdd * spacing;
+        expectedVmax += vmax.spacingsToAdd * spacing;
+    }
+    QCOMPARE(view.horizontalScrollBar()->minimum(), expectedHmin);
+    QCOMPARE(view.verticalScrollBar()->minimum(), expectedVmin);
+    QCOMPARE(view.horizontalScrollBar()->maximum(), expectedHmax);
+    QCOMPARE(view.verticalScrollBar()->maximum(), expectedVmax);
 }
 
 class TestView : public QGraphicsView
@@ -3181,6 +3218,7 @@ void tst_QGraphicsView::task239047_fitInViewSmallViewport()
     // Ensure that with a small viewport, fitInView doesn't mirror the
     // scene.
     QWidget widget;
+    setFrameless(&widget);
     QGraphicsScene scene;
     QGraphicsView *view = new QGraphicsView(&scene, &widget);
     view->resize(3, 3);
@@ -4440,6 +4478,7 @@ void tst_QGraphicsView::QTBUG_4151_clipAndIgnore()
     scene.addItem(ignore);
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
     view.setFrameStyle(0);
     view.resize(75, 75);
     view.show();
@@ -4598,6 +4637,7 @@ void tst_QGraphicsView::QTBUG_16063_microFocusRect()
     scene.addItem(item);
 
     QGraphicsView view(&scene);
+    setFrameless(&view);
 
     view.setFixedSize(40, 40);
     view.show();

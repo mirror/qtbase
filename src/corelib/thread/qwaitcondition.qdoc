@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -38,7 +38,7 @@
     QWaitCondition allows a thread to tell other threads that some
     sort of condition has been met. One or many threads can block
     waiting for a QWaitCondition to set a condition with wakeOne() or
-    wakeAll(). Use wakeOne() to wake one randomly selected condition or
+    wakeAll(). Use wakeOne() to wake one randomly selected thread or
     wakeAll() to wake them all.
 
     For example, let's suppose that we have three tasks that should

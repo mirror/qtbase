@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -47,8 +47,6 @@
 #include <stdlib.h>
 
 QT_BEGIN_NAMESPACE
-
-static const qreal aliasedCoordinateDelta = 0.5 - 0.015625;
 
 #define qreal_to_fixed_26_6(f) (int(f * 64))
 

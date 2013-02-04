@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -650,12 +650,12 @@ void tst_QSettings::testByteArray()
 
     // write
     {
-        QSettings settings("Trolltech", "tst_qsettings");
+        QSettings settings("QtProject", "tst_qsettings");
         settings.setValue("byteArray", data);
     }
     // read
     {
-        QSettings settings("Trolltech", "tst_qsettings");
+        QSettings settings("QtProject", "tst_qsettings");
         QByteArray ret = settings.value("byteArray", data).toByteArray();
         QCOMPARE(ret, data);
     }
@@ -758,7 +758,6 @@ void tst_QSettings::testErrorHandling()
 #endif // !Q_OS_WIN
 }
 
-Q_DECLARE_METATYPE(QVariant)
 Q_DECLARE_METATYPE(QSettings::Status)
 
 #ifdef QT_BUILD_INTERNAL
@@ -804,7 +803,6 @@ void tst_QSettings::testIniParsing_data()
 #ifdef QT_BUILD_INTERNAL
 void tst_QSettings::testIniParsing()
 {
-    qRegisterMetaType<QVariant>("QVariant");
     qRegisterMetaType<QSettings::Status>("QSettings::Status");
 
     QDir dir(settingsPath());
@@ -1896,7 +1894,7 @@ void tst_QSettings::testEmptyData()
     }
 
     {
-        QSettings settings("Trolltech", "tst_qsettings");
+        QSettings settings("QtProject", "tst_qsettings");
         settings.setValue("nullString", nullString);
         settings.setValue("emptyString", emptyString);
         settings.setValue("emptyList", emptyList);
@@ -1909,7 +1907,7 @@ void tst_QSettings::testEmptyData()
         QVERIFY(settings.status() == QSettings::NoError);
     }
     {
-        QSettings settings("Trolltech", "tst_qsettings");
+        QSettings settings("QtProject", "tst_qsettings");
         QCOMPARE(settings.value("nullString").toString(), nullString);
         QCOMPARE(settings.value("emptyString").toString(), emptyString);
         QCOMPARE(settings.value("emptyList").toStringList(), emptyList);

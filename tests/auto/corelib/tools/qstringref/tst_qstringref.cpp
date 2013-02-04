@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -46,7 +46,6 @@
 #include <qlocale.h>
 #include <locale.h>
 
-Q_DECLARE_METATYPE(qlonglong)
 
 class tst_QStringRef : public QObject
 {
@@ -70,6 +69,7 @@ private slots:
     void compare_data();
     void compare();
     void operator_eqeq_nullstring();
+    void trimmed();
 };
 
 static QStringRef emptyRef()
@@ -83,9 +83,6 @@ static QStringRef emptyRef()
     QStringRef ref = padded.midRef(1, padded.size() - 2);
 
 typedef QList<int> IntList;
-
-Q_DECLARE_METATYPE(QList<QVariant>)
-Q_DECLARE_METATYPE(IntList)
 
 // This next bit is needed for the NAN and INF in string -> number conversion tests
 #include <float.h>
@@ -842,6 +839,27 @@ void tst_QStringRef::compare()
         QCOMPARE(sign(QString::compare(QLatin1String(s1.toLatin1()), s2)), csr);
         QCOMPARE(sign(QString::compare(QLatin1String(s1.toLatin1()), s2, Qt::CaseInsensitive)), cir);
     }
+}
+
+void tst_QStringRef::trimmed()
+{
+    QString a;
+    QStringRef b;
+    a = "Text";
+    b = a.leftRef(-1);
+    QCOMPARE(b.compare(QStringLiteral("Text")), 0);
+    QCOMPARE(b.trimmed().compare(QStringLiteral("Text")), 0);
+    a = " ";
+    b = a.leftRef(-1);
+    QCOMPARE(b.compare(QStringLiteral(" ")), 0);
+    QCOMPARE(b.trimmed().compare(QStringLiteral("")), 0);
+    a = " a   ";
+    b = a.leftRef(-1);
+    QCOMPARE(b.trimmed().compare(QStringLiteral("a")), 0);
+    a = "Text a   ";
+    b = a.midRef(4);
+    QCOMPARE(b.compare(QStringLiteral(" a   ")), 0);
+    QCOMPARE(b.trimmed().compare(QStringLiteral("a")), 0);
 }
 
 QTEST_APPLESS_MAIN(tst_QStringRef)

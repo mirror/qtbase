@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -43,8 +43,6 @@
 #define QUUID_H
 
 #include <QtCore/qstring.h>
-
-QT_BEGIN_HEADER
 
 #if defined(Q_OS_WIN)
 #ifndef GUID_DEFINED
@@ -115,13 +113,11 @@ public:
     }
 #endif
 
-#ifndef QT_NO_QUUID_STRING
     QUuid(const QString &);
     QUuid(const char *);
     QString toString() const;
     QUuid(const QByteArray &);
     QByteArray toByteArray() const;
-#endif
     QByteArray toRfc4122() const;
     static QUuid fromRfc4122(const QByteArray &);
     bool isNull() const;
@@ -193,7 +189,6 @@ public:
 #ifndef QT_BOOTSTRAPPED
     static QUuid createUuidV3(const QUuid &ns, const QByteArray &baseData);
     static QUuid createUuidV5(const QUuid &ns, const QByteArray &baseData);
-#ifndef QT_NO_QUUID_STRING
     static inline QUuid createUuidV3(const QUuid &ns, const QString &baseData)
     {
         return QUuid::createUuidV3(ns, baseData.toUtf8());
@@ -204,7 +199,6 @@ public:
         return QUuid::createUuidV5(ns, baseData.toUtf8());
     }
 
-#endif
 #endif
 
     QUuid::Variant variant() const;
@@ -230,7 +224,5 @@ Q_CORE_EXPORT QDebug operator<<(QDebug, const QUuid &);
 Q_CORE_EXPORT uint qHash(const QUuid &uuid, uint seed = 0) Q_DECL_NOTHROW;
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QUUID_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtDBus module of the Qt Toolkit.
@@ -116,7 +116,7 @@ public:
     QDBusActivateObjectEvent(const QDBusConnection &c, QObject *sender,
                              const QDBusConnectionPrivate::ObjectTreeNode &n,
                              int p, const QDBusMessage &m, QSemaphore *s = 0)
-        : QMetaCallEvent(0, -1, 0, sender, -1, 0, 0, 0, s), connection(c), node(n),
+        : QMetaCallEvent(0, ushort(-1), 0, sender, -1, 0, 0, 0, s), connection(c), node(n),
           pathStartPos(p), message(m), handled(false)
         { }
     ~QDBusActivateObjectEvent();

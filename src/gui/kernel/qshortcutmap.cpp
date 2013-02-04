@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -679,7 +679,7 @@ void QShortcutMap::dispatchEvent(QKeyEvent *e)
 #if defined(DEBUG_QSHORTCUTMAP)
     qDebug().nospace()
         << "QShortcutMap::dispatchEvent(): Sending QShortcutEvent(\""
-        << (QString)next->keyseq << "\", " << next->id << ", "
+        << next->keyseq.toString() << "\", " << next->id << ", "
         << (bool)(enabledShortcuts>1) << ") to object(" << next->owner << ')';
 #endif
     QShortcutEvent se(next->keyseq, next->id, enabledShortcuts>1);

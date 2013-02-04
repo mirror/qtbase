@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -206,8 +206,8 @@ void QLineEdit::initStyleOption(QStyleOptionFrame *option) const
     \table 100%
     \row \li \inlineimage macintosh-lineedit.png Screenshot of a Macintosh style line edit
          \li A line edit shown in the \l{Macintosh Style Widget Gallery}{Macintosh widget style}.
-    \row \li \inlineimage windows-lineedit.png Screenshot of a Windows XP style line edit
-         \li A line edit shown in the \l{Windows XP Style Widget Gallery}{Windows XP widget style}.
+    \row \li \inlineimage windowsvista-lineedit.png Screenshot of a Windows Vista style line edit
+         \li A line edit shown in the \l{Windows Vista Style Widget Gallery}{Windows Vista widget style}.
     \row \li \inlineimage fusion-lineedit.png Screenshot of a Fusion style line edit
          \li A line edit shown in the \l{Fusion Style Widget Gallery}{Fusion widget style}.
     \endtable
@@ -1801,7 +1801,7 @@ void QLineEdit::paintEvent(QPaintEvent *)
     int minRB = qMax(0, -fm.minRightBearing());
 
     if (d->control->text().isEmpty()) {
-        if (!hasFocus() && !d->placeholderText.isEmpty()) {
+        if (!d->placeholderText.isEmpty()) {
             QColor col = pal.text().color();
             col.setAlpha(128);
             QPen oldpen = p.pen();
@@ -1810,7 +1810,6 @@ void QLineEdit::paintEvent(QPaintEvent *)
             QString elidedText = fm.elidedText(d->placeholderText, Qt::ElideRight, lineRect.width());
             p.drawText(lineRect, va, elidedText);
             p.setPen(oldpen);
-            return;
         }
     }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -93,13 +93,9 @@
 #endif
 
 
-Q_DECLARE_METATYPE(QDate);
 Q_DECLARE_METATYPE(Qt::Key);
 Q_DECLARE_METATYPE(Qt::KeyboardModifiers);
 Q_DECLARE_METATYPE(Qt::KeyboardModifier);
-Q_DECLARE_METATYPE(QDateTime);
-Q_DECLARE_METATYPE(QTime);
-Q_DECLARE_METATYPE(QList<int>);
 
 #if defined(Q_OS_WINCE)
 #ifndef SPI_GETPLATFORMTYPE
@@ -291,9 +287,6 @@ private:
 typedef QList<QTime> TimeList;
 typedef QList<Qt::Key> KeyList;
 
-Q_DECLARE_METATYPE(TimeList)
-Q_DECLARE_METATYPE(KeyList)
-
 // Testing get/set functions
 void tst_QDateTimeEdit::getSetCheck()
 {
@@ -323,10 +316,6 @@ void tst_QDateTimeEdit::getSetCheck()
 
 tst_QDateTimeEdit::tst_QDateTimeEdit()
 {
-    qRegisterMetaType<QDate>("QDate");
-    qRegisterMetaType<QTime>("QTime");
-    qRegisterMetaType<QDateTime>("QDateTime");
-    qRegisterMetaType<QList<int> >("QList<int>");
 }
 
 tst_QDateTimeEdit::~tst_QDateTimeEdit()
@@ -769,6 +758,11 @@ void tst_QDateTimeEdit::displayFormat()
 
 void tst_QDateTimeEdit::selectAndScrollWithKeys()
 {
+#ifdef Q_OS_MAC
+    QSKIP("QTBUG-23674");
+    return;
+#endif
+
     qApp->setActiveWindow(testWidget);
     testWidget->setDate(QDate(2004, 05, 11));
     testWidget->setDisplayFormat("dd/MM/yyyy");
@@ -779,9 +773,6 @@ void tst_QDateTimeEdit::selectAndScrollWithKeys()
     QTest::keyClick(testWidget, Qt::Key_Home);
 #endif
     QTest::keyClick(testWidget, Qt::Key_Right, Qt::ShiftModifier);
-#ifdef Q_OS_MAC
-    QEXPECT_FAIL("", "QTBUG-23674", Abort);
-#endif
     QCOMPARE(testWidget->lineEdit()->selectedText(), QString("1"));
     QTest::keyClick(testWidget, Qt::Key_Right, Qt::ShiftModifier);
     QCOMPARE(testWidget->lineEdit()->selectedText(), QString("11"));
@@ -3452,9 +3443,7 @@ void tst_QDateTimeEdit::deleteCalendarWidget()
 typedef QPair<Qt::Key, Qt::KeyboardModifier> KeyPair;
 typedef QList<KeyPair> KeyPairList;
 
-Q_DECLARE_METATYPE(QLocale)
 Q_DECLARE_METATYPE(KeyPair)
-Q_DECLARE_METATYPE(KeyPairList)
 
 static inline KeyPair key(Qt::Key key, Qt::KeyboardModifier modifier = Qt::NoModifier) {
     return KeyPair(key, modifier);

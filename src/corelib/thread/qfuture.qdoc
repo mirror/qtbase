@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -328,7 +328,7 @@
 
 /*! \fn QFuture::const_iterator QFuture::begin() const
 
-    Returns a const \l{STL-style iterator} pointing to the first result in the
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first result in the
     future.
 
     \sa constBegin(), end()
@@ -336,7 +336,7 @@
 
 /*! \fn QFuture::const_iterator QFuture::end() const
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary result
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary result
     after the last result in the future.
 
     \sa begin(), constEnd()
@@ -344,7 +344,7 @@
 
 /*! \fn QFuture::const_iterator QFuture::constBegin() const
 
-    Returns a const \l{STL-style iterator} pointing to the first result in the
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first result in the
     future.
 
     \sa begin(), constEnd()
@@ -352,7 +352,7 @@
 
 /*! \fn QFuture::const_iterator QFuture::constEnd() const
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary result
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary result
     after the last result in the future.
 
     \sa constBegin(), end()

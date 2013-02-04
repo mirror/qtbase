@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -357,8 +357,8 @@ static void processQdocconfFile(const QString &fileName)
     QSet<QString> outputFormats = config.getOutputFormats();
     Location outputFormatsLocation = config.lastLocation();
 
-    if (!Generator::runPrepareOnly())
-        loadIndexFiles(config);
+    //if (!Generator::runPrepareOnly())
+    loadIndexFiles(config);
 
     QSet<QString> excludedDirs;
     QSet<QString> excludedFiles;

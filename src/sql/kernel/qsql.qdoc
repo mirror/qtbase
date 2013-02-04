@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -29,7 +29,7 @@
     \namespace QSql
     \inmodule QtSql
     \brief The QSql namespace contains miscellaneous identifiers used throughout
-    the Qt SQL library.
+    the Qt SQL module.
 
     \ingroup database
 
@@ -44,9 +44,6 @@
 
     \value BeforeFirstRow Before the first record.
     \value AfterLastRow After the last record.
-
-    \omitvalue BeforeFirst
-    \omitvalue AfterLast
 
     \sa QSqlQuery::at()
 */

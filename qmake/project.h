@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -95,12 +95,18 @@ private:
     static bool boolRet(VisitReturn vr);
 };
 
+/*!
+ * For variables that are supposed to contain a single int,
+ * this method returns the numeric value.
+ * Only the first value of the variable is taken into account.
+ * The string representation is assumed to look like a C int literal.
+ */
 inline int QMakeProject::intValue(const ProKey &v, int defaultValue) const
 {
     const ProString &str = first(v);
     if (!str.isEmpty()) {
         bool ok;
-        int i = str.toInt(&ok);
+        int i = str.toInt(&ok, 0);
         if (ok)
             return i;
     }

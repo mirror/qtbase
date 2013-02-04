@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -120,10 +120,10 @@ QT_BEGIN_NAMESPACE
     area, organizing the individual pages).
 
     \table 100%
-    \row \li \inlineimage windowsxp-tabwidget.png Screenshot of a Windows XP style tab widget
+    \row \li \inlineimage windowsvista-tabwidget.png Screenshot of a Windows Vista style tab widget
          \li \inlineimage macintosh-tabwidget.png Screenshot of a Macintosh style tab widget
          \li \inlineimage fusion-tabwidget.png Screenshot of a Fusion style tab widget
-    \row \li A Windows XP style tab widget.
+    \row \li A Windows Vista style tab widget.
          \li A Macintosh style tab widget.
          \li A Fusion style tab widget.
     \endtable

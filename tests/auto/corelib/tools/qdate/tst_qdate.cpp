@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -109,7 +109,6 @@ private:
     QDate invalidDate() const { return QDate(); }
 };
 
-Q_DECLARE_METATYPE(QDate)
 Q_DECLARE_METATYPE(Qt::DateFormat)
 
 void tst_QDate::isNull_data()

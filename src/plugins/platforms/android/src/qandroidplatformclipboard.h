@@ -45,7 +45,6 @@
 #include <qpa/qplatformclipboard.h>
 
 #ifndef QT_NO_CLIPBOARD
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 class QAndroidPlatformClipboard: public QPlatformClipboard
@@ -59,7 +58,6 @@ public:
 };
 
 QT_END_NAMESPACE
-QT_END_HEADER
 #endif // QT_NO_CLIPBOARD
 
 #endif // QANDROIDPLATFORMCLIPBOARD_H

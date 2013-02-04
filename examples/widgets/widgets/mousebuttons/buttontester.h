@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Rick Stockton <rickstockton@reno-computerhelp.com>
 ** Contact: http://www.qt-project.org/legal
 **
@@ -56,9 +56,12 @@ protected:
     void    mousePressEvent(QMouseEvent *event);
     void    mouseReleaseEvent(QMouseEvent *event);
     void    mouseDoubleClickEvent(QMouseEvent *event);
+#ifndef QT_NO_WHEELEVENT
     void    wheelEvent(QWheelEvent * event);
+#endif
     int     buttonByNumber(const Qt::MouseButton button);
     QString enumNameFromValue(const Qt::MouseButton button);
+    QString enumNamesFromMouseButtons(const Qt::MouseButtons buttons);
 };
 
 #endif // BUTTONTESTER_H

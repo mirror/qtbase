@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -119,8 +119,6 @@ QPAEventDispatcherGlib::~QPAEventDispatcherGlib()
 
 bool QPAEventDispatcherGlib::processEvents(QEventLoop::ProcessEventsFlags flags)
 {
-    Q_D(QPAEventDispatcherGlib);
-
     m_flags = flags;
     return QEventDispatcherGlib::processEvents(m_flags);
 }

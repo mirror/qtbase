@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -314,7 +314,7 @@ void QFontComboBoxPrivate::_q_currentChanged(const QString &text)
     filter out certain types of fonts as e.g. non scalable fonts or
     monospaced fonts.
 
-    \image windowsxp-fontcombobox.png Screenshot of QFontComboBox on Windows XP
+    \image windowsvista-fontcombobox.png Screenshot of QFontComboBox on Windows Vista
 
     \sa QComboBox, QFont, QFontInfo, QFontMetrics, QFontDatabase, {Character Map Example}
 */

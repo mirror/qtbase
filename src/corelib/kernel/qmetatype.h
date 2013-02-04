@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -55,8 +55,6 @@
 #ifdef Bool
 #error qmetatype.h must be included before any header file that defines Bool
 #endif
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -252,7 +250,8 @@ public:
         IsEnumeration = 0x10,
         SharedPointerToQObject = 0x20,
         WeakPointerToQObject = 0x40,
-        TrackingPointerToQObject = 0x80
+        TrackingPointerToQObject = 0x80,
+        WasDeclaredAsMetaType = 0x100
     };
     Q_DECLARE_FLAGS(TypeFlags, TypeFlag)
 
@@ -563,12 +562,19 @@ namespace QtPrivate {
                      | (Q_IS_ENUM(T) ? QMetaType::IsEnumeration : 0)
              };
     };
+
+    template<typename T, bool defined>
+    struct MetaTypeDefinedHelper
+    {
+        enum DefinedType { Defined = defined };
+    };
 }
 
 template <typename T>
 int qRegisterNormalizedMetaType(const QT_PREPEND_NAMESPACE(QByteArray) &normalizedTypeName
-#ifndef qdoc
+#ifndef Q_QDOC
     , T * dummy = 0
+    , typename QtPrivate::MetaTypeDefinedHelper<T, QMetaTypeId2<T>::Defined && !QMetaTypeId2<T>::IsBuiltIn>::DefinedType defined = QtPrivate::MetaTypeDefinedHelper<T, QMetaTypeId2<T>::Defined && !QMetaTypeId2<T>::IsBuiltIn>::Defined
 #endif
 )
 {
@@ -580,6 +586,10 @@ int qRegisterNormalizedMetaType(const QT_PREPEND_NAMESPACE(QByteArray) &normaliz
         return QMetaType::registerNormalizedTypedef(normalizedTypeName, typedefOf);
 
     QMetaType::TypeFlags flags(QtPrivate::QMetaTypeTypeFlags<T>::Flags);
+
+    if (defined)
+        flags |= QMetaType::WasDeclaredAsMetaType;
+
     return QMetaType::registerNormalizedType(normalizedTypeName,
                                    QtMetaTypePrivate::QMetaTypeFunctionHelper<T>::Delete,
                                    QtMetaTypePrivate::QMetaTypeFunctionHelper<T>::Create,
@@ -592,8 +602,9 @@ int qRegisterNormalizedMetaType(const QT_PREPEND_NAMESPACE(QByteArray) &normaliz
 
 template <typename T>
 int qRegisterMetaType(const char *typeName
-#ifndef qdoc
+#ifndef Q_QDOC
     , T * dummy = 0
+    , typename QtPrivate::MetaTypeDefinedHelper<T, QMetaTypeId2<T>::Defined && !QMetaTypeId2<T>::IsBuiltIn>::DefinedType defined = QtPrivate::MetaTypeDefinedHelper<T, QMetaTypeId2<T>::Defined && !QMetaTypeId2<T>::IsBuiltIn>::Defined
 #endif
 )
 {
@@ -602,13 +613,13 @@ int qRegisterMetaType(const char *typeName
 #else
     QT_PREPEND_NAMESPACE(QByteArray) normalizedTypeName = QMetaObject::normalizedType(typeName);
 #endif
-    return qRegisterNormalizedMetaType<T>(normalizedTypeName, dummy);
+    return qRegisterNormalizedMetaType<T>(normalizedTypeName, dummy, defined);
 }
 
 #ifndef QT_NO_DATASTREAM
 template <typename T>
 void qRegisterMetaTypeStreamOperators(const char *typeName
-#ifndef qdoc
+#ifndef Q_QDOC
     , T * /* dummy */ = 0
 #endif
 )
@@ -621,7 +632,7 @@ void qRegisterMetaTypeStreamOperators(const char *typeName
 
 template <typename T>
 inline Q_DECL_CONSTEXPR int qMetaTypeId(
-#ifndef qdoc
+#ifndef Q_QDOC
     T * /* dummy */ = 0
 #endif
 )
@@ -632,7 +643,7 @@ inline Q_DECL_CONSTEXPR int qMetaTypeId(
 
 template <typename T>
 inline Q_DECL_CONSTEXPR int qRegisterMetaType(
-#if !defined(qdoc) && !defined(Q_CC_SUN)
+#if !defined(Q_QDOC) && !defined(Q_CC_SUN)
     T * dummy = 0
 #endif
 )
@@ -966,7 +977,5 @@ QT_END_NAMESPACE
 
 QT_FOR_EACH_STATIC_TYPE(Q_DECLARE_BUILTIN_METATYPE)
 
-
-QT_END_HEADER
 
 #endif // QMETATYPE_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -59,8 +59,6 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtGui/QIcon>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 #define QWINDOWSIZE_MAX ((1<<24)-1)
@@ -89,7 +87,7 @@ public:
         , receivedExpose(false)
         , positionPolicy(WindowFrameExclusive)
         , contentOrientation(Qt::PrimaryOrientation)
-        , windowOrientation(Qt::PrimaryOrientation)
+        , opacity(qreal(1.0))
         , minimumSize(0, 0)
         , maximumSize(QWINDOWSIZE_MAX, QWINDOWSIZE_MAX)
         , modality(Qt::NonModal)
@@ -98,6 +96,7 @@ public:
         , screen(0)
 #ifndef QT_NO_CURSOR
         , cursor(Qt::ArrowCursor)
+        , hasCursor(false)
 #endif
     {
         isWindow = true;
@@ -109,6 +108,7 @@ public:
 
     void maybeQuitOnLastWindowClosed();
 #ifndef QT_NO_CURSOR
+    void setCursor(const QCursor *c = 0);
     void applyCursor();
 #endif
 
@@ -119,6 +119,8 @@ public:
             offset += p->position();
         return offset;
     }
+
+    virtual QWindow *eventReceiver() { Q_Q(QWindow); return q; }
 
     QWindow::SurfaceType surfaceType;
     Qt::WindowFlags windowFlags;
@@ -136,7 +138,7 @@ public:
     bool receivedExpose;
     PositionPolicy positionPolicy;
     Qt::ScreenOrientation contentOrientation;
-    Qt::ScreenOrientation windowOrientation;
+    qreal opacity;
 
     QSize minimumSize;
     QSize maximumSize;
@@ -151,12 +153,11 @@ public:
 
 #ifndef QT_NO_CURSOR
     QCursor cursor;
+    bool hasCursor;
 #endif
 };
 
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QWINDOW_P_H

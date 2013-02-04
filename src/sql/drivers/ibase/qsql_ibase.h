@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -44,38 +44,17 @@
 
 #include <QtSql/qsqlresult.h>
 #include <QtSql/qsqldriver.h>
-#include <QtSql/private/qsqlcachedresult_p.h>
 #include <ibase.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
+
+#if 0
+#pragma qt_no_master_include
+#pragma qt_sync_stop_processing
+#endif
+
 class QIBaseDriverPrivate;
-class QIBaseResultPrivate;
 class QIBaseDriver;
-
-class QIBaseResult : public QSqlCachedResult
-{
-    friend class QIBaseResultPrivate;
-
-public:
-    explicit QIBaseResult(const QIBaseDriver* db);
-    virtual ~QIBaseResult();
-
-    bool prepare(const QString& query);
-    bool exec();
-    QVariant handle() const;
-
-protected:
-    bool gotoNext(QSqlCachedResult::ValueCache& row, int rowIdx);
-    bool reset (const QString& query);
-    int size();
-    int numRowsAffected();
-    QSqlRecord record() const;
-
-private:
-    QIBaseResultPrivate* d;
-};
 
 class QIBaseDriver : public QSqlDriver
 {
@@ -126,5 +105,4 @@ private:
 
 QT_END_NAMESPACE
 
-QT_END_HEADER
 #endif // QSQL_IBASE_H

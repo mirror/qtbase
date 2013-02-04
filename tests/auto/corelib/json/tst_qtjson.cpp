@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -303,12 +303,27 @@ void tst_QtJson::testObjectSimple()
     QVERIFY2(!object.contains("boolean"), "key boolean should have been removed");
 
     QJsonValue taken = object.take("value");
-//    QCOMPARE(taken, value);
+    QCOMPARE(taken, value);
     QVERIFY2(!object.contains("value"), "key value should have been removed");
 
     QString before = object.value("string").toString();
     object.insert("string", QString::fromLatin1("foo"));
     QVERIFY2(object.value("string").toString() != before, "value should have been updated");
+
+    size = object.size();
+    QJsonObject subobject;
+    subobject.insert("number", 42);
+    subobject.insert(QLatin1String("string"), QLatin1String("foobar"));
+    object.insert("subobject", subobject);
+    QCOMPARE(object.size(), size+1);
+    QJsonValue subvalue = object.take(QLatin1String("subobject"));
+    QCOMPARE(object.size(), size);
+    QCOMPARE(subvalue.toObject(), subobject);
+    // make object detach by modifying it many times
+    for (int i = 0; i < 64; ++i)
+        object.insert(QLatin1String("string"), QLatin1String("bar"));
+    QCOMPARE(object.size(), size);
+    QCOMPARE(subvalue.toObject(), subobject);
 }
 
 void tst_QtJson::testObjectSmallKeys()
@@ -988,49 +1003,81 @@ void tst_QtJson::toVariantList()
 
 void tst_QtJson::toJson()
 {
-    QJsonObject object;
-    object.insert("\\Key\n", QString("Value"));
-    object.insert("null", QJsonValue());
-    QJsonArray array;
-    array.append(true);
-    array.append(999.);
-    array.append(QLatin1String("string"));
-    array.append(QJsonValue());
-    array.append(QLatin1String("\\\a\n\r\b\tabcABC\""));
-    object.insert("Array", array);
+    // Test QJsonDocument::Indented format
+    {
+        QJsonObject object;
+        object.insert("\\Key\n", QString("Value"));
+        object.insert("null", QJsonValue());
+        QJsonArray array;
+        array.append(true);
+        array.append(999.);
+        array.append(QLatin1String("string"));
+        array.append(QJsonValue());
+        array.append(QLatin1String("\\\a\n\r\b\tabcABC\""));
+        object.insert("Array", array);
 
-    QByteArray json = QJsonDocument(object).toJson();
+        QByteArray json = QJsonDocument(object).toJson();
 
-    QByteArray expected =
-            "{\n"
-            "    \"Array\": [\n"
-            "        true,\n"
-            "        999,\n"
-            "        \"string\",\n"
-            "        null,\n"
-            "        \"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"\n"
-            "    ],\n"
-            "    \"\\\\Key\\n\": \"Value\",\n"
-            "    \"null\": null\n"
-            "}\n";
-    QCOMPARE(json, expected);
+        QByteArray expected =
+                "{\n"
+                "    \"Array\": [\n"
+                "        true,\n"
+                "        999,\n"
+                "        \"string\",\n"
+                "        null,\n"
+                "        \"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"\n"
+                "    ],\n"
+                "    \"\\\\Key\\n\": \"Value\",\n"
+                "    \"null\": null\n"
+                "}\n";
+        QCOMPARE(json, expected);
 
-    QJsonDocument doc;
-    doc.setObject(object);
-    json = doc.toJson();
-    QCOMPARE(json, expected);
+        QJsonDocument doc;
+        doc.setObject(object);
+        json = doc.toJson();
+        QCOMPARE(json, expected);
 
-    doc.setArray(array);
-    json = doc.toJson();
-    expected =
-            "[\n"
-            "    true,\n"
-            "    999,\n"
-            "    \"string\",\n"
-            "    null,\n"
-            "    \"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"\n"
-            "]\n";
-    QCOMPARE(json, expected);
+        doc.setArray(array);
+        json = doc.toJson();
+        expected =
+                "[\n"
+                "    true,\n"
+                "    999,\n"
+                "    \"string\",\n"
+                "    null,\n"
+                "    \"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"\n"
+                "]\n";
+        QCOMPARE(json, expected);
+    }
+
+    // Test QJsonDocument::Compact format
+    {
+        QJsonObject object;
+        object.insert("\\Key\n", QString("Value"));
+        object.insert("null", QJsonValue());
+        QJsonArray array;
+        array.append(true);
+        array.append(999.);
+        array.append(QLatin1String("string"));
+        array.append(QJsonValue());
+        array.append(QLatin1String("\\\a\n\r\b\tabcABC\""));
+        object.insert("Array", array);
+
+        QByteArray json = QJsonDocument(object).toJson(QJsonDocument::Compact);
+        QByteArray expected =
+                "{\"Array\": [true,999,\"string\",null,\"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"],\"\\\\Key\\n\": \"Value\",\"null\": null}";
+        QCOMPARE(json, expected);
+
+        QJsonDocument doc;
+        doc.setObject(object);
+        json = doc.toJson(QJsonDocument::Compact);
+        QCOMPARE(json, expected);
+
+        doc.setArray(array);
+        json = doc.toJson(QJsonDocument::Compact);
+        expected = "[true,999,\"string\",null,\"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"]";
+        QCOMPARE(json, expected);
+    }
 }
 
 void tst_QtJson::fromJson()
@@ -1119,6 +1166,30 @@ void tst_QtJson::fromJson()
         QCOMPARE(object.value("5").toArray().size(), 0);
         QCOMPARE(object.value("6").type(), QJsonValue::Object);
         QCOMPARE(object.value("6").toObject().size(), 0);
+    }
+    {
+        QByteArray compactJson = "{\"Array\": [true,999,\"string\",null,\"\\\\\\u0007\\n\\r\\b\\tabcABC\\\"\"],\"\\\\Key\\n\": \"Value\",\"null\": null}";
+        QJsonDocument doc = QJsonDocument::fromJson(compactJson);
+        QVERIFY(!doc.isEmpty());
+        QCOMPARE(doc.isArray(), false);
+        QCOMPARE(doc.isObject(), true);
+        QJsonObject object = doc.object();
+        QCOMPARE(object.size(), 3);
+        QCOMPARE(object.value("\\Key\n").isString(), true);
+        QCOMPARE(object.value("\\Key\n").toString(), QString("Value"));
+        QCOMPARE(object.value("null").isNull(), true);
+        QCOMPARE(object.value("Array").isArray(), true);
+        QJsonArray array = object.value("Array").toArray();
+        QCOMPARE(array.size(), 5);
+        QCOMPARE(array.at(0).isBool(), true);
+        QCOMPARE(array.at(0).toBool(), true);
+        QCOMPARE(array.at(1).isDouble(), true);
+        QCOMPARE(array.at(1).toDouble(), 999.);
+        QCOMPARE(array.at(2).isString(), true);
+        QCOMPARE(array.at(2).toString(), QLatin1String("string"));
+        QCOMPARE(array.at(3).isNull(), true);
+        QCOMPARE(array.at(4).isString(), true);
+        QCOMPARE(array.at(4).toString(), QLatin1String("\\\a\n\r\b\tabcABC\""));
     }
 }
 

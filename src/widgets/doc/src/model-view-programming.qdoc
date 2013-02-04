@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -1942,9 +1942,6 @@
        These functions allow items of data to be described in terms of MIME types that
        other components and applications can understand.
     \endlist
-
-    For more information, see the \l
-    {"Item View Classes" Chapter of C++ GUI Programming with Qt 4}.
 
     \section2 Item data handling
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -47,8 +47,6 @@
 #include <QtGui/qquaternion.h>
 #include <QtGui/qgenericmatrix.h>
 #include <QtCore/qrect.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -146,7 +144,7 @@ public:
     void ortho(const QRectF& rect);
     void ortho(float left, float right, float bottom, float top, float nearPlane, float farPlane);
     void frustum(float left, float right, float bottom, float top, float nearPlane, float farPlane);
-    void perspective(float angle, float aspect, float nearPlane, float farPlane);
+    void perspective(float verticalAngle, float aspectRatio, float nearPlane, float farPlane);
 #ifndef QT_NO_VECTOR3D
     void lookAt(const QVector3D& eye, const QVector3D& center, const QVector3D& up);
 #endif
@@ -1118,7 +1116,5 @@ QT_DEPRECATED QGenericMatrix<N, M, float> qGenericMatrixFromMatrix4x4(const QMat
 #endif
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

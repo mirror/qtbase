@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -108,11 +108,11 @@ public:
     \table
     \row \li
     \inlineimage windows-lcdnumber.png Screenshot of a Windows style LCD number widget
-    \inlineimage windowsxp-lcdnumber.png Screenshot of a Windows XP style LCD number widget
+    \inlineimage windowsvista-lcdnumber.png Screenshot of a Windows Vista style LCD number widget
     \inlineimage macintosh-lcdnumber.png Screenshot of a Macintosh style LCD number widget
     \inlineimage fusion-lcdnumber.png Screenshot of a Fusion style LCD number widget
     \row \li LCD number widgets shown in various widget styles (from left to right):
-    \l{Windows Style Widget Gallery}{Windows}, \l{Windows XP Style Widget Gallery}{Windows XP},
+    \l{Windows Style Widget Gallery}{Windows}, \l{Windows Vista Style Widget Gallery}{Windows Vista},
     \l{Macintosh Style Widget Gallery}{Macintosh}, \l{Fusion Style Widget Gallery}{Fusion}.
     \endtable
 

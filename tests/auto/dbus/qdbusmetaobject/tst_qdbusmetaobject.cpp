@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -82,9 +82,6 @@ struct Struct4                  // (ssa(ss)sayasx)
 Q_DECLARE_METATYPE(Struct1)
 Q_DECLARE_METATYPE(Struct4)
 Q_DECLARE_METATYPE(StringPair)
-
-Q_DECLARE_METATYPE(QList<Struct1>)
-Q_DECLARE_METATYPE(QList<Struct4>)
 
 Q_DECLARE_METATYPE(const QMetaObject*)
 

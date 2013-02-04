@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -50,7 +50,6 @@
 #include <QVBoxLayout>
 #include <QSizeGrip>
 
-Q_DECLARE_METATYPE(QSize)
 
 
 QT_FORWARD_DECLARE_CLASS(QDialog)
@@ -173,10 +172,10 @@ void tst_QDialog::showExtension_data()
     QTest::addColumn<QSize>("result");
 
     //next we fill it with data
-    QTest::newRow( "data0" )  << QSize(100,100) << QSize(50,50) << false << QSize(100,150);
-    QTest::newRow( "data1" )  << QSize(100,100) << QSize(120,50) << false << QSize(120,150);
-    QTest::newRow( "data2" )  << QSize(100,100) << QSize(50,50) << true << QSize(150,100);
-    QTest::newRow( "data3" )  << QSize(100,100) << QSize(50,120) << true << QSize(150,120);
+    QTest::newRow( "data0" )  << QSize(200,100) << QSize(50,50) << false << QSize(200,150);
+    QTest::newRow( "data1" )  << QSize(200,100) << QSize(220,50) << false << QSize(220,150);
+    QTest::newRow( "data2" )  << QSize(200,100) << QSize(50,50) << true << QSize(250,100);
+    QTest::newRow( "data3" )  << QSize(200,100) << QSize(50,120) << true << QSize(250,120);
 }
 
 void tst_QDialog::showExtension()

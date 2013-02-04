@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -42,7 +42,7 @@
 
 #include <QtTest/QtTest>
 #include <math.h>
-#include <qglobal.h>
+#include <qdebug.h>
 #include <qdir.h>
 #include <qfileinfo.h>
 #include <QScopedArrayPointer>
@@ -74,8 +74,6 @@ extern "C" DWORD GetThreadLocale(void) {
 #    include <stdlib.h>
 #endif
 
-Q_DECLARE_METATYPE(qlonglong)
-Q_DECLARE_METATYPE(QDate)
 Q_DECLARE_METATYPE(QLocale::FormatType)
 
 class tst_QLocale : public QObject
@@ -134,6 +132,8 @@ private slots:
     void dateTimeFormat();
     void monthName();
     void standaloneMonthName();
+
+    void defaultNumeringSystem();
 
     void ampm();
     void currency();
@@ -957,7 +957,6 @@ void tst_QLocale::formatDate()
     QCOMPARE(l.toString(date, format), result);
 }
 
-Q_DECLARE_METATYPE(QTime)
 
 void tst_QLocale::formatTime_data()
 {
@@ -1282,7 +1281,7 @@ static QString getWinLocaleInfo(LCTYPE type)
     int cnt = GetLocaleInfo(id, type, 0, 0) * 2;
 
     if (cnt == 0) {
-        qWarning("QLocale: empty windows locale info (%d)", type);
+        qWarning().nospace() << "QLocale: empty windows locale info (" <<  type << ')';
         return QString();
     }
     cnt /= sizeof(wchar_t);
@@ -1290,7 +1289,7 @@ static QString getWinLocaleInfo(LCTYPE type)
     cnt = GetLocaleInfo(id, type, buf.data(), cnt);
 
     if (cnt == 0) {
-        qWarning("QLocale: empty windows locale info (%d)", type);
+        qWarning().nospace() << "QLocale: empty windows locale info (" << type << ')';
         return QString();
     }
     return QString::fromWCharArray(buf.data());
@@ -1530,6 +1529,10 @@ void tst_QLocale::dayName()
 
     QLocale l(locale_name);
     QCOMPARE(l.dayName(day, format), dayName);
+
+    QLocale ir("ga_IE");
+    QCOMPARE(ir.dayName(1, QLocale::ShortFormat), QLatin1String("Luan"));
+    QCOMPARE(ir.dayName(7, QLocale::ShortFormat), QLatin1String("Domh"));
 }
 
 void tst_QLocale::standaloneDayName_data()
@@ -1589,6 +1592,42 @@ a(QLatin1String("0.0000000000000000000000000000000000000000000000000000000000000
     QVERIFY(!ok);
 }
 
+void tst_QLocale::defaultNumeringSystem()
+{
+    QLocale sk("sk_SK");
+    QCOMPARE(sk.toString(123), QLatin1String("123"));
+
+    QLocale ta("ta_IN");
+    QCOMPARE(ta.toString(123), QLatin1String("123"));
+
+    QLocale te("te_IN");
+    QCOMPARE(te.toString(123), QLatin1String("123"));
+
+    QLocale hi("hi_IN");
+    QCOMPARE(hi.toString(123), QLatin1String("123"));
+
+    QLocale gu("gu_IN");
+    QCOMPARE(gu.toString(123), QLatin1String("123"));
+
+    QLocale kn("kn_IN");
+    QCOMPARE(kn.toString(123), QLatin1String("123"));
+
+    QLocale pa("pa_IN");
+    QCOMPARE(pa.toString(123), QLatin1String("123"));
+
+    QLocale ne("ne_IN");
+    QCOMPARE(ne.toString(123), QLatin1String("123"));
+
+    QLocale mr("mr_IN");
+    QCOMPARE(mr.toString(123), QLatin1String("123"));
+
+    QLocale ml("ml_IN");
+    QCOMPARE(ml.toString(123), QLatin1String("123"));
+
+    QLocale kok("kok_IN");
+    QCOMPARE(kok.toString(123), QLatin1String("123"));
+}
+
 void tst_QLocale::ampm()
 {
     QLocale c(QLocale::C);
@@ -1610,6 +1649,14 @@ void tst_QLocale::ampm()
     QLocale ua("uk_UA");
     QCOMPARE(ua.amText(), QString::fromUtf8("\320\264\320\277"));
     QCOMPARE(ua.pmText(), QString::fromUtf8("\320\277\320\277"));
+
+    QLocale tr("tr_TR");
+    QCOMPARE(tr.amText(), QString::fromUtf8("\303\226\303\226"));
+    QCOMPARE(tr.pmText(), QString::fromUtf8("\303\226\123"));
+
+    QLocale id("id_ID");
+    QCOMPARE(id.amText(), QLatin1String("AM"));
+    QCOMPARE(id.pmText(), QLatin1String("PM"));
 }
 
 void tst_QLocale::dateFormat()
@@ -1622,6 +1669,10 @@ void tst_QLocale::dateFormat()
     QCOMPARE(no.dateFormat(QLocale::NarrowFormat), QLatin1String("dd.MM.yy"));
     QCOMPARE(no.dateFormat(QLocale::ShortFormat), QLatin1String("dd.MM.yy"));
     QCOMPARE(no.dateFormat(QLocale::LongFormat), QLatin1String("dddd d. MMMM yyyy"));
+
+    const QLocale ca("en_CA");
+    QCOMPARE(ca.dateFormat(QLocale::ShortFormat), QLatin1String("M/d/yy"));
+    QCOMPARE(ca.dateFormat(QLocale::LongFormat), QLatin1String("dddd, MMMM d, yyyy"));
 }
 
 void tst_QLocale::timeFormat()
@@ -1634,6 +1685,14 @@ void tst_QLocale::timeFormat()
     QCOMPARE(no.timeFormat(QLocale::NarrowFormat), QLatin1String("HH:mm"));
     QCOMPARE(no.timeFormat(QLocale::ShortFormat), QLatin1String("HH:mm"));
     QCOMPARE(no.timeFormat(QLocale::LongFormat), QLatin1String("'kl'. HH:mm:ss t"));
+
+    const QLocale id("id_ID");
+    QCOMPARE(id.timeFormat(QLocale::ShortFormat), QLatin1String("HH.mm"));
+    QCOMPARE(id.timeFormat(QLocale::LongFormat), QLatin1String("HH.mm.ss t"));
+
+    const QLocale cat("ca_ES");
+    QCOMPARE(cat.timeFormat(QLocale::ShortFormat), QLatin1String("H.mm"));
+    QCOMPARE(cat.timeFormat(QLocale::LongFormat), QLatin1String("H.mm.ss t"));
 }
 
 void tst_QLocale::dateTimeFormat()
@@ -1676,6 +1735,10 @@ void tst_QLocale::monthName()
     // check that our CLDR scripts handle surrogate pairs correctly
     QLocale dsrt("en-Dsrt-US");
     QCOMPARE(dsrt.monthName(1, QLocale::LongFormat), QString::fromUtf8("\xf0\x90\x90\x96\xf0\x90\x90\xb0\xf0\x90\x91\x8c\xf0\x90\x90\xb7\xf0\x90\x90\xad\xf0\x90\x90\xaf\xf0\x90\x91\x89\xf0\x90\x90\xa8"));
+
+    QLocale ir("ga_IE");
+    QCOMPARE(ir.monthName(1, QLocale::ShortFormat), QLatin1String("Ean"));
+    QCOMPARE(ir.monthName(12, QLocale::ShortFormat), QLatin1String("Noll"));
 }
 
 void tst_QLocale::standaloneMonthName()

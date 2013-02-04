@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -55,6 +55,7 @@
 #ifndef QT_NO_ACCESSIBILITY
 #include <qaccessible.h>
 #include <qaccessible2.h>
+#include <QMetaMethod>
 #endif
 
 #include <private/qtreeview_p.h>
@@ -146,10 +147,10 @@ QT_BEGIN_NAMESPACE
     \endomit
 
     \table 100%
-    \row \li \inlineimage windowsxp-treeview.png Screenshot of a Windows XP style tree view
+    \row \li \inlineimage windowsvista-treeview.png Screenshot of a Windows Vista style tree view
          \li \inlineimage macintosh-treeview.png Screenshot of a Macintosh style tree view
          \li \inlineimage fusion-treeview.png Screenshot of a Fusion style tree view
-    \row \li A \l{Windows XP Style Widget Gallery}{Windows XP style} tree view.
+    \row \li A \l{Windows Vista Style Widget Gallery}{Windows Vista style} tree view.
          \li A \l{Macintosh Style Widget Gallery}{Macintosh style} tree view.
          \li A \l{Fusion Style Widget Gallery}{Fusion style} tree view.
     \endtable
@@ -749,6 +750,8 @@ void QTreeView::expand(const QModelIndex &index)
     Q_D(QTreeView);
     if (!d->isIndexValid(index))
         return;
+    if (index.flags() & Qt::ItemNeverHasChildren)
+        return;
     if (d->delayedPendingLayout) {
         //A complete relayout is going to be performed, just store the expanded index, no need to layout.
         if (d->storeExpanded(index))
@@ -876,7 +879,7 @@ bool QTreeView::isSortingEnabled() const
     \brief whether animations are enabled
 
     If this property is true the treeview will animate expandsion
-    and collasping of branches. If this property is false, the treeview
+    and collapsing of branches. If this property is false, the treeview
     will expand or collapse branches immediately without showing
     the animation.
 
@@ -2644,7 +2647,17 @@ void QTreeView::expandAll()
 void QTreeView::collapseAll()
 {
     Q_D(QTreeView);
+    QSet<QPersistentModelIndex> old_expandedIndexes;
+    old_expandedIndexes = d->expandedIndexes;
     d->expandedIndexes.clear();
+    if (!signalsBlocked() && isSignalConnected(QMetaMethod::fromSignal(&QTreeView::collapsed))) {
+        QSet<QPersistentModelIndex>::const_iterator i = old_expandedIndexes.constBegin();
+        for (; i != old_expandedIndexes.constEnd(); ++i) {
+            const QPersistentModelIndex &mi = (*i);
+            if (mi.isValid() && !(mi.flags() & Qt::ItemNeverHasChildren))
+                emit collapsed(mi);
+        }
+    }
     doItemsLayout();
 }
 
@@ -2658,6 +2671,8 @@ void QTreeView::expandToDepth(int depth)
 {
     Q_D(QTreeView);
     d->viewItems.clear();
+    QSet<QPersistentModelIndex> old_expandedIndexes;
+    old_expandedIndexes = d->expandedIndexes;
     d->expandedIndexes.clear();
     d->interruptDelayedItemsLayout();
     d->layout(-1);
@@ -2668,6 +2683,29 @@ void QTreeView::expandToDepth(int depth)
             d->storeExpanded(d->viewItems.at(i).index);
         }
     }
+
+    bool someSignalEnabled = isSignalConnected(QMetaMethod::fromSignal(&QTreeView::collapsed));
+    someSignalEnabled |= isSignalConnected(QMetaMethod::fromSignal(&QTreeView::expanded));
+
+    if (!signalsBlocked() && someSignalEnabled) {
+        // emit signals
+        QSet<QPersistentModelIndex> collapsedIndexes = old_expandedIndexes - d->expandedIndexes;
+        QSet<QPersistentModelIndex>::const_iterator i = collapsedIndexes.constBegin();
+        for (; i != collapsedIndexes.constEnd(); ++i) {
+            const QPersistentModelIndex &mi = (*i);
+            if (mi.isValid() && !(mi.flags() & Qt::ItemNeverHasChildren))
+                emit collapsed(mi);
+        }
+
+        QSet<QPersistentModelIndex> expandedIndexs = d->expandedIndexes - old_expandedIndexes;
+        i = expandedIndexs.constBegin();
+        for (; i != expandedIndexs.constEnd(); ++i) {
+            const QPersistentModelIndex &mi = (*i);
+            if (mi.isValid() && !(mi.flags() & Qt::ItemNeverHasChildren))
+                emit expanded(mi);
+        }
+    }
+
     updateGeometries();
     d->viewport->update();
 }
@@ -2887,6 +2925,9 @@ void QTreeViewPrivate::expand(int item, bool emitSignal)
 
     if (item == -1 || viewItems.at(item).expanded)
         return;
+    const QModelIndex index = viewItems.at(item).index;
+    if (index.flags() & Qt::ItemNeverHasChildren)
+        return;
 
 #ifndef QT_NO_ANIMATION
     if (emitSignal && animationsEnabled)
@@ -2896,7 +2937,6 @@ void QTreeViewPrivate::expand(int item, bool emitSignal)
     if (state != QAbstractItemView::AnimatingState)
         stateBeforeAnimation = state;
     q->setState(QAbstractItemView::ExpandingState);
-    const QModelIndex index = viewItems.at(item).index;
     storeExpanded(index);
     viewItems[item].expanded = true;
     layout(item);
@@ -3189,9 +3229,9 @@ void QTreeViewPrivate::layout(int i, bool recursiveExpanding, bool afterIsUninit
             item->expanded = false;
             item->total = 0;
             item->hasMoreSiblings = false;
-            if (recursiveExpanding || isIndexExpanded(current)) {
-                if (recursiveExpanding)
-                    expandedIndexes.insert(current);
+            if ((recursiveExpanding && !(current.flags() & Qt::ItemNeverHasChildren)) || isIndexExpanded(current)) {
+                if (recursiveExpanding && storeExpanded(current) && !q->signalsBlocked())
+                    emit q->expanded(current);
                 item->expanded = true;
                 layout(last, recursiveExpanding, afterIsUninitialized);
                 item = &viewItems[last];
@@ -3743,7 +3783,7 @@ void QTreeView::currentChanged(const QModelIndex &current, const QModelIndex &pr
     }
 #ifndef QT_NO_ACCESSIBILITY
     if (QAccessible::isActive() && current.isValid()) {
-        int entry = (visualIndex(current) + (header()?1:0))*current.model()->columnCount()+current.column() + 1;
+        int entry = (visualIndex(current) + (header()?1:0))*current.model()->columnCount()+current.column();
         QAccessibleEvent event(this, QAccessible::Focus);
         event.setChild(entry);
         QAccessible::updateAccessibility(&event);
@@ -3763,16 +3803,16 @@ void QTreeView::selectionChanged(const QItemSelection &selected,
         // ### does not work properly for selection ranges.
         QModelIndex sel = selected.indexes().value(0);
         if (sel.isValid()) {
-            int entry = (visualIndex(sel) + (header()?1:0))*sel.model()->columnCount()+sel.column() + 1;
-            Q_ASSERT(entry > 0);
+            int entry = (visualIndex(sel) + (header()?1:0))*sel.model()->columnCount()+sel.column();
+            Q_ASSERT(entry >= 0);
             QAccessibleEvent event(this, QAccessible::Selection);
             event.setChild(entry);
             QAccessible::updateAccessibility(&event);
         }
         QModelIndex desel = deselected.indexes().value(0);
         if (desel.isValid()) {
-            int entry = (visualIndex(desel) + (header()?1:0))*desel.model()->columnCount()+desel.column() + 1;
-            Q_ASSERT(entry > 0);
+            int entry = (visualIndex(desel) + (header()?1:0))*desel.model()->columnCount()+desel.column();
+            Q_ASSERT(entry >= 0);
             QAccessibleEvent event(this, QAccessible::SelectionRemove);
             event.setChild(entry);
             QAccessible::updateAccessibility(&event);

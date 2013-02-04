@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -195,12 +195,10 @@ void tst_uic::compare()
     }
 
     originalFile = orgFile.readAll();
-    originalFile.replace(QRegExp(QLatin1String("Created:.{0,25}[\\d]{4,4}")), "");
-    originalFile.replace(QRegExp(QLatin1String("by: Qt User Interface Compiler version [.\\d]{5,5}")), "");
+    originalFile.replace(QRegExp(QLatin1String("Created by: Qt User Interface Compiler version [.\\d]{5,5}")), "");
 
     generatedFile = genFile.readAll();
-    generatedFile.replace(QRegExp(QLatin1String("Created:.{0,25}[\\d]{4,4}")), "");
-    generatedFile.replace(QRegExp(QLatin1String("by: Qt User Interface Compiler version [.\\d]{5,5}")), "");
+    generatedFile.replace(QRegExp(QLatin1String("Created by: Qt User Interface Compiler version [.\\d]{5,5}")), "");
 
     QCOMPARE(generatedFile, originalFile);
 }

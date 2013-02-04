@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -151,7 +151,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
 Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
                           (QImageIOHandlerFactoryInterface_iid, QLatin1String("/imageformats")))
 #endif
@@ -186,31 +186,32 @@ struct _qt_BuiltInFormatStruct
 {
     _qt_BuiltInFormatType type;
     const char *extension;
+    const char *mimeType;
 };
 
 static const _qt_BuiltInFormatStruct _qt_BuiltInFormats[] = {
 #ifndef QT_NO_IMAGEFORMAT_PNG
-    {_qt_PngFormat, "png"},
+    {_qt_PngFormat, "png", "image/png"},
 #endif
 #ifndef QT_NO_IMAGEFORMAT_JPEG
-    {_qt_JpgFormat, "jpg"},
+    {_qt_JpgFormat, "jpg", "image/jpeg"},
 #endif
 #ifdef QT_BUILTIN_GIF_READER
-    {_qt_GifFormat, "gif"},
+    {_qt_GifFormat, "gif", "image/gif"},
 #endif
-    {_qt_BmpFormat, "bmp"},
+    {_qt_BmpFormat, "bmp", "image/bmp"},
 #ifndef QT_NO_IMAGEFORMAT_PPM
-    {_qt_PpmFormat, "ppm"},
-    {_qt_PgmFormat, "pgm"},
-    {_qt_PbmFormat, "pbm"},
+    {_qt_PpmFormat, "ppm", "image/x-portable-pixmap"},
+    {_qt_PgmFormat, "pgm", "image/x-portable-graymap"},
+    {_qt_PbmFormat, "pbm", "image/x-portable-bitmap"},
 #endif
 #ifndef QT_NO_IMAGEFORMAT_XBM
-    {_qt_XbmFormat, "xbm"},
+    {_qt_XbmFormat, "xbm", "image/x-xbitmap"},
 #endif
 #ifndef QT_NO_IMAGEFORMAT_XPM
-    {_qt_XpmFormat, "xpm"},
+    {_qt_XpmFormat, "xpm", "image/x-xpixmap"},
 #endif
-    {_qt_NoFormat, ""}
+    {_qt_NoFormat, "", ""}
 };
 
 static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
@@ -223,23 +224,23 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
 
     QByteArray form = format.toLower();
     QImageIOHandler *handler = 0;
+    QByteArray suffix;
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
     typedef QMultiMap<int, QString> PluginKeyMap;
 
     // check if we have plugins that support the image format
     QFactoryLoader *l = loader();
     const PluginKeyMap keyMap = l->keyMap();
-#endif
-    QByteArray suffix;
 
 #ifdef QIMAGEREADER_DEBUG
     qDebug() << "QImageReader::createReadHandler( device =" << (void *)device << ", format =" << format << "),"
              << keyMap.values().size() << "plugins available: " << keyMap.values();
 #endif
 
-#ifndef QT_NO_LIBRARY
     int suffixPluginIndex = -1;
+#endif // QT_NO_IMAGEFORMATPLUGIN
+
     if (device && format.isEmpty() && autoDetectImageFormat && !ignoresFormatAndExtension) {
         // if there's no format, see if \a device is a file, and if so, find
         // the file suffix and find support for that format among our plugins.
@@ -249,6 +250,7 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
             qDebug() << "QImageReader::createReadHandler: device is a file:" << file->fileName();
 #endif
             if (!(suffix = QFileInfo(file->fileName()).suffix().toLower().toLatin1()).isEmpty()) {
+#ifndef QT_NO_IMAGEFORMATPLUGIN
                 const int index = keyMap.key(QString::fromLatin1(suffix), -1);
                 if (index != -1) {
 #ifdef QIMAGEREADER_DEBUG
@@ -257,17 +259,17 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
 #endif
                     suffixPluginIndex = index;
                 }
+#endif // QT_NO_IMAGEFORMATPLUGIN
             }
         }
     }
-#endif // QT_NO_LIBRARY
 
     QByteArray testFormat = !form.isEmpty() ? form : suffix;
 
     if (ignoresFormatAndExtension)
         testFormat = QByteArray();
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
     if (suffixPluginIndex != -1) {
         // check if the plugin that claims support for this format can load
         // from this device with this format.
@@ -322,7 +324,7 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
             device->seek(pos);
     }
 
-#endif // QT_NO_LIBRARY
+#endif // QT_NO_IMAGEFORMATPLUGIN
 
     // if we don't have a handler yet, check if we have built-in support for
     // the format
@@ -369,7 +371,7 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
 #endif
     }
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
     if (!handler && (autoDetectImageFormat || ignoresFormatAndExtension)) {
         // check if any of our plugins recognize the file from its contents.
         const qint64 pos = device ? device->pos() : 0;
@@ -389,7 +391,7 @@ static QImageIOHandler *createReadHandlerHelper(QIODevice *device,
         if (device && !device->isSequential())
             device->seek(pos);
     }
-#endif // QT_NO_LIBRARY
+#endif // QT_NO_IMAGEFORMATPLUGIN
 
     if (!handler && (autoDetectImageFormat || ignoresFormatAndExtension)) {
         // check if any of our built-in handlers recognize the file from its
@@ -1235,7 +1237,7 @@ bool QImageReader::read(QImage *image)
     }
 
     // successful read; check for "@2x" file name suffix and set device pixel ratio.
-    if (QFileInfo(fileName()).baseName().endsWith("@2x")) {
+    if (QFileInfo(fileName()).baseName().endsWith(QLatin1String("@2x"))) {
         image->setDevicePixelRatio(2.0);
     }
 
@@ -1429,8 +1431,12 @@ QByteArray QImageReader::imageFormat(QIODevice *device)
     return format;
 }
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
 void supportedImageHandlerFormats(QFactoryLoader *loader,
+                                  QImageIOPlugin::Capability cap,
+                                  QSet<QByteArray> *result);
+
+void supportedImageHandlerMimeTypes(QFactoryLoader *loader,
                                   QImageIOPlugin::Capability cap,
                                   QSet<QByteArray> *result);
 #endif
@@ -1441,23 +1447,21 @@ void supportedImageHandlerFormats(QFactoryLoader *loader,
     By default, Qt can read the following formats:
 
     \table
-    \header \li Format \li Description
-    \row    \li BMP    \li Windows Bitmap
-    \row    \li GIF    \li Graphic Interchange Format (optional)
-    \row    \li JPG    \li Joint Photographic Experts Group
-    \row    \li JPEG   \li Joint Photographic Experts Group
-    \row    \li PNG    \li Portable Network Graphics
-    \row    \li PBM    \li Portable Bitmap
-    \row    \li PGM    \li Portable Graymap
-    \row    \li PPM    \li Portable Pixmap
-    \row    \li XBM    \li X11 Bitmap
-    \row    \li XPM    \li X11 Pixmap
-    \row    \li SVG    \li Scalable Vector Graphics
+    \header \li Format \li MIME type                    \li Description
+    \row    \li BMP    \li image/bmp                    \li Windows Bitmap
+    \row    \li GIF    \li image/gif                    \li Graphic Interchange Format (optional)
+    \row    \li JPG    \li image/jpeg                   \li Joint Photographic Experts Group
+    \row    \li PNG    \li image/png                    \li Portable Network Graphics
+    \row    \li PBM    \li image/x-portable-bitmap      \li Portable Bitmap
+    \row    \li PGM    \li image/x-portable-graymap     \li Portable Graymap
+    \row    \li PPM    \li image/x-portable-pixmap      \li Portable Pixmap
+    \row    \li XBM    \li image/x-xbitmap              \li X11 Bitmap
+    \row    \li XPM    \li image/x-xpixmap              \li X11 Pixmap
+    \row    \li SVG    \li image/svg+xml                \li Scalable Vector Graphics
     \endtable
 
-    Reading and writing SVG files is supported through Qt's
-    \l{QtSvg Module}{SVG Module}. The \l{QtImageFormats Module}{Image Formats Module}
-    provides support for additional image formats.
+    Reading and writing SVG files is supported through the \l{Qt SVG} module.
+    The \l{Qt Image Formats} module provides support for additional image formats.
 
     Note that the QApplication instance must be created before this function is
     called.
@@ -1471,9 +1475,9 @@ QList<QByteArray> QImageReader::supportedImageFormats()
     for (int i = 0; i < _qt_NumFormats; ++i)
         formats << _qt_BuiltInFormats[i].extension;
 
-#ifndef QT_NO_LIBRARY
+#ifndef QT_NO_IMAGEFORMATPLUGIN
     supportedImageHandlerFormats(loader(), QImageIOPlugin::CanRead, &formats);
-#endif // QT_NO_LIBRARY
+#endif // QT_NO_IMAGEFORMATPLUGIN
 
     QList<QByteArray> sortedFormats;
     for (QSet<QByteArray>::ConstIterator it = formats.constBegin(); it != formats.constEnd(); ++it)
@@ -1481,6 +1485,33 @@ QList<QByteArray> QImageReader::supportedImageFormats()
 
     qSort(sortedFormats);
     return sortedFormats;
+}
+
+/*!
+    Returns the list of MIME types supported by QImageReader.
+
+    Note that the QApplication instance must be created before this function is
+    called.
+
+    \sa supportedImageFormats(), QImageWriter::supportedMimeTypes()
+*/
+
+QList<QByteArray> QImageReader::supportedMimeTypes()
+{
+    QSet<QByteArray> mimeTypes;
+    for (int i = 0; i < _qt_NumFormats; ++i)
+        mimeTypes << _qt_BuiltInFormats[i].mimeType;
+
+#ifndef QT_NO_LIBRARY
+    supportedImageHandlerMimeTypes(loader(), QImageIOPlugin::CanRead, &mimeTypes);
+#endif // QT_NO_LIBRARY
+
+    QList<QByteArray> sortedMimeTypes;
+    for (QSet<QByteArray>::ConstIterator it = mimeTypes.constBegin(); it != mimeTypes.constEnd(); ++it)
+        sortedMimeTypes << *it;
+
+    qSort(sortedMimeTypes);
+    return sortedMimeTypes;
 }
 
 QT_END_NAMESPACE

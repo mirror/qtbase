@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -39,8 +39,10 @@
 ****************************************************************************/
 
 #include <QApplication>
-#include <QMessageBox>
 
+#ifndef QT_NO_SYSTEMTRAYICON
+
+#include <QMessageBox>
 #include "window.h"
 
 int main(int argc, char *argv[])
@@ -61,3 +63,24 @@ int main(int argc, char *argv[])
     window.show();
     return app.exec();
 }
+
+#else
+
+#include <QLabel>
+#include <QDebug>
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    QString text("QSystemTrayIcon is not supported on this platform");
+
+    QLabel *label = new QLabel(text);
+    label->setWordWrap(true);
+
+    label->show();
+    qDebug() << text;
+
+    app.exec();
+}
+
+#endif

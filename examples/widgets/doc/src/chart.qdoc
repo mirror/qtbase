@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,7 +28,7 @@
 /*!
     \example itemviews/chart
     \title Chart Example
-
+    \ingroup examples-itemviews
     \brief The Chart example shows how to create a custom view for the model/view framework.
 
     \image chart-example.png

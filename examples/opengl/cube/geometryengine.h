@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -41,8 +41,8 @@
 #ifndef GEOMETRYENGINE_H
 #define GEOMETRYENGINE_H
 
-#include <QtOpenGL/QGLFunctions>
-#include <QtOpenGL/QGLShaderProgram>
+#include <QGLFunctions>
+#include <QGLShaderProgram>
 
 class GeometryEngine : protected QGLFunctions
 {
@@ -51,14 +51,12 @@ public:
     virtual ~GeometryEngine();
 
     void init();
-
     void drawCubeGeometry(QGLShaderProgram *program);
 
 private:
     void initCubeGeometry();
 
-    GLuint *vboIds;
-
+    GLuint vboIds[2];
 };
 
 #endif // GEOMETRYENGINE_H

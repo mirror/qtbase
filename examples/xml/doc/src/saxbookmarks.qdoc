@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,13 +28,14 @@
 /*!
     \example saxbookmarks
     \title SAX Bookmarks Example
+    \brief Demonstrates how to read XBEL files
+    \ingroup xml-examples
 
-    \brief The SAX Bookmarks example provides a reader for XML Bookmark Exchange Language (XBEL)
-    files that uses Qt's SAX-based API to read and parse the files. The DOM Bookmarks
+    This example uses Qt's SAX API to read and parse the files. The DOM Bookmarks
     example provides an alternative way to read this type of file.
 
     \image saxbookmarks-example.png
 
     See the \l{XML Bookmark Exchange Language Resource Page} for more
-    information about XBEL files.  
+    information about XBEL files.
 */

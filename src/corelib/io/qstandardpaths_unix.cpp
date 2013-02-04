@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -127,6 +127,7 @@ QString QStandardPaths::writableLocation(StandardLocation type)
                     return QString();
                 }
             }
+            qWarning("QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '%s'", qPrintable(xdgRuntimeDir));
         }
         // "The directory MUST be owned by the user"
         QFileInfo fileInfo(xdgRuntimeDir);

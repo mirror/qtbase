@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -215,9 +215,6 @@ void tst_QTreeWidget::getSetCheck()
 typedef QList<int> IntList;
 typedef QList<IntList> ListIntList;
 
-Q_DECLARE_METATYPE(IntList)
-Q_DECLARE_METATYPE(ListIntList)
-Q_DECLARE_METATYPE(QModelIndex)
 Q_DECLARE_METATYPE(Qt::Orientation)
 
 typedef QTreeWidgetItem TreeItem;

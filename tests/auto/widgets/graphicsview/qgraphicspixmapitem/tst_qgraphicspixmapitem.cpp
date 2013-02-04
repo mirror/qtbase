@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -370,7 +370,6 @@ void tst_QGraphicsPixmapItem::shape()
 }
 
 Q_DECLARE_METATYPE(SubQGraphicsPixmapItem::Extension)
-Q_DECLARE_METATYPE(QVariant)
 void tst_QGraphicsPixmapItem::extension_data()
 {
     QTest::addColumn<QVariant>("variant");

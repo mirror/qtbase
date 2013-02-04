@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -168,8 +168,8 @@ QT_BEGIN_NAMESPACE
          changed from round to square. Use the setMinimumSize()
          function to prevent this behavior.
 
-    \row \li \inlineimage windowsxp-pushbutton.png Screenshot of a Windows XP style push button
-         \li A push button shown in the \l{Windows XP Style Widget Gallery}{Windows XP widget style}.
+    \row \li \inlineimage windowsvista-pushbutton.png Screenshot of a Windows Vista style push button
+         \li A push button shown in the \l{Windows Vista Style Widget Gallery}{Windows Vista widget style}.
     \row \li \inlineimage fusion-pushbutton.png Screenshot of a Fusion style push button
          \li A push button shown in the \l{Fusion Style Widget Gallery}{Fusion widget style}.
     \endtable

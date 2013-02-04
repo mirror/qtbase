@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -40,13 +40,13 @@
 
 //! [0]
 QFtp *ftp = new QFtp(parent);
-ftp->connectToHost("ftp.qt.nokia.com");
+ftp->connectToHost("ftp.qt-project.org");
 ftp->login();
 //! [0]
 
 
 //! [1]
-ftp->connectToHost("ftp.qt.nokia.com");   // id == 1
+ftp->connectToHost("ftp.qt-project.org");   // id == 1
 ftp->login();                             // id == 2
 ftp->cd("qt");                            // id == 3
 ftp->get("INSTALL");                      // id == 4

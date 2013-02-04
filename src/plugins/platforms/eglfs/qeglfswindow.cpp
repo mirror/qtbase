@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -75,7 +75,7 @@ void QEglFSWindow::create()
     if (m_window)
         return;
 
-    if (window()->windowType() == Qt::Desktop) {
+    if (window()->type() == Qt::Desktop) {
         QRect rect(QPoint(), hooks->screenSize());
         QPlatformWindow::setGeometry(rect);
         QWindowSystemInterface::handleGeometryChange(window(), rect);
@@ -84,7 +84,7 @@ void QEglFSWindow::create()
 
     EGLDisplay display = static_cast<QEglFSScreen *>(screen())->display();
     QSurfaceFormat platformFormat = hooks->surfaceFormatFor(window()->requestedFormat());
-    m_config = q_configFromGLFormat(display, platformFormat);
+    m_config = QEglFSIntegration::chooseConfig(display, platformFormat);
     m_format = q_glFormatFromConfig(display, m_config);
     resetSurface();
 }

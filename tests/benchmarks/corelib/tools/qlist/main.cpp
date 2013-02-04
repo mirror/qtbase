@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -192,7 +192,6 @@ void removeAll_test(const QList<int> &i10, ushort valueToRemove, int itemsToRemo
         QCOMPARE(MyBase::errorCount, 0);
 }
 
-Q_DECLARE_METATYPE(QList<int>);
 
 void tst_QList::removeAll_primitive_data()
 {

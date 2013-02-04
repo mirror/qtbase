@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -168,6 +168,13 @@ UnixMakefileGenerator::init()
         for(int i = 0; i < rpathdirs.size(); ++i) {
             if(!project->isEmpty("QMAKE_LFLAGS_RPATH"))
                 project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATH") + escapeFilePath(QFileInfo(rpathdirs[i].toQString()).absoluteFilePath());
+        }
+    }
+    if (!project->isEmpty("QMAKE_RPATHLINKDIR")) {
+        const ProStringList &rpathdirs = project->values("QMAKE_RPATHLINKDIR");
+        for (int i = 0; i < rpathdirs.size(); ++i) {
+            if (!project->isEmpty("QMAKE_LFLAGS_RPATHLINK"))
+                project->values("QMAKE_LFLAGS") += var("QMAKE_LFLAGS_RPATHLINK") + escapeFilePath(QFileInfo(rpathdirs[i].toQString()).absoluteFilePath());
         }
     }
 
@@ -861,32 +868,15 @@ UnixMakefileGenerator::defaultInstall(const QString &t)
                 if(!uninst.isEmpty())
                     uninst.append("\n\t");
                 uninst.append("-$(DEL_FILE) \"" + dst_meta + "\"");
-                const ProKey replace_rule("QMAKE_" + type.toUpper() + "_INSTALL_REPLACE");
                 const QString dst_meta_dir = fileInfo(dst_meta).path();
                 if(!dst_meta_dir.isEmpty()) {
                     if(!ret.isEmpty())
                         ret += "\n\t";
                     ret += mkdir_p_asstring(dst_meta_dir, true);
                 }
-                QString install_meta = "$(INSTALL_FILE) \"" + src_meta + "\" \"" + dst_meta + "\"";
-                if(project->isEmpty(replace_rule) || project->isActiveConfig("no_sed_meta_install")) {
-                    if(!ret.isEmpty())
-                        ret += "\n\t";
-                    ret += "-" + install_meta;
-                } else {
-                    if(!ret.isEmpty())
-                        ret += "\n\t";
-                    ret += "-$(SED)";
-                    const ProStringList &replace_rules = project->values(replace_rule);
-                    for(int r = 0; r < replace_rules.size(); ++r) {
-                        const ProString &match = project->first(ProKey(replace_rules.at(r) + ".match")),
-                                    &replace = project->first(ProKey(replace_rules.at(r) + ".replace"));
-                        if(!match.isEmpty() /*&& match != replace*/)
-                            ret += " -e \"s," + match + "," + replace + ",g\"";
-                    }
-                    ret += " \"" + src_meta + "\" >\"" + dst_meta + "\"";
-                    //ret += " || " + install_meta;
-                }
+                if (!ret.isEmpty())
+                    ret += "\n\t";
+                ret += installMetaFile(ProKey("QMAKE_" + type.toUpper() + "_INSTALL_REPLACE"), src_meta, dst_meta);
             }
         }
     }

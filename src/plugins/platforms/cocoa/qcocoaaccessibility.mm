@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -71,7 +71,8 @@ void QCococaAccessibility::notifyAccessibilityUpdate(QAccessibleEvent *event)
         case QAccessible::TextInserted :
         case QAccessible::TextRemoved :
         case QAccessible::TextUpdated : {
-            QCocoaAccessibleElement *element = [QCocoaAccessibleElement elementWithInterface : interface parent : nil];
+            QCocoaAccessibleElement *element = [QCocoaAccessibleElement createElementWithInterface : interface parent : nil];
+            [element autorelease];
             NSAccessibilityPostNotification(element, NSAccessibilityValueChangedNotification);
         break; }
 

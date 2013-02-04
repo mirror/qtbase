@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1561,7 +1561,7 @@ void tst_QArrayData::literals()
 #endif
 
         QVERIFY(v.isSharable());
-        QCOMPARE((const char *)(v.constBegin() + v.size()), (const char *)v.constEnd());
+        QCOMPARE((void*)(v.constBegin() + v.size()), (void*)v.constEnd());
 
         for (int i = 0; i < 10; ++i)
             QCOMPARE(const_(v)[i], char('A' + i));

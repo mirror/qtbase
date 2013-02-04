@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -48,7 +48,6 @@
 
 #include <QtCore/qobject.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 
@@ -131,7 +130,7 @@ public:
     T result() const { return m_future.result(); }
     T resultAt(int index) const { return m_future.resultAt(index); }
 
-#ifdef qdoc
+#ifdef Q_QDOC
     int progressValue() const;
     int progressMinimum() const;
     int progressMaximum() const;
@@ -215,8 +214,6 @@ Q_INLINE_TEMPLATE void QFutureWatcher<void>::setFuture(const QFuture<void> &_fut
 }
 
 QT_END_NAMESPACE
-QT_END_HEADER
-
 #endif // QT_NO_QFUTURE
 
 #endif // QFUTUREWATCHER_H

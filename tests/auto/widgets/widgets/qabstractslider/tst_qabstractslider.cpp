@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -51,6 +51,14 @@
 
 // defined to be 120 by the wheel mouse vendors according to the docs
 #define WHEEL_DELTA 120
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class Slider : public QAbstractSlider
 {
@@ -113,7 +121,6 @@ private:
 };
 
 Q_DECLARE_METATYPE(QList<Qt::Key>)
-Q_DECLARE_METATYPE(QPoint)
 
 void tst_QAbstractSlider::initTestCase()
 {
@@ -938,6 +945,7 @@ void tst_QAbstractSlider::sliderPressedReleased()
     QFETCH(int, expectedCount);
 
     QWidget topLevel;
+    setFrameless(&topLevel);
     QAbstractSlider *slider;
     switch (control) {
     default:
@@ -1236,17 +1244,17 @@ void tst_QAbstractSlider::setRepeatAction()
     QCOMPARE(slider->value(), 55);
 
     waitUntilTimeElapsed(t, 550);
-    QCOMPARE(spy.count(), 1);
+    QTRY_COMPARE(spy.count(), 1);
     QCOMPARE(slider->value(), 65);
     QCOMPARE(spy.at(0).at(0).toUInt(), (uint)QAbstractSlider::SliderPageStepAdd);
 
     waitUntilTimeElapsed(t, 790);
-    QCOMPARE(spy.count(), 2);
+    QTRY_COMPARE(spy.count(), 2);
     QCOMPARE(slider->value(), 75);
     QCOMPARE(spy.at(1).at(0).toUInt(), (uint)QAbstractSlider::SliderPageStepAdd);
 
     waitUntilTimeElapsed(t, 1790);
-    QCOMPARE(spy.count(), 6);
+    QTRY_COMPARE(spy.count(), 6);
     QCOMPARE(slider->value(), 115);
     QCOMPARE(spy.at(4).at(0).toUInt(), (uint)QAbstractSlider::SliderPageStepAdd);
     QCOMPARE(spy.at(5).at(0).toUInt(), (uint)QAbstractSlider::SliderPageStepAdd);

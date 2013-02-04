@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -89,23 +89,16 @@ QT_BEGIN_NAMESPACE
     buffers to support double and triple buffering, as well as depth and stencil
     buffers. To release a window's memory resources, call the destroy() function.
 
-    \section1 Window and content orientation
+    \section1 Content orientation
 
-    QWindow has reportContentOrientationChange() and
-    requestWindowOrientation() that can be used to specify the
-    layout of the window contents in relation to the screen. The
-    window orientation determines the actual buffer layout of the
-    window, and the windowing system uses this value to rotate the
-    window before it ends up on the display, and to ensure that input
-    coordinates are in the correct coordinate space relative to the
-    application.
-
-    On the other hand, the content orientation is simply a hint to the
-    windowing system about which orientation the window contents are in.
-    It's useful when you wish to keep the same buffer layout, but rotate
-    the contents instead, especially when doing rotation animations
-    between different orientations. The windowing system might use this
-    value to determine the layout of system popups or dialogs.
+    QWindow has reportContentOrientationChange() that can be used to specify
+    the layout of the window contents in relation to the screen. The content
+    orientation is simply a hint to the windowing system about which
+    orientation the window contents are in.  It's useful when you wish to keep
+    the same window size, but rotate the contents instead, especially when
+    doing rotation animations between different orientations. The windowing
+    system might use this value to determine the layout of system popups or
+    dialogs.
 
     \section1 Visibility and Windowing system exposure.
 
@@ -223,7 +216,7 @@ QWindow::~QWindow()
 }
 
 /*!
-    Set the \a surfaceType of the window.
+    Sets the \a surfaceType of the window.
 
     Specifies whether the window is meant for raster rendering with
     QBackingStore, or OpenGL rendering with QOpenGLContext.
@@ -291,7 +284,7 @@ void QWindow::setVisible(bool visible)
     }
 
 #ifndef QT_NO_CURSOR
-    if (visible)
+    if (visible && d->hasCursor)
         d->applyCursor();
 #endif
     d->platformWindow->setVisible(visible);
@@ -600,7 +593,7 @@ QString QWindow::filePath() const
 }
 
 /*!
-    \brief set the window's \a icon in the windowing system
+    \brief Sets the window's \a icon in the windowing system
 
     The window icon might be used by the windowing system for example to
     decorate the window, and/or in the task switcher.
@@ -614,7 +607,7 @@ void QWindow::setIcon(const QIcon &icon)
 }
 
 /*!
-    \brief set the window's icon in the windowing system
+    \brief Sets the window's icon in the windowing system
 
     \sa setIcon()
 */
@@ -649,7 +642,8 @@ void QWindow::lower()
 }
 
 /*!
-    Sets the window's opacity in the windowing system to \a level.
+    \property QWindow::opacity
+    \brief The opacity of the window in the windowing system.
 
     If the windowing system supports window opacity, this can be used to fade the
     window in and out, or to make it semitransparent.
@@ -657,13 +651,25 @@ void QWindow::lower()
     A value of 1.0 or above is treated as fully opaque, whereas a value of 0.0 or below
     is treated as fully transparent. Values inbetween represent varying levels of
     translucency between the two extremes.
+
+    The default value is 1.0.
 */
 void QWindow::setOpacity(qreal level)
 {
     Q_D(QWindow);
+    if (level == d->opacity)
+        return;
+    d->opacity = level;
     if (d->platformWindow) {
         d->platformWindow->setOpacity(level);
+        emit opacityChanged(level);
     }
+}
+
+qreal QWindow::opacity() const
+{
+    Q_D(const QWindow);
+    return d->opacity;
 }
 
 /*!
@@ -743,8 +749,6 @@ bool QWindow::isActive() const
     to compute the necessary transform.
 
     The default value is Qt::PrimaryOrientation
-
-    \sa requestOrientation(), QScreen::orientation()
 */
 void QWindow::reportContentOrientationChange(Qt::ScreenOrientation orientation)
 {
@@ -766,54 +770,13 @@ Qt::ScreenOrientation QWindow::contentOrientation() const
 }
 
 /*!
-  Requests the given window \a orientation.
-
-  The window \a orientation specifies how the window should be rotated
-  by the window manager in order to be displayed. Input events will
-  be correctly mapped to the given \a orientation.
-
-  The return value is false if the system doesn't support the given
-  \a orientation (for example when requesting a portrait orientation
-  on a device that only handles landscape buffers, typically a desktop
-  system).
-
-  If the return value is false, call \l orientation() to get the actual
-  supported orientation.
-
-  \sa orientation(), reportContentOrientationChange(), QScreen::orientation()
-*/
-bool QWindow::requestOrientation(Qt::ScreenOrientation orientation)
-{
-    Q_D(QWindow);
-    if (!d->platformWindow)
-        create();
-    Q_ASSERT(d->platformWindow);
-    d->windowOrientation = d->platformWindow->requestWindowOrientation(orientation);
-    return d->windowOrientation == orientation;
-}
-
-/*!
-  Returns the actual window orientation.
-
-  The default value is Qt::PrimaryOrientation.
-
-  \sa requestOrientation()
-*/
-Qt::ScreenOrientation QWindow::orientation() const
-{
-    Q_D(const QWindow);
-    return d->windowOrientation;
-}
-
-/*!
     Returns the ratio between physical pixels and device-independent pixels
     for the window. This value is dependent on the screen the window is on,
     and may change when the window is moved.
 
     Common values are 1.0 on normal displays and 2.0 on Apple "retina" displays.
 
-    \sa QWindow::devicePixelRatio();
-    \sa QGuiApplicaiton::devicePixelRatio();
+    \sa QScreen::devicePixelRatio(), QGuiApplication::devicePixelRatio()
 */
 qreal QWindow::devicePixelRatio() const
 {
@@ -983,11 +946,59 @@ void QWindow::setMinimumSize(const QSize &size)
         emit minimumHeightChanged(d->minimumSize.height());
 }
 
+/*!
+    \property QWindow::x
+    \brief the x position of the window's geometry
+*/
+void QWindow::setX(int arg)
+{
+    if (x() != arg)
+        setGeometry(QRect(arg, y(), width(), height()));
+}
+
+/*!
+    \property QWindow::y
+    \brief the y position of the window's geometry
+*/
+void QWindow::setY(int arg)
+{
+    if (y() != arg)
+        setGeometry(QRect(x(), arg, width(), height()));
+}
+
+/*!
+    \property QWindow::width
+    \brief the width of the window's geometry
+*/
+void QWindow::setWidth(int arg)
+{
+    if (width() != arg)
+        setGeometry(QRect(x(), y(), arg, height()));
+}
+
+/*!
+    \property QWindow::height
+    \brief the height of the window's geometry
+*/
+void QWindow::setHeight(int arg)
+{
+    if (height() != arg)
+        setGeometry(QRect(x(), y(), width(), arg));
+}
+
+/*!
+    \property QWindow::minimumWidth
+    \brief the minimum width of the window's geometry
+*/
 void QWindow::setMinimumWidth(int w)
 {
     setMinimumSize(QSize(w, minimumHeight()));
 }
 
+/*!
+    \property QWindow::minimumHeight
+    \brief the minimum height of the window's geometry
+*/
 void QWindow::setMinimumHeight(int h)
 {
     setMinimumSize(QSize(minimumWidth(), h));
@@ -1016,11 +1027,19 @@ void QWindow::setMaximumSize(const QSize &size)
         emit maximumHeightChanged(d->maximumSize.height());
 }
 
+/*!
+    \property QWindow::maximumWidth
+    \brief the maximum width of the window's geometry
+*/
 void QWindow::setMaximumWidth(int w)
 {
     setMaximumSize(QSize(w, maximumHeight()));
 }
 
+/*!
+    \property QWindow::maximumHeight
+    \brief the maximum height of the window's geometry
+*/
 void QWindow::setMaximumHeight(int h)
 {
     setMaximumSize(QSize(maximumWidth(), h));
@@ -1069,13 +1088,15 @@ void QWindow::setSizeIncrement(const QSize &size)
 }
 
 /*!
-    \fn void QWindow::setGeometry(int posx, int posy, int w, int h)
-
     Sets the geometry of the window, excluding its window frame, to a
     rectangle constructed from \a posx, \a posy, \a w and \a h.
 
     \sa geometry()
 */
+void QWindow::setGeometry(int posx, int posy, int w, int h)
+{
+    setGeometry(QRect(posx, posy, w, h));
+}
 
 /*!
     \brief Sets the geometry of the window, excluding its window frame, to \a rect.
@@ -1094,57 +1115,17 @@ void QWindow::setGeometry(const QRect &rect)
         d->platformWindow->setGeometry(rect);
     } else {
         d->geometry = rect;
+
+        if (rect.x() != oldRect.x())
+            emit xChanged(rect.x());
+        if (rect.y() != oldRect.y())
+            emit yChanged(rect.y());
+        if (rect.width() != oldRect.width())
+            emit widthChanged(rect.width());
+        if (rect.height() != oldRect.height())
+            emit heightChanged(rect.height());
     }
-
-    if (rect.x() != oldRect.x())
-        emit xChanged(rect.x());
-    if (rect.y() != oldRect.y())
-        emit yChanged(rect.y());
-    if (rect.width() != oldRect.width())
-        emit widthChanged(rect.width());
-    if (rect.height() != oldRect.height())
-        emit heightChanged(rect.height());
 }
-
-/*!
-    \property QWindow::x
-    \brief the x position of the window's geometry
-*/
-
-/*!
-    \property QWindow::y
-    \brief the y position of the window's geometry
-*/
-
-/*!
-    \property QWindow::width
-    \brief the width of the window's geometry
-*/
-
-/*!
-    \property QWindow::height
-    \brief the height of the window's geometry
-*/
-
-/*!
-    \property QWindow::minimumWidth
-    \brief the minimum width of the window's geometry
-*/
-
-/*!
-    \property QWindow::minimumHeight
-    \brief the minimum height of the window's geometry
-*/
-
-/*!
-    \property QWindow::maximumWidth
-    \brief the maximum width of the window's geometry
-*/
-
-/*!
-    \property QWindow::maximumHeight
-    \brief the maximum height of the window's geometry
-*/
 
 /*!
     Returns the geometry of the window, excluding its window frame.
@@ -1221,41 +1202,49 @@ void QWindow::setFramePosition(const QPoint &point)
 }
 
 /*!
-    \fn void QWindow::setPosition(const QPoint &pt)
     \brief set the position of the window on the desktop to \a pt
 
     \sa position()
 */
+void QWindow::setPosition(const QPoint &pt)
+{
+    setGeometry(QRect(pt, size()));
+}
 
 /*!
-    \fn void QWindow::setPosition(int posx, int posy)
     \brief set the position of the window on the desktop to \a posx, \a posy
 
     \sa position()
 */
+void QWindow::setPosition(int posx, int posy)
+{
+    setPosition(QPoint(posx, posy));
+}
 
 /*!
     \fn QPoint QWindow::position() const
-    \brief get the position of the window on the desktop excluding any window frame
+    \brief Returns the position of the window on the desktop excluding any window frame
 
     \sa setPosition()
 */
 
 /*!
     \fn QSize QWindow::size() const
-    \brief get the size of the window excluding any window frame
+    \brief Returns the size of the window excluding any window frame
 
     \sa resize()
 */
 
 /*!
-    \fn void QWindow::resize(int w, int h)
-
     set the size of the window, excluding any window frame, to a QSize
     constructed from width \a w and height \a h
 
     \sa size(), geometry()
 */
+void QWindow::resize(int w, int h)
+{
+    resize(QSize(w, h));
+}
 
 /*!
     \brief set the size of the window, excluding any window frame, to \a newSize
@@ -1320,7 +1309,7 @@ QPlatformSurface *QWindow::surfaceHandle() const
 }
 
 /*!
-    Set whether keyboard grab should be enabled or not (\a grab).
+    Sets whether keyboard grab should be enabled or not (\a grab).
 
     If the return value is true, the window receives all key events until
     setKeyboardGrabEnabled(false) is called; other windows get no key events at
@@ -1458,13 +1447,15 @@ QObject *QWindow::focusObject() const
     Shows the window.
 
     This equivalent to calling showFullScreen() or showNormal(), depending
-    on whether the platform defaults to windows being fullscreen or not.
+    on whether the platform defaults to windows being fullscreen or not, and
+    whether the window is a popup.
 
-    \sa showFullScreen(), showNormal(), hide(), QStyleHints::showIsFullScreen()
+    \sa showFullScreen(), showNormal(), hide(), QStyleHints::showIsFullScreen(), flags()
 */
 void QWindow::show()
 {
-    if (qApp->styleHints()->showIsFullScreen())
+    bool isPopup = d_func()->windowFlags & Qt::Popup & ~Qt::Window;
+    if (!isPopup && qApp->styleHints()->showIsFullScreen())
         showFullScreen();
     else
         showNormal();
@@ -1968,13 +1959,7 @@ void QWindowPrivate::maybeQuitOnLastWindowClosed()
 void QWindow::setCursor(const QCursor &cursor)
 {
     Q_D(QWindow);
-    d->cursor = cursor;
-    // Only attempt to set cursor and emit signal if there is an actual platform cursor
-    if (d->screen->handle()->cursor()) {
-        d->applyCursor();
-        QEvent event(QEvent::CursorChange);
-        QGuiApplication::sendEvent(this, &event);
-    }
+    d->setCursor(&cursor);
 }
 
 /*!
@@ -1982,7 +1967,8 @@ void QWindow::setCursor(const QCursor &cursor)
  */
 void QWindow::unsetCursor()
 {
-    setCursor(Qt::ArrowCursor);
+    Q_D(QWindow);
+    d->setCursor(0);
 }
 
 /*!
@@ -1996,14 +1982,39 @@ QCursor QWindow::cursor() const
     return d->cursor;
 }
 
+void QWindowPrivate::setCursor(const QCursor *newCursor)
+{
+
+    Q_Q(QWindow);
+    if (newCursor) {
+        const Qt::CursorShape newShape = newCursor->shape();
+        if (newShape <= Qt::LastCursor && hasCursor && newShape == cursor.shape())
+            return; // Unchanged and no bitmap/custom cursor.
+        cursor = *newCursor;
+        hasCursor = true;
+    } else {
+        if (!hasCursor)
+            return;
+        cursor = QCursor(Qt::ArrowCursor);
+        hasCursor = false;
+    }
+    // Only attempt to set cursor and emit signal if there is an actual platform cursor
+    if (screen->handle()->cursor()) {
+        applyCursor();
+        QEvent event(QEvent::CursorChange);
+        QGuiApplication::sendEvent(q, &event);
+    }
+}
+
 void QWindowPrivate::applyCursor()
 {
     Q_Q(QWindow);
     if (platformWindow) {
         if (QPlatformCursor *platformCursor = screen->handle()->cursor()) {
-            QCursor *oc = QGuiApplication::overrideCursor();
-            QCursor c = oc ? *oc : cursor;
-            platformCursor->changeCursor(&c, q);
+            QCursor *c = QGuiApplication::overrideCursor();
+            if (!c && hasCursor)
+                c = &cursor;
+            platformCursor->changeCursor(c, q);
         }
     }
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -65,17 +65,21 @@ QVERIFY(arguments.at(2).type() == QVariant::double);
 
 
 //! [2]
-qRegisterMetaType<QModelIndex>("QModelIndex");
-QSignalSpy spy(&model, SIGNAL(whatever(QModelIndex)));
+qRegisterMetaType<SomeStruct>();
+QSignalSpy spy(&model, SIGNAL(whatever(SomeStruct)));
 //! [2]
 
 
 //! [3]
 // get the first argument from the first received signal:
-QModelIndex result = qvariant_cast<QModelIndex>(spy.at(0).at(0));
+SomeStruct result = qvariant_cast<SomeStruct>(spy.at(0).at(0));
 //! [3]
 
 
 //! [4]
 QSignalSpy spy(myPushButton, SIGNAL(clicked(bool)));
 //! [4]
+
+//! [5]
+QVERIFY(spy.wait(1000));
+//! [5]

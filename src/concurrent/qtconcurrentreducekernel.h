@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -54,13 +54,12 @@
 #include <QtCore/qthreadpool.h>
 #include <QtCore/qvector.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 
 namespace QtConcurrent {
 
-#ifndef qdoc
+#ifndef Q_QDOC
 
 /*
     The ReduceQueueStartLimit and ReduceQueueThrottleLimit constants
@@ -85,7 +84,7 @@ public:
     QVector<T> vector;
 };
 
-#endif // qdoc
+#endif // Q_QDOC
 
 enum ReduceOption {
     UnorderedReduce = 0x1,
@@ -96,7 +95,7 @@ enum ReduceOption {
 Q_DECLARE_FLAGS(ReduceOptions, ReduceOption)
 Q_DECLARE_OPERATORS_FOR_FLAGS(ReduceOptions)
 
-#ifndef qdoc
+#ifndef Q_QDOC
 
 // supports both ordered and out-of-order reduction
 template <typename ReduceFunctor, typename ReduceResultType, typename T>
@@ -242,12 +241,11 @@ struct SequenceHolder2 : public Base
     }
 };
 
-#endif //qdoc
+#endif //Q_QDOC
 
 } // namespace QtConcurrent
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif // QT_NO_CONCURRENT
 

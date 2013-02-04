@@ -48,8 +48,6 @@
 #include <QtCore/QHash>
 #include <QtCore/QVariantMap>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 QT_MODULE(Gui)
@@ -365,7 +363,5 @@ private:
 #endif // QT_NO_STYLE_ANDROID
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QANDROIDSTYLE_H

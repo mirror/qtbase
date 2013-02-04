@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 
 static const char boilerplate_unsuported[] =
     "\nQt %1 Evaluation License\n"
-    "Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).\n"
+    "Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).\n"
     "This trial version may only be used for evaluation purposes\n"
     "and will shut down after 120 minutes.\n"
     "Registered to:\n"
@@ -64,7 +64,7 @@ static const char boilerplate_unsuported[] =
 
 static const char boilerplate_supported[] =
     "\nQt %1 Evaluation License\n"
-    "Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).\n"
+    "Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).\n"
     "This trial version may only be used for evaluation purposes\n"
     "Registered to:\n"
     "   Licensee: %2\n\n"
@@ -117,7 +117,7 @@ static int qt_eval_days_left()
 
     QDate today = QDate::currentDate();
     QDate build = QLibraryInfo::buildDate();
-    return qMax(-1, today.daysTo(build) + 30);
+    return qMax<qint64>(-1, today.daysTo(build) + 30);
 }
 
 static QString qt_eval_string()
@@ -198,7 +198,7 @@ void qt_core_eval_init(uint type)
 }
 #endif
 
-#ifdef QT_BUILD_GUI_LIB
+#ifdef QT_BUILD_WIDGETS_LIB
 
 QT_BEGIN_INCLUDE_NAMESPACE
 #include <qdialog.h>
@@ -464,7 +464,7 @@ public:
         QFrame *border = new QFrame(this);
 
         QLabel *pixmap_label = new QLabel(border);
-        pixmap_label->setPixmap(qtlogo_eval_xpm);
+        pixmap_label->setPixmap(QPixmap(qtlogo_eval_xpm));
         pixmap_label->setAlignment(Qt::AlignTop);
 
         QLabel *text_label = new QLabel(str, border);

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -396,7 +396,6 @@ void tst_QAlgorithms::sortedList()
     QCOMPARE(list.at(5), 8);
 }
 
-Q_DECLARE_METATYPE(QList<int>)
 
 void tst_QAlgorithms::test_qLowerBound_data()
 {
@@ -615,7 +614,6 @@ void tst_QAlgorithms::stableSortTest()
     }
 }
 
-Q_DECLARE_METATYPE(QVector<int>)
 
 void tst_QAlgorithms::stableSortCorrectnessTest_data()
 {

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
@@ -195,7 +195,7 @@
     \fn void QAbstractSocket::disconnected()
 
     This signal is emitted when the socket has been disconnected.
-    
+
     \warning If you need to delete the sender() of this signal in a slot connected
     to it, use the \l{QObject::deleteLater()}{deleteLater()} function.
 
@@ -639,7 +639,7 @@ bool QAbstractSocketPrivate::initSocketLayer(QAbstractSocket::NetworkLayerProtoc
                socketEngine->errorString().toLatin1().constData());
 #endif
         socketError = socketEngine->error();
-	q->setErrorString(socketEngine->errorString());
+        q->setErrorString(socketEngine->errorString());
         return false;
     }
 

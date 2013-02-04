@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -65,7 +65,7 @@
 #include <qaccessible.h>
 #include <qaccessible2.h>
 #endif
-#ifndef QT_NO_GESTURE
+#ifndef QT_NO_GESTURES
 #  include <qscroller.h>
 #endif
 
@@ -1853,7 +1853,8 @@ void QAbstractItemView::mouseReleaseEvent(QMouseEvent *event)
         QStyleOptionViewItem option = d->viewOptions();
         if (d->pressedAlreadySelected)
             option.state |= QStyle::State_Selected;
-        if (style()->styleHint(QStyle::SH_ItemView_ActivateItemOnSingleClick, &option, this))
+        if ((model()->flags(index) & Qt::ItemIsEnabled)
+            && style()->styleHint(QStyle::SH_ItemView_ActivateItemOnSingleClick, &option, this))
             emit activated(index);
     }
 }

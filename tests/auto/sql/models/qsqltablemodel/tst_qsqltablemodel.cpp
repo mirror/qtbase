@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -49,7 +49,6 @@ const QString test(qTableName("test", __FILE__)),
                    test2(qTableName("test2", __FILE__)),
                    test3(qTableName("test3", __FILE__));
 
-Q_DECLARE_METATYPE(QModelIndex)
 
 class tst_QSqlTableModel : public QObject
 {
@@ -152,7 +151,6 @@ private:
 
 tst_QSqlTableModel::tst_QSqlTableModel()
 {
-    qRegisterMetaType<QModelIndex>("QModelIndex");
     dbs.open();
 }
 

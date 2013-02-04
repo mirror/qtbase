@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -2077,7 +2077,7 @@ void tst_QFtp::queueMoreCommandsInDoneSlot()
     this->ftp = &ftp;
     connect(&ftp, SIGNAL(done(bool)), this, SLOT(cdUpSlot(bool)));
 
-    ftp.connectToHost("ftp.qt.nokia.com");
+    ftp.connectToHost("ftp.qt-project.org");
     ftp.login();
     ftp.cd("qt");
     ftp.rmdir("qtest-removedir-noexist");

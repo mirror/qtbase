@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -153,6 +153,16 @@ bool macHasAccessToWindowsServer()
     return (sessionInfo & sessionHasGraphicAccess);
 }
 #endif
+
+// Make a widget frameless to prevent size constraints of title bars
+// from interfering (Windows).
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QWidget : public QObject
 {
@@ -399,6 +409,9 @@ private slots:
     void styleSheetPropagation();
 
     void destroyedSignal();
+
+    void keyboardModifiers();
+
 private:
     bool ensureScreenSize(int width, int height);
     QWidget *testWidget;
@@ -1966,6 +1979,7 @@ void tst_QWidget::showMaximized()
 
     {
         QWidget widget;
+        setFrameless(&widget);
         widget.setGeometry(0, 0, 10, 10);
         widget.showMaximized();
         QTRY_VERIFY(widget.size().width() > 20 && widget.size().height() > 20);
@@ -2029,8 +2043,6 @@ void tst_QWidget::showFullScreen()
     QVERIFY(layouted.isFullScreen());
 
     layouted.showFullScreen();
-    if (m_platform == QStringLiteral("windows"))
-        QEXPECT_FAIL("", "QTBUG-26424", Continue);
     QVERIFY(!layouted.isMinimized());
     QVERIFY(layouted.isFullScreen());
     QVERIFY(layouted.isVisible());
@@ -2077,6 +2089,7 @@ void tst_QWidget::resizeEvent()
 {
     {
         QWidget wParent;
+        wParent.resize(200, 200);
         ResizeWidget wChild(&wParent);
         wParent.show();
         QCOMPARE (wChild.m_resizeEventCount, 1); // initial resize event before paint
@@ -2092,6 +2105,7 @@ void tst_QWidget::resizeEvent()
 
     {
         ResizeWidget wTopLevel;
+        wTopLevel.resize(200, 200);
         wTopLevel.show();
         QCOMPARE (wTopLevel.m_resizeEventCount, 1); // initial resize event before paint for toplevels
         wTopLevel.hide();
@@ -2179,6 +2193,7 @@ void tst_QWidget::showMinimizedKeepsFocus()
     //testing deletion of the focusWidget
     {
         QWidget window;
+        window.resize(200, 200);
         QWidget *child = new QWidget(&window);
         child->setFocusPolicy(Qt::StrongFocus);
         window.show();
@@ -2196,6 +2211,7 @@ void tst_QWidget::showMinimizedKeepsFocus()
     //testing reparenting the focus widget
     {
         QWidget window;
+        window.resize(200, 200);
         QWidget *child = new QWidget(&window);
         child->setFocusPolicy(Qt::StrongFocus);
         window.show();
@@ -2213,6 +2229,7 @@ void tst_QWidget::showMinimizedKeepsFocus()
     //testing setEnabled(false)
     {
         QWidget window;
+        window.resize(200, 200);
         QWidget *child = new QWidget(&window);
         child->setFocusPolicy(Qt::StrongFocus);
         window.show();
@@ -2230,6 +2247,7 @@ void tst_QWidget::showMinimizedKeepsFocus()
     //testing clearFocus
     {
         QWidget window;
+        window.resize(200, 200);
         QWidget *firstchild = new QWidget(&window);
         firstchild->setFocusPolicy(Qt::StrongFocus);
         QWidget *child = new QWidget(&window);
@@ -4308,8 +4326,6 @@ void tst_QWidget::qobject_castInDestroyedSlot()
     QVERIFY(checker.wasQWidget == true);
 }
 
-Q_DECLARE_METATYPE(QList<QRect>)
-
 // Since X11 WindowManager operations are all async, and we have no way to know if the window
 // manager has finished playing with the window geometry, this test can't be reliable on X11.
 
@@ -4500,6 +4516,7 @@ void tst_QWidget::setWindowGeometry()
 void tst_QWidget::setGeometry_win()
 {
     QWidget widget;
+    setFrameless(&widget);
     widget.setGeometry(0, 600, 100,100);
     widget.show();
     widget.setWindowState(widget.windowState() | Qt::WindowMaximized);
@@ -5726,6 +5743,7 @@ void tst_QWidget::childEvents()
     {
         // no children created, not shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -5745,6 +5763,7 @@ void tst_QWidget::childEvents()
     {
         // no children, shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -5785,6 +5804,7 @@ void tst_QWidget::childEvents()
     {
         // 2 children, not shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -5820,6 +5840,7 @@ void tst_QWidget::childEvents()
     {
         // 2 children, widget shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -5876,6 +5897,7 @@ void tst_QWidget::childEvents()
     {
         // 2 children, but one is reparented away, not shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -5912,6 +5934,7 @@ void tst_QWidget::childEvents()
     {
         // 2 children, but one is reparented away, then widget is shown
         QWidget widget;
+        widget.resize(200, 200);
         EventRecorder spy;
         widget.installEventFilter(&spy);
 
@@ -7090,8 +7113,6 @@ void tst_QWidget::updateWhileMinimized()
     // Make sure update requests are discarded until the widget is shown again.
     widget.update(0, 0, 50, 50);
     QTest::qWait(10);
-    if (m_platform == QStringLiteral("windows"))
-        QEXPECT_FAIL("", "QTBUG-26424", Continue);
     QCOMPARE(widget.numPaintEvents, 0);
 
     // Restore window.
@@ -7327,6 +7348,7 @@ void tst_QWidget::alienWidgets()
         QWidget *toolBar = new QWidget(&mainWindow);
         QWidget *dockWidget = new QWidget(&mainWindow);
         QWidget *centralWidget = new QWidget(&mainWindow);
+        centralWidget->setMinimumSize(QSize(200, 200));
 
         QWidget *button = new QWidget(centralWidget);
         QWidget *mdiArea = new QWidget(centralWidget);
@@ -7843,6 +7865,7 @@ void tst_QWidget::immediateRepaintAfterInvalidateBuffer()
 void tst_QWidget::effectiveWinId()
 {
     QWidget parent;
+    parent.resize(200, 200);
     QWidget child(&parent);
 
     // Shouldn't crash.
@@ -10000,6 +10023,29 @@ void tst_QWidget::taskQTBUG_27643_enterEvents()
     QCOMPARE(dialog.enters, 1);
 }
 #endif // QTEST_NO_CURSOR
+
+class KeyboardWidget : public QWidget
+{
+public:
+    KeyboardWidget(QWidget* parent = 0) : QWidget(parent), m_eventCounter(0) {}
+    virtual void mousePressEvent(QMouseEvent* ev) Q_DECL_OVERRIDE {
+        m_modifiers = ev->modifiers();
+        m_appModifiers = QApplication::keyboardModifiers();
+        ++m_eventCounter;
+    }
+    Qt::KeyboardModifiers m_modifiers;
+    Qt::KeyboardModifiers m_appModifiers;
+    int m_eventCounter;
+};
+
+void tst_QWidget::keyboardModifiers()
+{
+    KeyboardWidget* w = new KeyboardWidget;
+    QTest::mouseClick(w, Qt::LeftButton, Qt::ControlModifier);
+    QCOMPARE(w->m_eventCounter, 1);
+    QCOMPARE(int(w->m_modifiers), int(Qt::ControlModifier));
+    QCOMPARE(int(w->m_appModifiers), int(Qt::ControlModifier));
+}
 
 QTEST_MAIN(tst_QWidget)
 #include "tst_qwidget.moc"

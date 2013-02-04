@@ -46,7 +46,6 @@
 #include <jni.h>
 #include <qevent.h>
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 class QAndroidInputContext: public QPlatformInputContext
@@ -127,6 +126,5 @@ private:
 };
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif // ANDROIDINPUTCONTEXT_H

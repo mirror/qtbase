@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -44,7 +44,7 @@
 #include <QtWidgets>
 #include <QGLWidget>
 
-class QGLShaderProgram;
+QT_FORWARD_DECLARE_CLASS(QGLShaderProgram);
 
 class GLWidget : public QGLWidget
 {

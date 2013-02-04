@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -69,6 +69,14 @@
         } \
         QCOMPARE(expr, expected); \
     } while(0)
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class TestView : public QAbstractItemView
 {
@@ -228,6 +236,7 @@ private slots:
     void testClickedSignal();
     void testChangeEditorState();
     void deselectInSingleSelection();
+    void testNoActivateOnDisabledItem();
 };
 
 class MyAbstractItemDelegate : public QAbstractItemDelegate
@@ -622,6 +631,7 @@ void tst_QAbstractItemView::noModel()
 
     QStandardItemModel model(20,20);
     QTreeView view;
+    setFrameless(&view);
 
     view.setModel(&model);
     // Make the viewport smaller than the contents, so that we can scroll
@@ -990,7 +1000,6 @@ public:
 };
 
 typedef QList<int> IntList;
-Q_DECLARE_METATYPE(IntList)
 
 void tst_QAbstractItemView::setItemDelegate_data()
 {
@@ -1632,6 +1641,29 @@ void tst_QAbstractItemView::deselectInSingleSelection()
     QTest::keyClick(&view, Qt::Key_Space, Qt::ControlModifier);
     QCOMPARE(view.currentIndex(), index22);
     QCOMPARE(view.selectionModel()->selectedIndexes().count(), 1);
+}
+
+void tst_QAbstractItemView::testNoActivateOnDisabledItem()
+{
+    QTreeView treeView;
+    QStandardItemModel model(1, 1);
+    QStandardItem *item = new QStandardItem("item");
+    model.setItem(0, 0, item);
+    item->setFlags(Qt::NoItemFlags);
+    treeView.setModel(&model);
+    treeView.show();
+
+    QApplication::setActiveWindow(&treeView);
+    QVERIFY(QTest::qWaitForWindowActive(&treeView));
+
+    QSignalSpy activatedSpy(&treeView, SIGNAL(activated(QModelIndex)));
+
+    // Ensure clicking on a disabled item doesn't emit itemActivated.
+    QModelIndex itemIndex = treeView.model()->index(0, 0);
+    QPoint clickPos = treeView.visualRect(itemIndex).center();
+    QTest::mouseClick(treeView.viewport(), Qt::LeftButton, 0, clickPos);
+
+    QCOMPARE(activatedSpy.count(), 0);
 }
 
 QTEST_MAIN(tst_QAbstractItemView)

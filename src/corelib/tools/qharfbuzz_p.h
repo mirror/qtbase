@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -54,8 +54,7 @@
 #define QHARFBUZZ_P_H
 
 #include <QtCore/qchar.h>
-
-#include <harfbuzz-shaper.h>
+#include <private/harfbuzz-shaper.h>
 
 QT_BEGIN_NAMESPACE
 

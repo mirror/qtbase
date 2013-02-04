@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -4213,6 +4213,7 @@ QImage QImage::mirrored(bool horizontal, bool vertical) const
 
     result.d->colortable = d->colortable;
     result.d->has_alpha_clut = d->has_alpha_clut;
+    result.d->devicePixelRatio = d->devicePixelRatio;
 
     if (depth() == 1)
         w = (w+7)/8;

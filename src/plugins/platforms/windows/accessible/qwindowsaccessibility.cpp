@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -48,6 +48,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qpair.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qsettings.h>
 #include <QtGui/qaccessible.h>
 #include <QtGui/qaccessible2.h>
@@ -87,9 +88,8 @@
 
 
 // This stuff is used for widgets/items with no window handle:
-typedef QMap<int, QPair<QObject*,int> > NotifyMap;
+typedef QMap<int, QPair<QPointer<QObject>,int> > NotifyMap;
 Q_GLOBAL_STATIC(NotifyMap, qAccessibleRecentSentEvents)
-
 
 QT_BEGIN_NAMESPACE
 
@@ -179,17 +179,30 @@ void QWindowsAccessibility::notifyAccessibilityUpdate(QAccessibleEvent *event)
     }
 
     QPlatformNativeInterface *platform = QGuiApplication::platformNativeInterface();
+    if (!window->handle()) // Called before show(), no native window yet.
+        return;
     HWND hWnd = (HWND)platform->nativeResourceForWindow("handle", window);
 
     static int eventNum = 0;
-    if (event->type() != QAccessible::MenuCommand) { // MenuCommand is faked
-        // See comment "SENDING EVENTS TO OBJECTS WITH NO WINDOW HANDLE"
+    if (event->type() != QAccessible::MenuCommand && // MenuCommand is faked
+        event->type() != QAccessible::ObjectDestroyed) {
+        /* In some rare occasions, the server (Qt) might get a ::get_accChild call with a
+           childId that references an entry in the cache where there was a dangling
+           QObject-pointer. Previously we crashed on this.
+
+           There is no point in actually notifying the AT client that the object got destroyed,
+           because the AT client won't query for get_accChild if the event is ObjectDestroyed
+           anyway, and we have no other way of mapping the eventId argument to the actual
+           child/descendant object. (Firefox seems to simply completely ignore
+           EVENT_OBJECT_DESTROY).
+
+           We therefore guard each QObject in the cache with a QPointer, and only notify the AT
+           client if the type is not ObjectDestroyed.
+        */
         eventNum %= 50;              //[0..49]
         int eventId = - (eventNum - 1);
-
-        qAccessibleRecentSentEvents()->insert(eventId, qMakePair(event->object(), event->child()));
-        ::NotifyWinEvent(event->type(), hWnd, OBJID_CLIENT, eventId );
-
+        qAccessibleRecentSentEvents()->insert(eventId, qMakePair(QPointer<QObject>(event->object()), event->child()));
+        ::NotifyWinEvent(event->type(), hWnd, OBJID_CLIENT, eventId);
         ++eventNum;
     }
 #endif // Q_OS_WINCE
@@ -233,7 +246,8 @@ IAccessible *QWindowsAccessibility::wrap(QAccessibleInterface *acc)
 */
 QPair<QObject*, int> QWindowsAccessibility::getCachedObject(int entryId)
 {
-    return qAccessibleRecentSentEvents()->value(entryId);
+    QPair<QPointer<QObject>, int> pair = qAccessibleRecentSentEvents()->value(entryId);
+    return qMakePair(pair.first.data(), pair.second);
 }
 
 /*
@@ -258,7 +272,7 @@ bool QWindowsAccessibility::handleAccessibleObjectFromWindowRequest(HWND hwnd, W
 {
     if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId)) {
         /* For UI Automation */
-    } else if ((DWORD)lParam == OBJID_CLIENT) {
+    } else if ((DWORD)lParam == DWORD(OBJID_CLIENT)) {
 #if 1
         // Ignoring all requests while starting up
         // ### Maybe QPA takes care of this???

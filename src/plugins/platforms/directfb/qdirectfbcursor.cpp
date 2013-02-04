@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -47,17 +47,21 @@ QT_BEGIN_NAMESPACE
 QDirectFBCursor::QDirectFBCursor(QPlatformScreen *screen)
     : m_screen(screen)
 {
+#ifndef QT_NO_CURSOR
     m_image.reset(new QPlatformCursorImage(0, 0, 0, 0, 0, 0));
+#endif
 }
 
+#ifndef QT_NO_CURSOR
 void QDirectFBCursor::changeCursor(QCursor *cursor, QWindow *)
 {
     int xSpot;
     int ySpot;
     QPixmap map;
 
-    if (cursor->shape() != Qt::BitmapCursor) {
-        m_image->set(cursor->shape());
+    const Qt::CursorShape newShape = cursor ? cursor->shape() : Qt::ArrowCursor;
+    if (newShape != Qt::BitmapCursor) {
+        m_image->set(newShape);
         xSpot = m_image->hotspot().x();
         ySpot = m_image->hotspot().y();
         QImage *i = m_image->image();
@@ -82,5 +86,6 @@ void QDirectFBCursor::changeCursor(QCursor *cursor, QWindow *)
     layer->SetCursorShape(layer, surface, xSpot, ySpot);
     layer->SetCooperativeLevel(layer, DLSCL_SHARED);
 }
+#endif
 
 QT_END_NAMESPACE

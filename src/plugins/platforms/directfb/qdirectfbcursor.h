@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -56,10 +56,14 @@ class QDirectFBCursor : public QPlatformCursor
 {
 public:
     QDirectFBCursor(QPlatformScreen *screen);
+#ifndef QT_NO_CURSOR
     void changeCursor(QCursor *cursor, QWindow *window);
+#endif
 
 private:
+#ifndef QT_NO_CURSOR
     QScopedPointer<QPlatformCursorImage> m_image;
+#endif
     QPlatformScreen *m_screen;
 };
 

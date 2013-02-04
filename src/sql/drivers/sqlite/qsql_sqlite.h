@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -44,7 +44,6 @@
 
 #include <QtSql/qsqldriver.h>
 #include <QtSql/qsqlresult.h>
-#include <QtSql/private/qsqlcachedresult_p.h>
 
 struct sqlite3;
 
@@ -54,37 +53,15 @@ struct sqlite3;
 #define Q_EXPORT_SQLDRIVER_SQLITE Q_SQL_EXPORT
 #endif
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
+
+#if 0
+#pragma qt_no_master_include
+#pragma qt_sync_stop_processing
+#endif
+
 class QSQLiteDriverPrivate;
-class QSQLiteResultPrivate;
 class QSQLiteDriver;
-
-class QSQLiteResult : public QSqlCachedResult
-{
-    friend class QSQLiteDriver;
-    friend class QSQLiteResultPrivate;
-public:
-    explicit QSQLiteResult(const QSQLiteDriver* db);
-    ~QSQLiteResult();
-    QVariant handle() const;
-
-protected:
-    bool gotoNext(QSqlCachedResult::ValueCache& row, int idx);
-    bool reset(const QString &query);
-    bool prepare(const QString &query);
-    bool exec();
-    int size();
-    int numRowsAffected();
-    QVariant lastInsertId() const;
-    QSqlRecord record() const;
-    void detachFromResultSet();
-    void virtual_hook(int id, void *data);
-
-private:
-    QSQLiteResultPrivate* d;
-};
 
 class Q_EXPORT_SQLDRIVER_SQLITE QSQLiteDriver : public QSqlDriver
 {
@@ -118,7 +95,5 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QSQL_SQLITE_H

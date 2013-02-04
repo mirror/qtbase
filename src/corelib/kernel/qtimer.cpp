@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -62,9 +62,9 @@ QT_BEGIN_NAMESPACE
     Example for a one second (1000 millisecond) timer (from the
     \l{widgets/analogclock}{Analog Clock} example):
 
-    \snippet widgets/analogclock/analogclock.cpp 4
-    \snippet widgets/analogclock/analogclock.cpp 5
-    \snippet widgets/analogclock/analogclock.cpp 6
+    \snippet ../widgets/widgets/analogclock/analogclock.cpp 4
+    \snippet ../widgets/widgets/analogclock/analogclock.cpp 5
+    \snippet ../widgets/widgets/analogclock/analogclock.cpp 6
 
     From then on, the \c update() slot is called every second.
 

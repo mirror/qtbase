@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -135,7 +135,7 @@ public:
 
     const QSharedPointer<QWindowsFontEngineData> &fontEngineData() const { return m_fontEngineData; }
 
-    // Properties accessed by QWin32PrintEngine (QtPrintSupport)
+    // Properties accessed by QWin32PrintEngine (Qt Print Support)
     LOGFONT logFont() const { return m_logfont; }
     HFONT hFont() const     { return hfont; }
     bool trueType() const   { return ttf; }

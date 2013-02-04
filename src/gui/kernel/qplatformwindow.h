@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -59,8 +59,6 @@
 #include <qpa/qplatformopenglcontext.h>
 #include <qpa/qplatformsurface.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -115,7 +113,6 @@ public:
     virtual void requestActivateWindow();
 
     virtual void handleContentOrientationChange(Qt::ScreenOrientation orientation);
-    virtual Qt::ScreenOrientation requestWindowOrientation(Qt::ScreenOrientation orientation);
 
     virtual qreal devicePixelRatio() const;
 
@@ -139,5 +136,4 @@ private:
 
 QT_END_NAMESPACE
 
-QT_END_HEADER
 #endif //QPLATFORMWINDOW_H

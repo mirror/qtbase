@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -42,6 +42,9 @@
 #define WINDOW_H
 
 #include <QSystemTrayIcon>
+
+#ifndef QT_NO_SYSTEMTRAYICON
+
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE
@@ -108,5 +111,7 @@ private:
     QMenu *trayIconMenu;
 };
 //! [0]
+
+#endif // QT_NO_SYSTEMTRAYICON
 
 #endif

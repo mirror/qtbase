@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -120,10 +120,6 @@ void tst_QDirModel::getSetCheck()
     obj1.setLazyChildCount(true);
     QCOMPARE(true, obj1.lazyChildCount());
 }
-
-
-Q_DECLARE_METATYPE(QModelIndex)
-Q_DECLARE_METATYPE(QModelIndexList)
 
 void tst_QDirModel::cleanupTestCase()
 {
@@ -464,7 +460,6 @@ void tst_QDirModel::rowsAboutToBeRemoved()
     QDirModel model;
     model.setReadOnly(false);
 
-    qRegisterMetaType<QModelIndex>("QModelIndex");
 
     // NOTE: QDirModel will call refresh() when a file is removed. refresh() will reread the entire directory,
     // and emit layoutAboutToBeChanged and layoutChange. So, instead of checking for

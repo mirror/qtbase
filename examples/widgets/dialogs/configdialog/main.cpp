@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     Q_INIT_RESOURCE(configdialog);
 
     QApplication app(argc, argv);
+    app.setApplicationDisplayName("Qt Example");
     ConfigDialog dialog;
     return dialog.exec();
 }

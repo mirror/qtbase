@@ -269,10 +269,16 @@ void QQnxWindow::setVisible(bool visible)
 
     root->updateVisibility(root->m_visible);
 
-    window()->requestActivateWindow();
+    window()->requestActivate();
 
-    if (window()->isTopLevel() && visible)
-        QWindowSystemInterface::handleExposeEvent(window(), window()->geometry());
+    if (window()->isTopLevel()) {
+        if (visible) {
+            QWindowSystemInterface::handleExposeEvent(window(), window()->geometry());
+        } else {
+            // Flush the context, otherwise it won't disappear immediately
+            screen_flush_context(m_screenContext, 0);
+        }
+    }
 }
 
 void QQnxWindow::updateVisibility(bool parentVisible)
@@ -511,8 +517,8 @@ void QQnxWindow::setScreen(QQnxScreen *platformScreen)
 
     Q_FOREACH (QQnxWindow *childWindow, m_childWindows) {
         // Only subwindows and tooltips need necessarily be moved to another display with the window.
-        if ((window()->windowType() & Qt::WindowType_Mask) == Qt::SubWindow ||
-            (window()->windowType() & Qt::WindowType_Mask) == Qt::ToolTip)
+        if ((window()->type() & Qt::WindowType_Mask) == Qt::SubWindow ||
+            (window()->type() & Qt::WindowType_Mask) == Qt::ToolTip)
             childWindow->setScreen(platformScreen);
     }
 

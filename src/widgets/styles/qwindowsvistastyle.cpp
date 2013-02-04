@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -181,6 +181,24 @@ QStyleOption *clonedAnimationStyleOption(const QStyleOption*option) {
     return styleOption;
 }
 
+/* \internal
+    Used by animations to delete cloned styleoption
+*/
+void deleteClonedAnimationStyleOption(const QStyleOption *option)
+{
+    if (const QStyleOptionSlider *slider = qstyleoption_cast<const QStyleOptionSlider*>(option))
+        delete slider;
+    else if (const QStyleOptionSpinBox *spinbox = qstyleoption_cast<const QStyleOptionSpinBox*>(option))
+        delete spinbox;
+    else if (const QStyleOptionGroupBox *groupBox = qstyleoption_cast<const QStyleOptionGroupBox*>(option))
+        delete groupBox;
+    else if (const QStyleOptionComboBox *combo = qstyleoption_cast<const QStyleOptionComboBox*>(option))
+        delete combo;
+    else if (const QStyleOptionButton *button = qstyleoption_cast<const QStyleOptionButton*>(option))
+        delete button;
+    else
+        delete option;
+}
 
 /*!
   \class QWindowsVistaStyle
@@ -411,7 +429,7 @@ void QWindowsVistaStyle::drawPrimitive(PrimitiveElement element, const QStyleOpt
                     }
                     t->setStartTime(QTime::currentTime());
 
-                    delete styleOption;
+                    deleteClonedAnimationStyleOption(styleOption);
                     d->startAnimation(t);
                 }
                 styleObject->setProperty("_q_no_animation", false);
@@ -502,29 +520,33 @@ void QWindowsVistaStyle::drawPrimitive(PrimitiveElement element, const QStyleOpt
         }
         break;
     case PE_Frame: {
-        painter->save();
-        int stateId = ETS_NORMAL;
-        if (!(state & State_Enabled))
-            stateId = ETS_DISABLED;
-        else if (state & State_ReadOnly)
-            stateId = ETS_READONLY;
-        else if (state & State_HasFocus)
-            stateId = ETS_SELECTED;
-        XPThemeData theme(widget, painter,
-                          QWindowsXPStylePrivate::EditTheme,
-                          EP_EDITBORDER_HVSCROLL, stateId, option->rect);
-        uint resolve_mask = option->palette.resolve();
-        if (resolve_mask & (1 << QPalette::Base)) {
-            // Since EP_EDITBORDER_HVSCROLL does not us borderfill, theme.noContent cannot be used for clipping
-            int borderSize = 1;
-            pGetThemeInt(theme.handle(), theme.partId, theme.stateId, TMT_BORDERSIZE, &borderSize);
-            QRegion clipRegion = option->rect;
-            QRegion content = option->rect.adjusted(borderSize, borderSize, -borderSize, -borderSize);
-            clipRegion ^= content;
-            painter->setClipRegion(clipRegion);
+        if (QStyleHelper::isInstanceOf(option->styleObject, QAccessible::EditableText)) {
+            painter->save();
+            int stateId = ETS_NORMAL;
+            if (!(state & State_Enabled))
+                stateId = ETS_DISABLED;
+            else if (state & State_ReadOnly)
+                stateId = ETS_READONLY;
+            else if (state & State_HasFocus)
+                stateId = ETS_SELECTED;
+            XPThemeData theme(widget, painter,
+                              QWindowsXPStylePrivate::EditTheme,
+                              EP_EDITBORDER_HVSCROLL, stateId, option->rect);
+            uint resolve_mask = option->palette.resolve();
+            if (resolve_mask & (1 << QPalette::Base)) {
+                // Since EP_EDITBORDER_HVSCROLL does not us borderfill, theme.noContent cannot be used for clipping
+                int borderSize = 1;
+                pGetThemeInt(theme.handle(), theme.partId, theme.stateId, TMT_BORDERSIZE, &borderSize);
+                QRegion clipRegion = option->rect;
+                QRegion content = option->rect.adjusted(borderSize, borderSize, -borderSize, -borderSize);
+                clipRegion ^= content;
+                painter->setClipRegion(clipRegion);
+            }
+            d->drawBackground(theme);
+            painter->restore();
+        } else {
+            QWindowsXPStyle::drawPrimitive(element, option, painter, widget);
         }
-        d->drawBackground(theme);
-        painter->restore();
     }
     break;
 
@@ -936,7 +958,7 @@ void QWindowsVistaStyle::drawControl(ControlElement element, const QStyleOption 
                 t->setStartTime(QTime::currentTime());
                 styleObject->setProperty("_q_no_animation", false);
 
-                delete styleOption;
+                deleteClonedAnimationStyleOption(styleOption);
                 d->startAnimation(t);
             }
 
@@ -1559,7 +1581,7 @@ void QWindowsVistaStyle::drawComplexControl(ComplexControl control, const QStyle
             bool doTransition = ((state & State_Sunken)     != (oldState & State_Sunken)    ||
                                  (state & State_On)         != (oldState & State_On)        ||
                                  (state & State_MouseOver)  != (oldState & State_MouseOver) ||
-                                  oldActiveControls         != option->activeSubControls);
+                                  oldActiveControls         != int(option->activeSubControls));
 
             if (qstyleoption_cast<const QStyleOptionSlider *>(option)) {
                 QRect oldSliderPos = styleObject->property("_q_stylesliderpos").toRect();
@@ -1623,7 +1645,7 @@ void QWindowsVistaStyle::drawComplexControl(ComplexControl control, const QStyle
                 else
                     t->setDuration(500);
 
-                delete styleOption;
+                deleteClonedAnimationStyleOption(styleOption);
                 d->startAnimation(t);
             }
             if (QWindowsVistaAnimation *anim = qobject_cast<QWindowsVistaAnimation *>(d->animation(styleObject))) {

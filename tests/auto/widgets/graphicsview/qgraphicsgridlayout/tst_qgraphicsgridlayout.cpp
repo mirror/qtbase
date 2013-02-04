@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -309,7 +309,6 @@ typedef QList<ItemDesc> ItemList;
 Q_DECLARE_METATYPE(ItemList);
 
 typedef QList<QSizeF> SizeList;
-Q_DECLARE_METATYPE(SizeList);
 
 
 // This will be called before the first test function is executed.
@@ -2223,7 +2222,6 @@ void tst_QGraphicsGridLayout::defaultStretchFactors()
 }
 
 typedef QList<QRectF> RectList;
-Q_DECLARE_METATYPE(RectList);
 
 void tst_QGraphicsGridLayout::alignment2_data()
 {

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -381,15 +381,15 @@ void QDocIndexFiles::readIndexSection(const QDomElement& element,
             location = Location(parent->name().toLower() + ".html");
     }
     else if (element.nodeName() == "keyword") {
-        qdb_->insertTarget(name, parent,1);
+        qdb_->insertTarget(name, TargetRec::Keyword, parent, 1);
         return;
     }
     else if (element.nodeName() == "target") {
-        qdb_->insertTarget(name, parent,2);
+        qdb_->insertTarget(name, TargetRec::Target, parent, 2);
         return;
     }
     else if (element.nodeName() == "contents") {
-        qdb_->insertTarget(name, parent,3);
+        qdb_->insertTarget(name, TargetRec::Contents, parent, 3);
         return;
     }
     else
@@ -555,7 +555,10 @@ bool QDocIndexFiles::generateIndexSection(QXmlStreamWriter& writer,
                                           Node* node,
                                           bool generateInternalNodes)
 {
-    if (node->subType() == Node::DitaMap)
+    /*
+      Don't include index nodes in a new index file. Or DITA map nodes.
+     */
+    if (node->isIndexNode() || node->subType() == Node::DitaMap)
         return false;
 
     QString nodeName;

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -43,8 +43,6 @@
 #define QMESSAGEBOX_H
 
 #include <QtWidgets/qdialog.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -292,7 +290,7 @@ public:
 Q_SIGNALS:
     void buttonClicked(QAbstractButton *button);
 
-#ifdef qdoc
+#ifdef Q_QDOC
 public Q_SLOTS:
     int exec();
 #endif
@@ -332,7 +330,5 @@ str)).arg(QString::fromLatin1(qVersion())); QMessageBox::critical(0, QApplicatio
 #endif // QT_NO_MESSAGEBOX
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QMESSAGEBOX_H

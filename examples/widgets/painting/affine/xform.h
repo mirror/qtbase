@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the demonstration applications of the Qt Toolkit.
@@ -116,7 +116,9 @@ signals:
 
 protected:
     void timerEvent(QTimerEvent *e);
+#ifndef QT_NO_WHEELEVENT
     void wheelEvent(QWheelEvent *);
+#endif
 
 private:
     QPolygonF ctrlPoints;

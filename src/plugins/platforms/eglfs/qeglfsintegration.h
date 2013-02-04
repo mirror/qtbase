@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -48,8 +48,6 @@
 #include <qpa/qplatformnativeinterface.h>
 #include <qpa/qplatformscreen.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 class QEglFSIntegration : public QPlatformIntegration, public QPlatformNativeInterface
@@ -76,6 +74,7 @@ public:
     void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
 
     QPlatformScreen *screen() const { return mScreen; }
+    static EGLConfig chooseConfig(EGLDisplay display, const QSurfaceFormat &format);
 
 private:
     EGLDisplay mDisplay;
@@ -85,6 +84,5 @@ private:
 };
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif // QEGLFSINTEGRATION_H

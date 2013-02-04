@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -69,8 +69,6 @@ quint64 spiStatesFromQState(QAccessible::State state)
 
     if (state.disabled) {
         unsetSpiStateBit(&spiState, ATSPI_STATE_ENABLED);
-        unsetSpiStateBit(&spiState, ATSPI_STATE_SHOWING);
-        unsetSpiStateBit(&spiState, ATSPI_STATE_VISIBLE);
         unsetSpiStateBit(&spiState, ATSPI_STATE_SENSITIVE);
     }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -44,7 +44,6 @@
 #include <qgraphicsitem.h>
 #include <qpen.h>
 
-Q_DECLARE_METATYPE(QPolygonF)
 
 class tst_QGraphicsPolygonItem : public QObject
 {
@@ -292,7 +291,6 @@ void tst_QGraphicsPolygonItem::shape()
     QCOMPARE(item.shape(), shape);
 }
 
-Q_DECLARE_METATYPE(QVariant)
 void tst_QGraphicsPolygonItem::extension_data()
 {
     QTest::addColumn<QVariant>("variant");

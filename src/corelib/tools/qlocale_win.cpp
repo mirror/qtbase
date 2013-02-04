@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -113,8 +113,6 @@ struct QSystemLocalePrivate
     void update();
 
 private:
-    QByteArray langEnvVar;
-
     enum SubstitutionType {
         SUnknown,
         SContext,
@@ -142,7 +140,6 @@ Q_GLOBAL_STATIC(QSystemLocalePrivate, systemLocalePrivate)
 QSystemLocalePrivate::QSystemLocalePrivate()
     : substitutionType(SUnknown)
 {
-    langEnvVar = qgetenv("LANG");
     lcid = GetUserDefaultLCID();
 }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -60,6 +60,7 @@
 #include <QtNetwork/QAbstractNetworkCache>
 #include <QtNetwork/qauthenticator.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkdiskcache.h>
 #include <QtNetwork/qnetworkrequest.h>
 #include <QtNetwork/qnetworkreply.h>
 #include <QtNetwork/qnetworkcookie.h>
@@ -92,12 +93,8 @@ Q_DECLARE_METATYPE(QSharedPointer<char>)
 
 #include "../../../network-settings.h"
 
-Q_DECLARE_METATYPE(QNetworkReply*)
 Q_DECLARE_METATYPE(QAuthenticator*)
 Q_DECLARE_METATYPE(QNetworkProxyQuery)
-Q_DECLARE_METATYPE(QBuffer*)
-Q_DECLARE_METATYPE(QHttpMultiPart *)
-Q_DECLARE_METATYPE(QList<QFile*>) // for multiparts
 
 typedef QSharedPointer<QNetworkReply> QNetworkReplyPtr;
 
@@ -218,6 +215,18 @@ private Q_SLOTS:
     void postToHttpSynchronous();
     void postToHttpMultipart_data();
     void postToHttpMultipart();
+#ifndef QT_NO_SSL
+    void putToHttps_data();
+    void putToHttps();
+    void putToHttpsSynchronous_data();
+    void putToHttpsSynchronous();
+    void postToHttps_data();
+    void postToHttps();
+    void postToHttpsSynchronous_data();
+    void postToHttpsSynchronous();
+    void postToHttpsMultipart_data();
+    void postToHttpsMultipart();
+#endif
     void deleteFromHttp_data();
     void deleteFromHttp();
     void putGetDeleteGetFromHttp_data();
@@ -383,6 +392,8 @@ private Q_SLOTS:
     void qtbug27161httpHeaderMayBeDamaged_data();
     void qtbug27161httpHeaderMayBeDamaged();
 
+    void qtbug28035browserDoesNotLoadQtProjectOrgCorrectly();
+
     void synchronousRequest_data();
     void synchronousRequest();
 #ifndef QT_NO_SSL
@@ -512,6 +523,11 @@ public:
             thread->start();
             ready.acquire();
         }
+    }
+
+    void setDataToTransmit(const QByteArray &data)
+    {
+        dataToTransmit = data;
     }
 
 protected:
@@ -2399,6 +2415,210 @@ void tst_QNetworkReply::putToHttpMultipart()
 //    QEXPECT_FAIL("nested", "the server does not understand nested multipart messages", Continue); // see above
     QCOMPARE(replyData, expectedReplyData);
 }
+
+#ifndef QT_NO_SSL
+void tst_QNetworkReply::putToHttps_data()
+{
+    uniqueExtension = createUniqueExtension();
+    putToFile_data();
+}
+
+void tst_QNetworkReply::putToHttps()
+{
+    QUrl url("https://" + QtNetworkSettings::serverName());
+    url.setPath(QString("/dav/qnetworkaccess-putToHttp-%1-%2")
+                .arg(QTest::currentDataTag())
+                .arg(uniqueExtension));
+
+    QNetworkRequest request(url);
+    QList<QSslCertificate> certs = QSslCertificate::fromPath(testDataDir + "/certs/qt-test-server-cacert.pem");
+    QSslConfiguration conf;
+    conf.setCaCertificates(certs);
+    request.setSslConfiguration(conf);
+    QNetworkReplyPtr reply;
+
+    QFETCH(QByteArray, data);
+
+    RUN_REQUEST(runSimpleRequest(QNetworkAccessManager::PutOperation, request, reply, data));
+
+    QCOMPARE(reply->url(), url);
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 201); // 201 Created
+
+    // download the file again from HTTP to make sure it was uploaded
+    // correctly. HTTP/0.9 is enough
+    QTcpSocket socket;
+    socket.connectToHost(QtNetworkSettings::serverName(), 80);
+    socket.write("GET " + url.toEncoded(QUrl::RemoveScheme | QUrl::RemoveAuthority) + "\r\n");
+    if (!socket.waitForDisconnected(10000))
+        QFAIL("Network timeout");
+
+    QByteArray uploadedData = socket.readAll();
+    QCOMPARE(uploadedData, data);
+}
+
+void tst_QNetworkReply::putToHttpsSynchronous_data()
+{
+    uniqueExtension = createUniqueExtension();
+    putToFile_data();
+}
+
+void tst_QNetworkReply::putToHttpsSynchronous()
+{
+    QUrl url("https://" + QtNetworkSettings::serverName());
+    url.setPath(QString("/dav/qnetworkaccess-putToHttp-%1-%2")
+                .arg(QTest::currentDataTag())
+                .arg(uniqueExtension));
+
+    QNetworkRequest request(url);
+    QList<QSslCertificate> certs = QSslCertificate::fromPath(testDataDir + "/certs/qt-test-server-cacert.pem");
+    QSslConfiguration conf;
+    conf.setCaCertificates(certs);
+    request.setSslConfiguration(conf);
+    QNetworkReplyPtr reply;
+
+    QFETCH(QByteArray, data);
+
+    request.setAttribute(
+                QNetworkRequest::SynchronousRequestAttribute,
+                true);
+
+    RUN_REQUEST(runSimpleRequest(QNetworkAccessManager::PutOperation, request, reply, data));
+
+    QCOMPARE(reply->url(), url);
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 201); // 201 Created
+
+    // download the file again from HTTP to make sure it was uploaded
+    // correctly. HTTP/0.9 is enough
+    QTcpSocket socket;
+    socket.connectToHost(QtNetworkSettings::serverName(), 80);
+    socket.write("GET " + url.toEncoded(QUrl::RemoveScheme | QUrl::RemoveAuthority) + "\r\n");
+    if (!socket.waitForDisconnected(10000))
+        QFAIL("Network timeout");
+
+    QByteArray uploadedData = socket.readAll();
+    QCOMPARE(uploadedData, data);
+}
+
+void tst_QNetworkReply::postToHttps_data()
+{
+    putToFile_data();
+}
+
+void tst_QNetworkReply::postToHttps()
+{
+    QUrl url("https://" + QtNetworkSettings::serverName() + "/qtest/cgi-bin/md5sum.cgi");
+
+    QNetworkRequest request(url);
+    QList<QSslCertificate> certs = QSslCertificate::fromPath(testDataDir + "/certs/qt-test-server-cacert.pem");
+    QSslConfiguration conf;
+    conf.setCaCertificates(certs);
+    request.setSslConfiguration(conf);
+    request.setRawHeader("Content-Type", "application/octet-stream");
+    QNetworkReplyPtr reply;
+
+    QFETCH(QByteArray, data);
+
+    RUN_REQUEST(runSimpleRequest(QNetworkAccessManager::PostOperation, request, reply, data));
+
+    QCOMPARE(reply->url(), url);
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200); // 200 Ok
+
+    QFETCH(QByteArray, md5sum);
+    QByteArray uploadedData = reply->readAll().trimmed();
+    QCOMPARE(uploadedData, md5sum.toHex());
+}
+
+void tst_QNetworkReply::postToHttpsSynchronous_data()
+{
+    putToFile_data();
+}
+
+void tst_QNetworkReply::postToHttpsSynchronous()
+{
+    QUrl url("https://" + QtNetworkSettings::serverName() + "/qtest/cgi-bin/md5sum.cgi");
+
+    QNetworkRequest request(url);
+    QList<QSslCertificate> certs = QSslCertificate::fromPath(testDataDir + "/certs/qt-test-server-cacert.pem");
+    QSslConfiguration conf;
+    conf.setCaCertificates(certs);
+    request.setSslConfiguration(conf);
+    request.setRawHeader("Content-Type", "application/octet-stream");
+
+    request.setAttribute(
+                QNetworkRequest::SynchronousRequestAttribute,
+                true);
+
+    QNetworkReplyPtr reply;
+
+    QFETCH(QByteArray, data);
+
+    RUN_REQUEST(runSimpleRequest(QNetworkAccessManager::PostOperation, request, reply, data));
+
+    QCOMPARE(reply->url(), url);
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200); // 200 Ok
+
+    QFETCH(QByteArray, md5sum);
+    QByteArray uploadedData = reply->readAll().trimmed();
+    QCOMPARE(uploadedData, md5sum.toHex());
+}
+
+void tst_QNetworkReply::postToHttpsMultipart_data()
+{
+    postToHttpMultipart_data();
+}
+
+void tst_QNetworkReply::postToHttpsMultipart()
+{
+    QFETCH(QUrl, url);
+    url.setScheme("https");
+
+    static QSet<QByteArray> boundaries;
+
+    QNetworkRequest request(url);
+    QList<QSslCertificate> certs = QSslCertificate::fromPath(testDataDir + "/certs/qt-test-server-cacert.pem");
+    QSslConfiguration conf;
+    conf.setCaCertificates(certs);
+    request.setSslConfiguration(conf);
+    QNetworkReplyPtr reply;
+
+    QFETCH(QHttpMultiPart *, multiPart);
+    QFETCH(QByteArray, expectedReplyData);
+    QFETCH(QByteArray, contentType);
+
+    // hack for testing the setting of the content-type header by hand:
+    if (contentType == "custom") {
+        QByteArray contentType("multipart/custom; boundary=\"" + multiPart->boundary() + "\"");
+        request.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
+    }
+
+    QVERIFY2(! boundaries.contains(multiPart->boundary()), "boundary '" + multiPart->boundary() + "' has been created twice");
+    boundaries.insert(multiPart->boundary());
+
+    RUN_REQUEST(runMultipartRequest(request, reply, multiPart, "POST"));
+    multiPart->deleteLater();
+
+    QCOMPARE(reply->url(), url);
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+
+    QCOMPARE(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(), 200); // 200 Ok
+
+    QVERIFY(multiPart->boundary().count() > 20); // check that there is randomness after the "boundary_.oOo._" string
+    QVERIFY(multiPart->boundary().count() < 70);
+    QByteArray replyData = reply->readAll();
+
+    expectedReplyData.prepend("content type: multipart/" + contentType + "; boundary=\"" + multiPart->boundary() + "\"\n");
+    QCOMPARE(replyData, expectedReplyData);
+}
+
+#endif // QT_NO_SSL
 
 void tst_QNetworkReply::deleteFromHttp_data()
 {
@@ -6497,7 +6717,7 @@ void tst_QNetworkReply::qtbug27161httpHeaderMayBeDamaged_data(){
 
 /*
  * Purpose of this test is to check whether a content from server is parsed correctly
- * if it is splitted into two parts.
+ * if it is split into two parts.
  */
 void tst_QNetworkReply::qtbug27161httpHeaderMayBeDamaged(){
     QFETCH(QByteArray, firstPacket);
@@ -6518,6 +6738,123 @@ void tst_QNetworkReply::qtbug27161httpHeaderMayBeDamaged(){
     QCOMPARE(reply->rawHeader("Content-length"), QByteArray("3"));
     QCOMPARE(reply->rawHeader("Server"), QByteArray("bogus"));
     QCOMPARE(reply->readAll(), QByteArray("ABC"));
+}
+
+void tst_QNetworkReply::qtbug28035browserDoesNotLoadQtProjectOrgCorrectly() {
+    QByteArray getReply =
+            "HTTP/1.1 200\r\n"
+            "Connection: keep-alive\r\n"
+            "Content-Type: text/plain\r\n"
+            "Cache-control: max-age = 6000\r\n"
+            "\r\n"
+            "GET";
+
+    QByteArray postReply =
+            "HTTP/1.1 200\r\n"
+            "Connection: keep-alive\r\n"
+            "Content-Type: text/plain\r\n"
+            "Cache-control: max-age = 6000\r\n"
+            "Content-length: 4\r\n"
+            "\r\n"
+            "POST";
+
+    QByteArray putReply =
+            "HTTP/1.1 201\r\n"
+            "Connection: keep-alive\r\n"
+            "Content-Type: text/plain\r\n"
+            "Cache-control: max-age = 6000\r\n"
+            "\r\n";
+
+    QByteArray postData = "ACT=100";
+
+    QTemporaryDir tempDir(QDir::tempPath() + "/tmp_cache_28035");
+    tempDir.setAutoRemove(true);
+
+    QNetworkDiskCache *diskCache = new QNetworkDiskCache();
+    diskCache->setCacheDirectory(tempDir.path());
+    manager.setCache(diskCache);
+
+    MiniHttpServer server(getReply);
+
+    QNetworkRequest request(QUrl("http://localhost:" + QString::number(server.serverPort())));
+    QNetworkReplyPtr reply(manager.get(request));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), false);
+
+    server.setDataToTransmit(getReply);
+    reply.reset(manager.get(request));
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), true);
+
+    server.setDataToTransmit(postReply);
+    request.setRawHeader("Content-Type", "text/plain");
+    reply.reset(manager.post(request, postData));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->rawHeader("Content-length"), QByteArray("4"));
+    QCOMPARE(reply->readAll(), QByteArray("POST"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), false);
+
+    server.setDataToTransmit(getReply);
+    reply.reset(manager.get(request));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), false);
+
+    server.setDataToTransmit(getReply);
+    reply.reset(manager.get(request));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), true);
+
+    server.setDataToTransmit(putReply);
+    reply.reset(manager.put(request, postData));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), false);
+
+    server.setDataToTransmit(getReply);
+    reply.reset(manager.get(request));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), false);
+
+    server.setDataToTransmit(getReply);
+    reply.reset(manager.get(request));
+
+    QVERIFY(waitForFinish(reply) == Success);
+
+    QVERIFY(reply->isFinished());
+    QCOMPARE(reply->error(), QNetworkReply::NoError);
+    QCOMPARE(reply->readAll(), QByteArray("GET"));
+    QCOMPARE(reply->attribute(QNetworkRequest::SourceIsFromCacheAttribute).toBool(), true);
 }
 
 void tst_QNetworkReply::synchronousRequest_data()

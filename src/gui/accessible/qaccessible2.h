@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -44,8 +44,6 @@
 
 #include <QtGui/qaccessible.h>
 #include <QtCore/qcoreapplication.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -117,6 +115,7 @@ public:
     virtual void setCurrentValue(const QVariant &value) = 0;
     virtual QVariant maximumValue() const = 0;
     virtual QVariant minimumValue() const = 0;
+    virtual QVariant minimumStepSize() const = 0;
 };
 
 class Q_GUI_EXPORT QAccessibleTableCellInterface
@@ -232,7 +231,5 @@ public:
 #endif // QT_NO_ACCESSIBILITY
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

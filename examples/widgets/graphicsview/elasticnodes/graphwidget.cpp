@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -174,12 +174,14 @@ void GraphWidget::timerEvent(QTimerEvent *event)
 }
 //! [4]
 
+#ifndef QT_NO_WHEELEVENT
 //! [5]
 void GraphWidget::wheelEvent(QWheelEvent *event)
 {
     scaleView(pow((double)2, -event->delta() / 240.0));
 }
 //! [5]
+#endif
 
 //! [6]
 void GraphWidget::drawBackground(QPainter *painter, const QRectF &rect)

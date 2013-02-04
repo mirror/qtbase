@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1660,7 +1660,6 @@ Q_DECLARE_METATYPE(Operation *)
 Q_DECLARE_METATYPE(SetPage *)
 Q_DECLARE_METATYPE(SetStyle *)
 Q_DECLARE_METATYPE(SetOption *)
-Q_DECLARE_METATYPE(QList<Operation *>)
 
 class TestGroup
 {

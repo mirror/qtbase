@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -45,8 +45,6 @@
 #include <QtCore/qplugin.h>
 #include <QtCore/qfactoryinterface.h>
 #include <QtCore/qscopedpointer.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -114,6 +112,8 @@ private:
     Q_DISABLE_COPY(QImageIOHandler)
 };
 
+#ifndef QT_NO_IMAGEFORMATPLUGIN
+
 #define QImageIOHandlerFactoryInterface_iid "org.qt-project.Qt.QImageIOHandlerFactoryInterface"
 
 class Q_GUI_EXPORT QImageIOPlugin : public QObject
@@ -136,8 +136,8 @@ public:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QImageIOPlugin::Capabilities)
 
-QT_END_NAMESPACE
+#endif // QT_NO_IMAGEFORMATPLUGIN
 
-QT_END_HEADER
+QT_END_NAMESPACE
 
 #endif // QIMAGEIOHANDLER_H

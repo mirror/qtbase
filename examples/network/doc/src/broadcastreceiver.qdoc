@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,9 +28,11 @@
 /*!
     \example broadcastreceiver
     \title Broadcast Receiver Example
+    \ingroup examples-network
+    \brief Demonstrates how to receive information broadcasted over a local network.
 
-    \brief The Broadcast Receiver example shows how to receive information that is broadcasted
-    over a local network.
+    This example uses the Qt Network APIs to demonstrate how to receive
+    messages broadcasted over a local network.
 
     \image broadcastreceiver-example.png
 */

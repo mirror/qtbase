@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -461,6 +461,13 @@ public:
         qDebug() <<  "tst_Databases::blobTypeName: Don't know the blob type for" << dbToString( db );
 
         return "blob";
+    }
+
+    static QString dateTimeTypeName(QSqlDatabase db)
+    {
+        if (db.driverName().startsWith("QPSQL"))
+            return QLatin1String("timestamp");
+        return QLatin1String("datetime");
     }
 
     static QString autoFieldName( QSqlDatabase db )

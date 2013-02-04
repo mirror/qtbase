@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -46,14 +46,12 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qshareddata.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
 #ifndef QT_NO_PROCESS
 
-#if !defined(Q_OS_WIN) || defined(qdoc)
+#if !defined(Q_OS_WIN) || defined(Q_QDOC)
 typedef qint64 Q_PID;
 #else
 QT_END_NAMESPACE
@@ -211,7 +209,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void started(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
         QPrivateSignal
 #endif
     );
@@ -219,18 +217,18 @@ Q_SIGNALS:
     void finished(int exitCode, QProcess::ExitStatus exitStatus);
     void error(QProcess::ProcessError error);
     void stateChanged(QProcess::ProcessState state
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
         , QPrivateSignal
 #endif
     );
 
     void readyReadStandardOutput(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
         QPrivateSignal
 #endif
     );
     void readyReadStandardError(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
         QPrivateSignal
 #endif
     );
@@ -260,7 +258,5 @@ private:
 #endif // QT_NO_PROCESS
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QPROCESS_H

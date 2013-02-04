@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -249,7 +249,6 @@ void tst_QTextBrowser::viewportPositionInHistory()
 
 void tst_QTextBrowser::relativeLinks()
 {
-    qRegisterMetaType<QUrl>("QUrl");
     QSignalSpy sourceChangedSpy(browser, SIGNAL(sourceChanged(QUrl)));
     browser->setSource(QUrl("subdir/../qtextbrowser.html"));
     QVERIFY(!browser->document()->isEmpty());

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -830,6 +830,14 @@ QVariant QAccessibleProgressBar::maximumValue() const
 QVariant QAccessibleProgressBar::minimumValue() const
 {
     return progressBar()->minimum();
+}
+
+QVariant QAccessibleProgressBar::minimumStepSize() const
+{
+    // This is arbitrary since any value between min and max is valid.
+    // Some screen readers (orca use it to calculate how many digits to display though,
+    // so it makes sense to return a "sensible" value. Providing 100 increments seems ok.
+    return (progressBar()->maximum() - progressBar()->minimum()) / 100.0;
 }
 
 QProgressBar *QAccessibleProgressBar::progressBar() const

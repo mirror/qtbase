@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -382,7 +382,7 @@ void Win32MakefileGenerator::processRcFileVar()
     if (Option::qmake_mode == Option::QMAKE_GENERATE_NOTHING)
         return;
 
-    if (((!project->values("VERSION").isEmpty())
+    if (((!project->values("VERSION").isEmpty() || !project->values("RC_ICONS").isEmpty())
         && project->values("RC_FILE").isEmpty()
         && project->values("RES_FILE").isEmpty()
         && !project->isActiveConfig("no_generated_target_info")
@@ -392,10 +392,14 @@ void Win32MakefileGenerator::processRcFileVar()
         QByteArray rcString;
         QTextStream ts(&rcString, QFile::WriteOnly);
 
-        QStringList vers = project->first("VERSION").toQString().split(".");
+        QStringList vers = project->first("VERSION").toQString().split(".", QString::SkipEmptyParts);
         for (int i = vers.size(); i < 4; i++)
             vers += "0";
         QString versionString = vers.join('.');
+
+        QStringList rcIcons;
+        foreach (const ProString &icon, project->values("RC_ICONS"))
+            rcIcons.append(fileFixify(icon.toQString(), FileFixifyAbsolute));
 
         QString companyName;
         if (!project->values("QMAKE_TARGET_COMPANY").isEmpty())
@@ -425,6 +429,11 @@ void Win32MakefileGenerator::processRcFileVar()
         ts << "#  include <winver.h>" << endl;
         ts << "# endif" << endl;
         ts << endl;
+        if (!rcIcons.isEmpty()) {
+            for (int i = 0; i < rcIcons.size(); ++i)
+                ts << QString("IDI_ICON%1\tICON\tDISCARDABLE\t%2").arg(i + 1).arg(cQuoted(rcIcons[i])) << endl;
+            ts << endl;
+        }
         ts << "VS_VERSION_INFO VERSIONINFO" << endl;
         ts << "\tFILEVERSION " << QString(versionString).replace(".", ",") << endl;
         ts << "\tPRODUCTVERSION " << QString(versionString).replace(".", ",") << endl;
@@ -453,6 +462,7 @@ void Win32MakefileGenerator::processRcFileVar()
         ts << "\t\t\t\tVALUE \"LegalCopyright\", \"" << copyright << "\\0\"" << endl;
         ts << "\t\t\t\tVALUE \"OriginalFilename\", \"" << originalName << "\\0\"" << endl;
         ts << "\t\t\t\tVALUE \"ProductName\", \"" << productName << "\\0\"" << endl;
+        ts << "\t\t\t\tVALUE \"ProductVersion\", \"" << versionString << "\\0\"" << endl;
         ts << "\t\t\tEND" << endl;
         ts << "\t\tEND" << endl;
         ts << "\t\tBLOCK \"VarFileInfo\"" << endl;
@@ -460,10 +470,6 @@ void Win32MakefileGenerator::processRcFileVar()
         ts << "\t\t\tVALUE \"Translation\", "
            << QString("0x%1").arg(rcLang, 4, 16, QLatin1Char('0'))
            << ", " << QString("%1").arg(rcCodePage, 4) << endl;
-        ts << "\t\tEND" << endl;
-        ts << "\t\tBLOCK \"VarFileInfo\"" << endl;
-        ts << "\t\tBEGIN" << endl;
-        ts << "\t\t\tVALUE \"Translation\", 0x409, 1200" << endl;
         ts << "\t\tEND" << endl;
         ts << "\tEND" << endl;
         ts << "/* End of Version info */" << endl;
@@ -744,7 +750,7 @@ void Win32MakefileGenerator::writeLibsPart(QTextStream &t)
         t << "LIBAPP        = " << var("QMAKE_LIB") << endl;
         t << "LIBFLAGS      = " << var("QMAKE_LIBFLAGS") << endl;
     } else {
-        t << "LINK          = " << var("QMAKE_LINK") << endl;
+        t << "LINKER        = " << var("QMAKE_LINK") << endl;
         t << "LFLAGS        = " << var("QMAKE_LFLAGS") << endl;
         t << "LIBS          = " << var("QMAKE_LIBS") << " " << var("QMAKE_LIBS_PRIVATE") << endl;
     }
@@ -782,8 +788,20 @@ void Win32MakefileGenerator::writeRcFilePart(QTextStream &t)
         // use these defines in the .rc file itself. Also, we need to add the _DEBUG define manually
         // since the compiler defines this symbol by itself, and we use it in the automatically
         // created rc file when VERSION is define the .pro file.
+
+        const ProStringList rcIncPaths = project->values("RC_INCLUDEPATH");
+        QString incPathStr;
+        for (int i = 0; i < rcIncPaths.count(); ++i) {
+            const ProString &path = rcIncPaths.at(i);
+            if (path.isEmpty())
+                continue;
+            incPathStr += QStringLiteral(" /i ");
+            incPathStr += escapeFilePath(path);
+        }
+
         t << res_file << ": " << rc_file << "\n\t"
-          << var("QMAKE_RC") << (project->isActiveConfig("debug") ? " -D_DEBUG" : "") << " $(DEFINES) -fo " << res_file << " " << rc_file;
+          << var("QMAKE_RC") << (project->isActiveConfig("debug") ? " -D_DEBUG" : "")
+          << " $(DEFINES)" << incPathStr << " -fo " << res_file << " " << rc_file;
         t << endl << endl;
     }
 }
@@ -833,22 +851,7 @@ QString Win32MakefileGenerator::defaultInstall(const QString &t)
                 }
                 if(!ret.isEmpty())
                     ret += "\n\t";
-                const ProKey replace_rule("QMAKE_PKGCONFIG_INSTALL_REPLACE");
-                if (project->isEmpty(replace_rule)
-                    || project->isActiveConfig("no_sed_meta_install")
-                    || project->isEmpty("QMAKE_STREAM_EDITOR")) {
-                    ret += "-$(INSTALL_FILE) \"" + pkgConfigFileName(true) + "\" \"" + dst_pc + "\"";
-                } else {
-                    ret += "-$(SED)";
-                    const ProStringList &replace_rules = project->values(replace_rule);
-                    for (int r = 0; r < replace_rules.size(); ++r) {
-                        const ProString match = project->first(ProKey(replace_rules.at(r) + ".match")),
-                                    replace = project->first(ProKey(replace_rules.at(r) + ".replace"));
-                        if (!match.isEmpty() /*&& match != replace*/)
-                            ret += " -e \"s," + match + "," + replace + ",g\"";
-                    }
-                    ret += " \"" + pkgConfigFileName(true) + "\" >\"" + dst_pc + "\"";
-                }
+                ret += installMetaFile(ProKey("QMAKE_PKGCONFIG_INSTALL_REPLACE"), pkgConfigFileName(true), dst_pc);
                 if(!uninst.isEmpty())
                     uninst.append("\n\t");
                 uninst.append("-$(DEL_FILE) \"" + dst_pc + "\"");
@@ -890,6 +893,16 @@ QString Win32MakefileGenerator::escapeFilePath(const QString &path) const
             ret = "\"" + ret + "\"";
         debug_msg(2, "EscapeFilePath: %s -> %s", path.toLatin1().constData(), ret.toLatin1().constData());
     }
+    return ret;
+}
+
+QString Win32MakefileGenerator::cQuoted(const QString &str)
+{
+    QString ret = str;
+    ret.replace(QLatin1Char('"'), QStringLiteral("\\\""));
+    ret.replace(QLatin1Char('\\'), QStringLiteral("\\\\"));
+    ret.prepend(QLatin1Char('"'));
+    ret.append(QLatin1Char('"'));
     return ret;
 }
 

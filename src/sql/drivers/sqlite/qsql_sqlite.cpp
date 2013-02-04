@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -47,6 +47,7 @@
 #include <qsqlfield.h>
 #include <qsqlindex.h>
 #include <qsqlquery.h>
+#include <QtSql/private/qsqlcachedresult_p.h>
 #include <qstringlist.h>
 #include <qvector.h>
 #include <qdebug.h>
@@ -105,6 +106,33 @@ static QSqlError qMakeError(sqlite3 *access, const QString &descr, QSqlError::Er
                      QString(reinterpret_cast<const QChar *>(sqlite3_errmsg16(access))),
                      type, errorCode);
 }
+
+class QSQLiteResultPrivate;
+
+class QSQLiteResult : public QSqlCachedResult
+{
+    friend class QSQLiteDriver;
+    friend class QSQLiteResultPrivate;
+public:
+    explicit QSQLiteResult(const QSQLiteDriver* db);
+    ~QSQLiteResult();
+    QVariant handle() const;
+
+protected:
+    bool gotoNext(QSqlCachedResult::ValueCache& row, int idx);
+    bool reset(const QString &query);
+    bool prepare(const QString &query);
+    bool exec();
+    int size();
+    int numRowsAffected();
+    QVariant lastInsertId() const;
+    QSqlRecord record() const;
+    void detachFromResultSet();
+    void virtual_hook(int id, void *data);
+
+private:
+    QSQLiteResultPrivate* d;
+};
 
 class QSQLiteDriverPrivate
 {
@@ -540,6 +568,7 @@ bool QSQLiteDriver::hasFeature(DriverFeature f) const
     case BatchOperations:
     case EventNotifications:
     case MultipleResultSets:
+    case CancelQuery:
         return false;
     }
     return false;

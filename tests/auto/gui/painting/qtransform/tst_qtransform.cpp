@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -46,7 +46,6 @@
 #include <qpolygon.h>
 #include <qdebug.h>
 
-Q_DECLARE_METATYPE(QRect)
 
 class tst_QTransform : public QObject
 {
@@ -87,7 +86,6 @@ private:
 };
 
 Q_DECLARE_METATYPE(QTransform)
-Q_DECLARE_METATYPE(QPolygon)
 
 tst_QTransform::tst_QTransform()
 {

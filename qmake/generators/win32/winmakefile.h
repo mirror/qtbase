@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -73,6 +73,7 @@ protected:
     void fixTargetExt();
     void processRcFileVar();
     virtual QString getLibTarget();
+    static QString cQuoted(const QString &str);
 };
 
 inline Win32MakefileGenerator::~Win32MakefileGenerator()

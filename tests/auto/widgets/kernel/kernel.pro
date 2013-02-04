@@ -14,6 +14,8 @@ SUBDIRS=\
    qwidget_window \
    qwidgetaction \
    qwidgetmetatype \
+   qwidgetsvariant \
+   qwindowcontainer \
    qshortcut \
    qsizepolicy
 

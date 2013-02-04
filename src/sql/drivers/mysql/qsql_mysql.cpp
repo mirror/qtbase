@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -1175,6 +1175,7 @@ bool QMYSQLDriver::hasFeature(DriverFeature f) const
     case SimpleLocking:
     case EventNotifications:
     case FinishQuery:
+    case CancelQuery:
         return false;
     case QuerySize:
     case BLOB:

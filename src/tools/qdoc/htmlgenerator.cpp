@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -3502,6 +3502,10 @@ QString HtmlGenerator::getLink(const Atom *atom, const Node *relative, const Nod
             }
             if (!*node) {
                 *node = qdb_->findUnambiguousTarget(first, ref, relative);
+                if (*node && !(*node)->url().isEmpty() && !ref.isEmpty()) {
+                    QString final = (*node)->url() + "#" + ref;
+                    return final;
+                }
             }
         }
         if (*node) {

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Thorbjørn Lund Martsum - tmartsum[at]gmail.com
 ** Contact: http://www.qt-project.org/legal
 **
@@ -56,10 +56,8 @@
 #include <qdebug.h>
 
 typedef QList<int> IntList;
-Q_DECLARE_METATYPE(IntList)
 
 typedef QList<bool> BoolList;
-Q_DECLARE_METATYPE(BoolList)
 
 class protected_QHeaderView : public QHeaderView
 {

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1165,7 +1165,6 @@ static bool strictContains(const QPainterPath &a, const QPainterPath &b)
     return b.subtracted(a) == QPainterPath();
 }
 
-Q_DECLARE_METATYPE(QPolygonF)
 
 void tst_QPathClipper::task204301_data()
 {

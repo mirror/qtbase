@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -65,7 +65,6 @@ MandelbrotWidget::MandelbrotWidget(QWidget *parent)
     pixmapScale = DefaultScale;
     curScale = DefaultScale;
 
-    qRegisterMetaType<QImage>("QImage");
     connect(&thread, SIGNAL(renderedImage(QImage,double)), this, SLOT(updatePixmap(QImage,double)));
 
     setWindowTitle(tr("Mandelbrot"));
@@ -162,6 +161,7 @@ void MandelbrotWidget::keyPressEvent(QKeyEvent *event)
 }
 //! [11]
 
+#ifndef QT_NO_WHEELEVENT
 //! [12]
 void MandelbrotWidget::wheelEvent(QWheelEvent *event)
 {
@@ -170,6 +170,7 @@ void MandelbrotWidget::wheelEvent(QWheelEvent *event)
     zoom(pow(ZoomInFactor, numSteps));
 }
 //! [12]
+#endif
 
 //! [13]
 void MandelbrotWidget::mousePressEvent(QMouseEvent *event)

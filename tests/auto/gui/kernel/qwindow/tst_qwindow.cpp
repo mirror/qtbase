@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -730,10 +730,6 @@ void tst_QWindow::orientation()
 
     window.reportContentOrientationChange(Qt::PrimaryOrientation);
     QCOMPARE(window.contentOrientation(), Qt::PrimaryOrientation);
-
-    QVERIFY(!window.requestOrientation(Qt::LandscapeOrientation) || window.orientation() == Qt::LandscapeOrientation);
-    QVERIFY(!window.requestOrientation(Qt::PortraitOrientation) || window.orientation() == Qt::PortraitOrientation);
-    QVERIFY(!window.requestOrientation(Qt::PrimaryOrientation) || window.orientation() == Qt::PrimaryOrientation);
 
     QSignalSpy spy(&window, SIGNAL(contentOrientationChanged(Qt::ScreenOrientation)));
     window.reportContentOrientationChange(Qt::LandscapeOrientation);

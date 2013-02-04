@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,6 +28,7 @@
 /*! 
     \example dialogs/standarddialogs
     \title Standard Dialogs Example
+    \ingroup examples-dialogs
 
     \brief The Standard Dialogs example shows the standard dialogs that are provided by Qt.
 

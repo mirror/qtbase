@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -68,7 +68,7 @@
 #  endif
 #endif
 
-#if defined(Q_OS_VXWORKS)
+#if defined(Q_OS_VXWORKS) && defined(_WRS_KERNEL)
 #  include <envLib.h>
 #endif
 
@@ -1829,6 +1829,8 @@ const QSysInfo::WinVersion QSysInfo::WindowsVersion = QSysInfo::windowsVersion()
     that the current code execution cannot be reached. That is, Q_ASSUME(false)
     is equivalent to Q_UNREACHABLE().
 
+    In debug builds the condition is enforced by an assert to facilitate debugging.
+
     \note Q_LIKELY() tells the compiler that the expression is likely, but not
     the only possibility. Q_ASSUME tells the compiler that it is the only
     possibility.
@@ -1862,6 +1864,8 @@ const QSysInfo::WinVersion QSysInfo::WindowsVersion = QSysInfo::windowsVersion()
 
     By using this macro in impossible conditions, code coverage may be improved
     as dead code paths may be eliminated.
+
+    In debug builds the condition is enforced by an assert to facilitate debugging.
 
     \sa Q_ASSERT(), Q_ASSUME(), qFatal()
 */
@@ -2513,26 +2517,6 @@ int qrand()
 */
 
 /*!
-    \macro TRUE
-    \relates <QtGlobal>
-    \obsolete
-
-    Synonym for \c true.
-
-    \sa FALSE
-*/
-
-/*!
-    \macro FALSE
-    \relates <QtGlobal>
-    \obsolete
-
-    Synonym for \c false.
-
-    \sa TRUE
-*/
-
-/*!
     \macro QABS(n)
     \relates <QtGlobal>
     \obsolete
@@ -2808,8 +2792,7 @@ bool QInternal::activateCallbacks(Callback cb, void **parameters)
 
     As a rule of thumb, \c QT_BEGIN_NAMESPACE should appear in all Qt header
     and Qt source files after the last \c{#include} line and before the first
-    declaration. In Qt headers using \c QT_BEGIN_HEADER, \c QT_BEGIN_NAMESPACE
-    follows \c QT_BEGIN_HEADER immediately.
+    declaration.
 
     If that rule can't be followed because, e.g., \c{#include} lines and
     declarations are wildly mixed, place \c QT_BEGIN_NAMESPACE before

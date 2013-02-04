@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -2005,8 +2005,8 @@ bool QDir::match(const QString &filter, const QString &fileName)
 #endif // QT_NO_REGEXP
 
 /*!
-    Removes all multiple directory separators "/" and resolves any
-    "."s or ".."s found in the path, \a path.
+    Returns \a path with directory separators normalized (converted to "/") and
+    redundant ones removed, and "."s and ".."s resolved (as far as possible).
 
     Symbolic links are kept. This function does not return the
     canonical path, but rather the simplest version of the input.

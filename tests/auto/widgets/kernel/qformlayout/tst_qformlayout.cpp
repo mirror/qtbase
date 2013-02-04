@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -54,6 +54,14 @@
 #include <QSharedPointer>
 
 #include <qformlayout.h>
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QFormLayout : public QObject
 {
@@ -345,6 +353,7 @@ void tst_QFormLayout::spacing()
 void tst_QFormLayout::contentsRect()
 {
     QWidget w;
+    setFrameless(&w);
     QFormLayout form;
     w.setLayout(&form);
     form.addRow("Label", new QPushButton(&w));

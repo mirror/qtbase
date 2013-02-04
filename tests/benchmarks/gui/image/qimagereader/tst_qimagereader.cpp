@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -54,13 +54,8 @@
 
 typedef QMap<QString, QString> QStringMap;
 typedef QList<int> QIntList;
-Q_DECLARE_METATYPE(QImage)
-Q_DECLARE_METATYPE(QRect)
-Q_DECLARE_METATYPE(QSize)
-Q_DECLARE_METATYPE(QColor)
 Q_DECLARE_METATYPE(QStringMap)
 Q_DECLARE_METATYPE(QIntList)
-Q_DECLARE_METATYPE(QIODevice *)
 
 class tst_QImageReader : public QObject
 {

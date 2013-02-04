@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,6 +28,8 @@
 /*!
     \example itemviews/spreadsheet
     \title Spreadsheet
+    \ingroup examples-itemviews
+    \brief The Spreadsheet example shows how to create a simple spreadsheet application.
 
     \brief The Spreadsheet example shows how a table view can be used to create a
     simple spreadsheet application. Custom delegates are used to render different

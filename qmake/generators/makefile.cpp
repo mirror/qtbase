@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the qmake application of the Qt Toolkit.
@@ -223,8 +223,8 @@ MakefileGenerator::initOutPaths()
     //some builtin directories
     if(project->isEmpty("PRECOMPILED_DIR") && !project->isEmpty("OBJECTS_DIR"))
         v["PRECOMPILED_DIR"] = v["OBJECTS_DIR"];
-    static const char * const dirs[] = { "OBJECTS_DIR", "DESTDIR", "QMAKE_PKGCONFIG_DESTDIR",
-                                         "SUBLIBS_DIR", "DLLDESTDIR", "QMAKE_LIBTOOL_DESTDIR",
+    static const char * const dirs[] = { "OBJECTS_DIR", "DESTDIR",
+                                         "SUBLIBS_DIR", "DLLDESTDIR",
                                          "PRECOMPILED_DIR", 0 };
     for (int x = 0; dirs[x]; x++) {
         const ProKey dkey(dirs[x]);
@@ -2195,11 +2195,6 @@ MakefileGenerator::writeStubMakefile(QTextStream &t)
 bool
 MakefileGenerator::writeMakefile(QTextStream &t)
 {
-    QString ofile = Option::fixPathToTargetOS(Option::output.fileName());
-    if (ofile.lastIndexOf(Option::dir_sep) != -1)
-        ofile.remove(0, ofile.lastIndexOf(Option::dir_sep) +1);
-    t << "MAKEFILE      = " << ofile << endl << endl;
-
     t << "####### Compile" << endl << endl;
     writeObj(t, "SOURCES");
     writeObj(t, "GENERATED_SOURCES");
@@ -2260,6 +2255,10 @@ MakefileGenerator::writeHeader(QTextStream &t)
         t << "# Command: " << build_args().replace("$(QMAKE)", var("QMAKE_QMAKE")) << endl;
     t << "#############################################################################" << endl;
     t << endl;
+    QString ofile = Option::fixPathToTargetOS(Option::output.fileName());
+    if (ofile.lastIndexOf(Option::dir_sep) != -1)
+        ofile.remove(0, ofile.lastIndexOf(Option::dir_sep) +1);
+    t << "MAKEFILE      = " << ofile << endl << endl;
 }
 
 QList<MakefileGenerator::SubTarget*>
@@ -2418,10 +2417,6 @@ MakefileGenerator::writeSubTargets(QTextStream &t, QList<MakefileGenerator::SubT
         t << "include " << (*qeui_it) << endl;
 
     if (!(flags & SubTargetSkipDefaultVariables)) {
-        QString ofile = Option::fixPathToTargetOS(Option::output.fileName());
-        if(ofile.lastIndexOf(Option::dir_sep) != -1)
-            ofile.remove(0, ofile.lastIndexOf(Option::dir_sep) +1);
-        t << "MAKEFILE      = " << ofile << endl;
         /* Calling Option::fixPathToTargetOS() is necessary for MinGW/MSYS, which requires
          * back-slashes to be turned into slashes. */
         t << "QMAKE         = " << var("QMAKE_QMAKE") << endl;
@@ -3291,6 +3286,27 @@ MakefileGenerator::writePkgConfigFile()
     }
 
     t << endl;
+}
+
+QString MakefileGenerator::installMetaFile(const ProKey &replace_rule, const QString &src, const QString &dst)
+{
+    QString ret;
+    if (project->isEmpty(replace_rule)
+        || project->isActiveConfig("no_sed_meta_install")
+        || project->isEmpty("QMAKE_STREAM_EDITOR")) {
+        ret += "-$(INSTALL_FILE) \"" + src + "\" \"" + dst + "\"";
+    } else {
+        ret += "-$(SED)";
+        const ProStringList &replace_rules = project->values(replace_rule);
+        for (int r = 0; r < replace_rules.size(); ++r) {
+            const ProString match = project->first(ProKey(replace_rules.at(r) + ".match")),
+                        replace = project->first(ProKey(replace_rules.at(r) + ".replace"));
+            if (!match.isEmpty() /*&& match != replace*/)
+                ret += " -e \"s," + match + "," + replace + ",g\"";
+        }
+        ret += " \"" + src + "\" >\"" + dst + "\"";
+    }
+    return ret;
 }
 
 QT_END_NAMESPACE

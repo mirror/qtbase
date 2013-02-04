@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -218,6 +218,7 @@ bool QSqlDriver::isOpenError() const
     \value EventNotifications Whether the driver supports database event notifications.
     \value FinishQuery Whether the driver can do any low-level resource cleanup when QSqlQuery::finish() is called.
     \value MultipleResultSets Whether the driver can access multiple result sets returned from batched statements or stored procedures.
+    \value CancelQuery Whether the driver allows cancelling a running query.
 
     More information about supported features can be found in the
     \l{sql-driver.html}{Qt SQL driver} documentation.

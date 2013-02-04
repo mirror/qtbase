@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -42,9 +42,20 @@
 CONFIG += release
 #! [3]
 
+#! [4]
+CONFIG += qpa_minimal_plugin
+#! [4]
 
 #! [5]
 QTPLUGIN     += qjpeg \
                 qgif \
                 qkrcodecs
 #! [5]
+
+#! [6]
+CONFIG -= import_qpa_plugin
+#! [6]
+
+#! [7]
+CONFIG -= import_plugins
+#! [7]

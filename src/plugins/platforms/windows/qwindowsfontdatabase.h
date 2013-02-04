@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -106,7 +106,6 @@ public:
 private:
     void populate(const QString &family = QString());
     void removeApplicationFonts();
-    QSharedPointer<QWindowsFontEngineData> m_fontEngineData;
     QSet<QString> m_families;
 
     struct WinApplicationFont {

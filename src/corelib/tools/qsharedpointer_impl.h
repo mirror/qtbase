@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -50,10 +50,8 @@
 // this header, as we have a "qt_sync_stop_processing" below, which in turn
 // is here because this file contains a template mess and duplicates the
 // classes found in qsharedpointer.h
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 QT_END_NAMESPACE
-QT_END_HEADER
 #pragma qt_sync_stop_processing
 #endif
 
@@ -65,8 +63,6 @@ QT_END_HEADER
 #if defined(Q_COMPILER_RVALUE_REFS) && defined(Q_COMPILER_VARIADIC_TEMPLATES)
 #  include <utility>           // for std::forward
 #endif
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -813,6 +809,8 @@ template <class X, class T>
 Q_INLINE_TEMPLATE QSharedPointer<X> qSharedPointerDynamicCast(const QSharedPointer<T> &src)
 {
     register X *ptr = dynamic_cast<X *>(src.data()); // if you get an error in this line, the cast is invalid
+    if (!ptr)
+        return QSharedPointer<X>();
     return QtSharedPointer::copyAndSetPointer(ptr, src);
 }
 template <class X, class T>
@@ -886,7 +884,5 @@ template<typename T> Q_DECLARE_TYPEINFO_BODY(QSharedPointer<T>, Q_MOVABLE_TYPE);
 
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -198,8 +198,8 @@ bool QProgressBarPrivate::repaintRequired() const
     \table
     \row \li \inlineimage macintosh-progressbar.png Screenshot of a Macintosh style progress bar
          \li A progress bar shown in the Macintosh widget style.
-    \row \li \inlineimage windowsxp-progressbar.png Screenshot of a Windows XP style progress bar
-         \li A progress bar shown in the Windows XP widget style.
+    \row \li \inlineimage windowsvista-progressbar.png Screenshot of a Windows Vista style progress bar
+         \li A progress bar shown in the Windows Vista widget style.
     \row \li \inlineimage fusion-progressbar.png Screenshot of a Fusion style progress bar
          \li A progress bar shown in the Fusion widget style.
     \endtable

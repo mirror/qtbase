@@ -1,0 +1,127 @@
+Qt 5.0.1 is a bug-fix release. It maintains both forward and backward
+compatibility (source and binary) with Qt 5.0.0.
+
+For more details, refer to the online documentation included in this
+distribution. The documentation is also available online:
+
+  http://qt-project.org/doc/qt-5.0/
+
+Some of the changes listed in this file include issue tracking numbers
+corresponding to tasks in the Qt Bug Tracker:
+
+  http://bugreports.qt-project.org/
+
+Each of these identifiers can be entered in the bug tracker to obtain more
+information about a particular change.
+
+
+****************************************************************************
+*                           General                                        *
+****************************************************************************
+
+General Improvements
+--------------------
+
+ - Documentation:
+   - Moved documentation under the correct module, fixed module identifiers
+   - Cleanup of examples and their documentation
+   - [QTBUG-28579] Fixed broken links to C++ class reference and examples
+     for a number of modules in Qt Creator Help contents
+   - Fixed incorrect or missing links, typos
+
+Third party components
+----------------------
+
+Legal
+-----
+
+
+****************************************************************************
+*                          Library                                         *
+****************************************************************************
+
+
+QtCore
+-----
+
+QtGui
+-----
+
+QtWidgets
+---------
+
+QtNetwork
+---------
+
+QtDBus
+------
+
+QtConcurrent
+------------
+
+QtOpenGL
+--------
+
+QtScript
+--------
+
+QTestLib
+--------
+
+QtSql
+-----
+
+****************************************************************************
+*                          Database Drivers                                *
+****************************************************************************
+
+sqlite
+------
+
+postgres
+--------
+
+****************************************************************************
+*                      Platform Specific Changes                           *
+****************************************************************************
+
+Qt for Linux/X11
+----------------
+
+Qt for Windows
+--------------
+
+Qt for Mac OS X
+---------------
+
+Qt for Embedded Linux
+---------------------
+
+Qt for Windows CE
+-----------------
+
+
+****************************************************************************
+*                      Compiler Specific Changes                           *
+****************************************************************************
+
+ - MinGW: Statically link runtime libraries into qmake
+
+****************************************************************************
+*                          Tools                                           *
+****************************************************************************
+
+
+****************************************************************************
+*                          Plugins                                         *
+****************************************************************************
+
+
+****************************************************************************
+*                   Important Behavior Changes                             *
+****************************************************************************
+
+- QSharedMemory on Unix systems now no longer creates shared memory
+  segments that are readable and writeable to everyone. From Qt 5.0.1
+  forward, the segments are created readable and writeable only by the
+  current user. This matches the behavior on Windows.

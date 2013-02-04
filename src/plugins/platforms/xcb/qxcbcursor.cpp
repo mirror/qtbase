@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -287,10 +287,17 @@ QXcbCursor::QXcbCursor(QXcbConnection *conn, QXcbScreen *screen)
 
 QXcbCursor::~QXcbCursor()
 {
+    xcb_connection_t *conn = xcb_connection();
     if (!--cursorCount)
-        xcb_close_font(xcb_connection(), cursorFont);
+        xcb_close_font(conn, cursorFont);
+
+    foreach (xcb_cursor_t cursor, m_bitmapCursorMap)
+        xcb_free_cursor(conn, cursor);
+    foreach (xcb_cursor_t cursor, m_shapeCursorMap)
+        xcb_free_cursor(conn, cursor);
 }
 
+#ifndef QT_NO_CURSOR
 void QXcbCursor::changeCursor(QCursor *cursor, QWindow *widget)
 {
     QXcbWindow *w = 0;
@@ -300,17 +307,19 @@ void QXcbCursor::changeCursor(QCursor *cursor, QWindow *widget)
         // No X11 cursor control when there is no widget under the cursor
         return;
     
-    xcb_cursor_t c;
-    if (cursor->shape() == Qt::BitmapCursor) {
-        qint64 id = cursor->pixmap().cacheKey();
-        if (!m_bitmapCursorMap.contains(id))
-            m_bitmapCursorMap.insert(id, createBitmapCursor(cursor));
-        c = m_bitmapCursorMap.value(id);
-    } else {
-        int id = cursor->shape();
-        if (!m_shapeCursorMap.contains(id))
-            m_shapeCursorMap.insert(id, createFontCursor(cursor->shape()));
-        c = m_shapeCursorMap.value(id);
+    xcb_cursor_t c = XCB_CURSOR_NONE;
+    if (cursor) {
+        if (cursor->shape() == Qt::BitmapCursor) {
+            qint64 id = cursor->pixmap().cacheKey();
+            if (!m_bitmapCursorMap.contains(id))
+                m_bitmapCursorMap.insert(id, createBitmapCursor(cursor));
+            c = m_bitmapCursorMap.value(id);
+        } else {
+            int id = cursor->shape();
+            if (!m_shapeCursorMap.contains(id))
+                m_shapeCursorMap.insert(id, createFontCursor(cursor->shape()));
+            c = m_shapeCursorMap.value(id);
+        }
     }
 
     w->setCursor(c);
@@ -507,6 +516,7 @@ xcb_cursor_t QXcbCursor::createBitmapCursor(QCursor *cursor)
     }
     return c;
 }
+#endif
 
 void QXcbCursor::queryPointer(QXcbConnection *c, xcb_window_t *rootWin, QPoint *pos, int *keybMask)
 {
@@ -543,7 +553,7 @@ QPoint QXcbCursor::pos() const
 
 void QXcbCursor::setPos(const QPoint &pos)
 {
-    xcb_window_t root;
+    xcb_window_t root = 0;
     queryPointer(connection(), &root, 0);
     xcb_warp_pointer(xcb_connection(), XCB_NONE, root, 0, 0, 0, 0, pos.x(), pos.y());
     xcb_flush(xcb_connection());

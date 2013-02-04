@@ -22,7 +22,9 @@ information about a particular change.
 General Improvements
 --------------------
 
- - 
+ - Q_PROPERTY gained a MEMBER attribute that let you associate a property to a
+   class member without requiring to explicitly writing a getter or a setter
+
 
 Third party components
 ----------------------
@@ -45,6 +47,17 @@ Third party components
 
 QtCore
 ------
+
+ - QRect:
+   * Added marginsAdded(), marginsRemoved() and operators +, -, +=, -=
+     taking a QMargins object allowing for conveniently adding or removing
+     margins.
+ - QMargins:
+   * Added operators for adding and subtracting QMargins objects,
+     multiplication and division for int/qreal and unary minus.
+
+ - QMessageAuthenticationCode
+    * New class for hash-based message authentication code added to QtCore.
 
  -
 

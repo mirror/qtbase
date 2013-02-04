@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -52,6 +52,7 @@
 #include <QtCore/qmath.h>
 #include <QtCore/QDebug>
 #include <QtCore/QtEndian>
+#include <QtCore/QThreadStorage>
 
 #include <wchar.h>
 
@@ -1033,17 +1034,17 @@ static bool addFontToDatabase(QString familyName, const QString &scriptName,
             writingSystems.setSupported(ws);
     }
 
-    QPlatformFontDatabase::registerFont(familyName, foundryName, weight,
+    QPlatformFontDatabase::registerFont(familyName, QString(), foundryName, weight,
                                         style, stretch, antialias, scalable, size, fixed, writingSystems, 0);
     // add fonts windows can generate for us:
     if (weight <= QFont::DemiBold)
-        QPlatformFontDatabase::registerFont(familyName, foundryName, QFont::Bold,
+        QPlatformFontDatabase::registerFont(familyName, QString(), foundryName, QFont::Bold,
                                             style, stretch, antialias, scalable, size, fixed, writingSystems, 0);
     if (style != QFont::StyleItalic)
-        QPlatformFontDatabase::registerFont(familyName, foundryName, weight,
+        QPlatformFontDatabase::registerFont(familyName, QString(), foundryName, weight,
                                             QFont::StyleItalic, stretch, antialias, scalable, size, fixed, writingSystems, 0);
     if (weight <= QFont::DemiBold && style != QFont::StyleItalic)
-        QPlatformFontDatabase::registerFont(familyName, foundryName, QFont::Bold,
+        QPlatformFontDatabase::registerFont(familyName, QString(), foundryName, QFont::Bold,
                                             QFont::StyleItalic, stretch, antialias, scalable, size, fixed, writingSystems, 0);
 
     if (!englishName.isEmpty())
@@ -1112,19 +1113,46 @@ void QWindowsFontDatabase::populate(const QString &family)
     ReleaseDC(0, dummy);
 }
 
-QWindowsFontDatabase::QWindowsFontDatabase() :
-    m_fontEngineData(new QWindowsFontEngineData)
+typedef QSharedPointer<QWindowsFontEngineData> QWindowsFontEngineDataPtr;
+
+#ifndef QT_NO_THREAD
+typedef QThreadStorage<QWindowsFontEngineDataPtr> FontEngineThreadLocalData;
+
+Q_GLOBAL_STATIC(FontEngineThreadLocalData, fontEngineThreadLocalData)
+
+QSharedPointer<QWindowsFontEngineData> sharedFontData()
 {
-    // Properties accessed by QWin32PrintEngine (QtPrintSupport)
+    FontEngineThreadLocalData *data = fontEngineThreadLocalData();
+    if (!data->hasLocalData())
+        data->setLocalData(QSharedPointer<QWindowsFontEngineData>(new QWindowsFontEngineData));
+    return data->localData();
+}
+#else // !QT_NO_THREAD
+Q_GLOBAL_STATIC(QWindowsFontEngineDataPtr, fontEngineData)
+
+QWindowsFontEngineDataPtr sharedFontData()
+{
+    QWindowsFontEngineDataPtr *data = fontEngineData();
+    if (data->isNull())
+        *data = QWindowsFontEngineDataPtr(new QWindowsFontEngineData);
+    return *data;
+}
+#endif // QT_NO_THREAD
+
+QWindowsFontDatabase::QWindowsFontDatabase()
+{
+    // Properties accessed by QWin32PrintEngine (Qt Print Support)
     static const int hfontMetaTypeId = qRegisterMetaType<HFONT>();
     static const int logFontMetaTypeId = qRegisterMetaType<LOGFONT>();
     Q_UNUSED(hfontMetaTypeId)
     Q_UNUSED(logFontMetaTypeId)
 
-    if (QWindowsContext::verboseFonts)
+    if (QWindowsContext::verboseFonts) {
+        const QWindowsFontEngineDataPtr data = sharedFontData();
         qDebug() << __FUNCTION__ << "Clear type: "
-                 << m_fontEngineData->clearTypeEnabled << "gamma: "
-                 << m_fontEngineData->fontSmoothingGamma;
+                 << data->clearTypeEnabled << "gamma: "
+                 << data->fontSmoothingGamma;
+    }
 }
 
 QWindowsFontDatabase::~QWindowsFontDatabase()
@@ -1136,7 +1164,7 @@ QFontEngine * QWindowsFontDatabase::fontEngine(const QFontDef &fontDef, QChar::S
 {
     QFontEngine *fe = QWindowsFontDatabase::createEngine(script, fontDef,
                                               0, QWindowsContext::instance()->defaultDPI(), false,
-                                              QStringList(), m_fontEngineData);
+                                              QStringList(), sharedFontData());
     if (QWindowsContext::verboseFonts)
         qDebug() << __FUNCTION__ << "FONTDEF" << fontDef << script << fe << handle;
     return fe;
@@ -1187,7 +1215,7 @@ QFontEngine *QWindowsFontDatabase::fontEngine(const QByteArray &fontData, qreal 
 
             fontEngine = QWindowsFontDatabase::createEngine(QChar::Script_Common, request, 0,
                     QWindowsContext::instance()->defaultDPI(), false, QStringList(),
-                    m_fontEngineData);
+                    sharedFontData());
 
             if (fontEngine) {
                 if (request.family != fontEngine->fontDef.family) {
@@ -1296,43 +1324,6 @@ QFontEngine *QWindowsFontDatabase::fontEngine(const QByteArray &fontData, qreal 
     if (QWindowsContext::verboseFonts)
         qDebug() << __FUNCTION__ << "FONTDATA" << fontData << pixelSize << hintingPreference << fontEngine;
     return fontEngine;
-}
-
-QStringList QWindowsFontDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
-{
-    QStringList result = QPlatformFontDatabase::fallbacksForFamily(family, style, styleHint, script);
-    if (!result.isEmpty())
-        return result;
-
-    switch (styleHint) {
-        case QFont::Times:
-            result << QString::fromLatin1("Times New Roman");
-            break;
-        case QFont::Courier:
-            result << QString::fromLatin1("Courier New");
-            break;
-        case QFont::Monospace:
-            result << QString::fromLatin1("Courier New");
-            break;
-        case QFont::Cursive:
-            result << QString::fromLatin1("Comic Sans MS");
-            break;
-        case QFont::Fantasy:
-            result << QString::fromLatin1("Impact");
-            break;
-        case QFont::Decorative:
-            result << QString::fromLatin1("Old English");
-            break;
-        case QFont::Helvetica:
-        case QFont::System:
-        default:
-            result << QString::fromLatin1("Arial");
-    }
-
-    if (QWindowsContext::verboseFonts)
-        qDebug() << __FUNCTION__ << family << style << styleHint
-                 << script << result << m_families.size();
-    return result;
 }
 
 static QList<quint32> getTrueTypeFontOffsets(const uchar *fontData)
@@ -1686,6 +1677,82 @@ LOGFONT QWindowsFontDatabase::fontDefToLOGFONT(const QFontDef &request)
     return lf;
 }
 
+static QStringList extraTryFontsForFamily(const QString& family)
+{
+    QStringList result;
+    QFontDatabase db;
+    if (!db.writingSystems(family).contains(QFontDatabase::Symbol)) {
+        if (!tryFonts) {
+            LANGID lid = GetUserDefaultLangID();
+            switch (lid&0xff) {
+            case LANG_CHINESE: // Chinese (Taiwan)
+                if ( lid == 0x0804 ) // Taiwan
+                    tryFonts = ch_TW_tryFonts;
+                else
+                    tryFonts = ch_CN_tryFonts;
+                break;
+            case LANG_JAPANESE:
+                tryFonts = jp_tryFonts;
+                break;
+            case LANG_KOREAN:
+                tryFonts = kr_tryFonts;
+                break;
+            default:
+                tryFonts = other_tryFonts;
+                break;
+            }
+        }
+        QStringList fm = QFontDatabase().families();
+        const char **tf = tryFonts;
+        while (tf && *tf) {
+            if (fm.contains(QLatin1String(*tf)))
+                result << QLatin1String(*tf);
+            ++tf;
+        }
+    }
+    return result;
+}
+
+QStringList QWindowsFontDatabase::fallbacksForFamily(const QString &family, QFont::Style style, QFont::StyleHint styleHint, QChar::Script script) const
+{
+    QStringList result = QPlatformFontDatabase::fallbacksForFamily(family, style, styleHint, script);
+    if (!result.isEmpty())
+        return result;
+
+    switch (styleHint) {
+        case QFont::Times:
+            result << QString::fromLatin1("Times New Roman");
+            break;
+        case QFont::Courier:
+            result << QString::fromLatin1("Courier New");
+            break;
+        case QFont::Monospace:
+            result << QString::fromLatin1("Courier New");
+            break;
+        case QFont::Cursive:
+            result << QString::fromLatin1("Comic Sans MS");
+            break;
+        case QFont::Fantasy:
+            result << QString::fromLatin1("Impact");
+            break;
+        case QFont::Decorative:
+            result << QString::fromLatin1("Old English");
+            break;
+        case QFont::Helvetica:
+        case QFont::System:
+        default:
+            result << QString::fromLatin1("Arial");
+    }
+
+    result.append(extraTryFontsForFamily(family));
+
+    if (QWindowsContext::verboseFonts)
+        qDebug() << __FUNCTION__ << family << style << styleHint
+                 << script << result << m_families.size();
+    return result;
+}
+
+
 QFontEngine *QWindowsFontDatabase::createEngine(int script, const QFontDef &request,
                                                 HDC fontHdc, int dpi, bool rawMode,
                                                 const QStringList &family_list,
@@ -1849,42 +1916,16 @@ QFontEngine *QWindowsFontDatabase::createEngine(int script, const QFontDef &requ
 #endif
 
     if (script == QChar::Script_Common
-       && !(request.styleStrategy & QFont::NoFontMerging)) {
-       QFontDatabase db;
-       if (!db.writingSystems(request.family).contains(QFontDatabase::Symbol)) {
-           if(!tryFonts) {
-               LANGID lid = GetUserDefaultLangID();
-               switch( lid&0xff ) {
-               case LANG_CHINESE: // Chinese (Taiwan)
-                   if ( lid == 0x0804 ) // Taiwan
-                       tryFonts = ch_TW_tryFonts;
-                   else
-                       tryFonts = ch_CN_tryFonts;
-                   break;
-               case LANG_JAPANESE:
-                   tryFonts = jp_tryFonts;
-                   break;
-               case LANG_KOREAN:
-                   tryFonts = kr_tryFonts;
-                   break;
-               default:
-                   tryFonts = other_tryFonts;
-                   break;
-               }
-           }
-           QStringList fm = QFontDatabase().families();
-           QStringList list = family_list;
-           const char **tf = tryFonts;
-           while(tf && *tf) {
-               if(fm.contains(QLatin1String(*tf)))
-                   list << QLatin1String(*tf);
-               ++tf;
-           }
-           QFontEngine *mfe = new QWindowsMultiFontEngine(fe, list);
-           mfe->setObjectName(QStringLiteral("QWindowsMultiFontEngine_") + request.family);
-           mfe->fontDef = fe->fontDef;
-           fe = mfe;
-       }
+            && !(request.styleStrategy & QFont::NoFontMerging)) {
+        QStringList extraFonts = extraTryFontsForFamily(request.family);
+        if (extraFonts.size()) {
+            QStringList list = family_list;
+            list.append(extraFonts);
+            QFontEngine *mfe = new QWindowsMultiFontEngine(fe, list);
+            mfe->setObjectName(QStringLiteral("QWindowsMultiFontEngine_") + request.family);
+            mfe->fontDef = fe->fontDef;
+            fe = mfe;
+        }
     }
     return fe;
 }

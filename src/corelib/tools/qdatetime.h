@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -47,8 +47,6 @@
 #include <QtCore/qsharedpointer.h>
 
 #include <limits>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -120,6 +118,9 @@ QT_DEPRECATED inline bool setYMD(int y, int m, int d)
     inline qint64 toJulianDay() const { return jd; }
 
 private:
+#if defined(min) || defined(max)
+#error min or max defined, cannot continue. If this is caused by an #include of windows.h, NOMINMAX can be defined.
+#endif
     static inline qint64 nullJd() { return std::numeric_limits<qint64>::min(); }
     static inline qint64 minJd() { return Q_INT64_C(-784350574879); }
     static inline qint64 maxJd() { return Q_INT64_C( 784354017364); }
@@ -295,7 +296,5 @@ Q_CORE_EXPORT uint qHash(const QDate &key, uint seed = 0) Q_DECL_NOTHROW;
 Q_CORE_EXPORT uint qHash(const QTime &key, uint seed = 0) Q_DECL_NOTHROW;
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QDATETIME_H

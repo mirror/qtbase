@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtSql module of the Qt Toolkit.
@@ -67,6 +67,7 @@ typedef QSqlRelationalTableModelSql Sql;
 
 /*!
     \class QSqlRelation
+    \inmodule QtSql
     \brief The QSqlRelation class stores information about an SQL foreign key.
 
     QSqlRelation is a helper class for QSqlRelationalTableModel. See

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -48,13 +48,6 @@
 #include <QtTest/QtTest>
 
 #include "functions.h"
-
-Q_DECLARE_METATYPE(QVector<int>);
-Q_DECLARE_METATYPE(QVector<double>);
-Q_DECLARE_METATYPE(QVector<QString>);
-Q_DECLARE_METATYPE(QList<int>);
-Q_DECLARE_METATYPE(QList<double>);
-Q_DECLARE_METATYPE(QList<QString>);
 
 class tst_QtConcurrentMap: public QObject
 {

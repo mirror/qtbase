@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -116,8 +116,6 @@ void tst_QToolButton::getSetCheck()
     QCOMPARE((QAction *)0, obj1.defaultAction());
     delete var4;
 }
-
-Q_DECLARE_METATYPE(QAction*)
 
 void tst_QToolButton::triggered()
 {

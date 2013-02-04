@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -65,20 +65,3 @@ QStyle *MyStylePlugin::create(const QString &key)
 //! [2]
 QApplication::setStyle(QStyleFactory::create("MyStyle"));
 //! [2]
-
-
-//! [4]
-#include <QApplication>
-#include <QtPlugin>
-
-Q_IMPORT_PLUGIN(qjpeg)
-Q_IMPORT_PLUGIN(qgif)
-Q_IMPORT_PLUGIN(qkrcodecs)
-
-int main(int argc, char *argv[])
-{
-    QApplication app(argc, argv);
-    ...
-    return app.exec();
-}
-//! [4]

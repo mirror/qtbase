@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -69,7 +69,7 @@ static bool isDebugging = false;
 #define qAtspiDebug              if (!::isDebugging); else qDebug
 
 AtSpiAdaptor::AtSpiAdaptor(DBusConnection *connection, QObject *parent)
-    : QDBusVirtualObject(parent), m_dbus(connection), initialized(false)
+    : QDBusVirtualObject(parent), m_dbus(connection)
     , sendFocus(0)
     , sendObject(0)
     , sendObject_active_descendant_changed(0)
@@ -99,6 +99,7 @@ AtSpiAdaptor::AtSpiAdaptor(DBusConnection *connection, QObject *parent)
     , sendObject_row_inserted(0)
     , sendObject_row_reordered(0)
     , sendObject_selection_changed(0)
+    , sendObject_state_changed(0)
     , sendObject_text_attributes_changed(0)
     , sendObject_text_bounds_changed(0)
     , sendObject_text_caret_moved(0)
@@ -131,6 +132,17 @@ AtSpiAdaptor::AtSpiAdaptor(DBusConnection *connection, QObject *parent)
 
     m_applicationAdaptor = new QSpiApplicationAdaptor(m_dbus->connection(), this);
     connect(m_applicationAdaptor, SIGNAL(windowActivated(QObject*,bool)), this, SLOT(windowActivated(QObject*,bool)));
+
+    updateEventListeners();
+    bool success = m_dbus->connection().connect(QLatin1String("org.a11y.atspi.Registry"), QLatin1String("/org/a11y/atspi/registry"),
+                                                QLatin1String("org.a11y.atspi.Registry"), QLatin1String("EventListenerRegistered"), this,
+                                                SLOT(eventListenerRegistered(QString,QString)));
+    success = success && m_dbus->connection().connect(QLatin1String("org.a11y.atspi.Registry"), QLatin1String("/org/a11y/atspi/registry"),
+                                                      QLatin1String("org.a11y.atspi.Registry"), QLatin1String("EventListenerDeregistered"), this,
+                                                      SLOT(eventListenerDeregistered(QString,QString)));
+#ifdef QT_ATSPI_DEBUG
+    qAtspiDebug() << "Registered event listener change listener: " << success;
+#endif
 }
 
 AtSpiAdaptor::~AtSpiAdaptor()
@@ -604,30 +616,6 @@ QString AtSpiAdaptor::introspect(const QString &path) const
     return xml;
 }
 
-/*!
-  When initialized we will send updates, not before this.
-
-  This function also checks which event listeners are registered in the at-spi registry.
-  */
-void AtSpiAdaptor::setInitialized(bool init)
-{
-    initialized = init;
-
-    if (!initialized)
-        return;
-
-    updateEventListeners();
-    bool success = m_dbus->connection().connect(QLatin1String("org.a11y.atspi.Registry"), QLatin1String("/org/a11y/atspi/registry"),
-                                               QLatin1String("org.a11y.atspi.Registry"), QLatin1String("EventListenerRegistered"), this,
-                                               SLOT(eventListenerRegistered(QString,QString)));
-    success = success && m_dbus->connection().connect(QLatin1String("org.a11y.atspi.Registry"), QLatin1String("/org/a11y/atspi/registry"),
-                                               QLatin1String("org.a11y.atspi.Registry"), QLatin1String("EventListenerDeregistered"), this,
-                                               SLOT(eventListenerDeregistered(QString,QString)));
-#ifdef QT_ATSPI_DEBUG
-    qAtspiDebug() << "Registered event listener change listener: " << success;
-#endif
-}
-
 void AtSpiAdaptor::setBitFlag(const QString &flag)
 {
     Q_ASSERT(flag.size());
@@ -903,15 +891,20 @@ QAIPointer AtSpiAdaptor::interfaceFromPath(const QString& dbusPath) const
     return QAIPointer();
 }
 
+void AtSpiAdaptor::notifyStateChange(const QAIPointer &interface, const QString &state, int value)
+{
+    QString path = pathForInterface(interface);
+    QVariantList stateArgs = packDBusSignalArguments(state, value, 0, variantForPath(path));
+    sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
+                    QLatin1String("StateChanged"), stateArgs);
+}
+
 
 /*!
     This function gets called when Qt notifies about accessibility updates.
 */
 void AtSpiAdaptor::notify(QAccessibleEvent *event)
 {
-    if (!initialized)
-        return;
-
     switch (event->type()) {
     case QAccessible::ObjectCreated:
         if (sendObject || sendObject_children_changed)
@@ -919,19 +912,13 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
         break;
     case QAccessible::ObjectShow: {
         if (sendObject || sendObject_state_changed) {
-            QString path = pathForInterface(QAIPointer(event->accessibleInterface()));
-            QVariantList stateArgs = packDBusSignalArguments(QLatin1String("showing"), 1, 0, variantForPath(path));
-            sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
-                           QLatin1String("StateChanged"), stateArgs);
+            notifyStateChange(QAIPointer(event->accessibleInterface()), QLatin1String("showing"), 1);
         }
         break;
     }
     case QAccessible::ObjectHide: {
         if (sendObject || sendObject_state_changed) {
-            QString path = pathForInterface(QAIPointer(event->accessibleInterface()));
-            QVariantList stateArgs = packDBusSignalArguments(QLatin1String("showing"), 0, 0, variantForPath(path));
-            sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
-                           QLatin1String("StateChanged"), stateArgs);
+            notifyStateChange(QAIPointer(event->accessibleInterface()), QLatin1String("showing"), 0);
         }
         break;
     }
@@ -968,7 +955,10 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
     case QAccessible::TextUpdated: {
         if (sendObject || sendObject_text_changed) {
             QAIPointer iface = QAIPointer(event->accessibleInterface());
-            Q_ASSERT(iface->textInterface());
+            if (!iface || !iface->textInterface()) {
+                qAtspiDebug() << "Received text event for invalid interface.";
+                return;
+            }
             QString path = pathForInterface(iface);
 
             int changePosition = 0;
@@ -1023,8 +1013,8 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
     case QAccessible::TextCaretMoved: {
         if (sendObject || sendObject_text_caret_moved) {
             QAIPointer iface = QAIPointer(event->accessibleInterface());
-            if (!iface->textInterface()) {
-                qWarning() << "Sending TextCaretMoved from object that does not implement text interface: " << iface << iface->object();
+            if (!iface || !iface->textInterface()) {
+                qWarning() << "Sending TextCaretMoved from object that does not implement text interface: " << iface;
                 return;
             }
 
@@ -1049,9 +1039,13 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
         break;
     }
     case QAccessible::ValueChanged: {
-        if (sendObject || sendObject_value_changed) {
+        if (sendObject || sendObject_value_changed || sendObject_property_change_accessible_value) {
             QAIPointer iface = QAIPointer(event->accessibleInterface());
-            Q_ASSERT(iface->valueInterface());
+            if (!iface || !iface->valueInterface()) {
+                qWarning() << "ValueChanged event from invalid accessible: " << iface;
+                return;
+            }
+
             QString path = pathForInterface(iface);
             QVariantList args = packDBusSignalArguments(QLatin1String("accessible-value"), 0, 0, variantForPath(path));
             sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
@@ -1061,6 +1055,10 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
     }
     case QAccessible::Selection: {
         QAIPointer iface = QAIPointer(event->accessibleInterface());
+        if (!iface) {
+            qWarning() << "Selection event from invalid accessible.";
+            return;
+        }
         QString path = pathForInterface(iface);
         int selected = iface->state().selected ? 1 : 0;
         QVariantList stateArgs = packDBusSignalArguments(QLatin1String("selected"), selected, 0, variantForPath(path));
@@ -1074,14 +1072,15 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
             QAccessible::State stateChange = static_cast<QAccessibleStateChangeEvent*>(event)->changedStates();
             if (stateChange.checked) {
                 QAIPointer iface = QAIPointer(event->accessibleInterface());
+                if (!iface) {
+                    qWarning() << "StateChanged event from invalid accessible.";
+                    return;
+                }
                 int checked = iface->state().checked;
-                QString path = pathForInterface(iface);
-                QVariantList args = packDBusSignalArguments(QLatin1String("checked"), checked, 0, variantForPath(path));
-                sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
-                               QLatin1String("StateChanged"), args);
+                notifyStateChange(iface, QLatin1String("checked"), checked);
             } else if (stateChange.active) {
                 QAIPointer iface = QAIPointer(event->accessibleInterface());
-                if (!(iface->role() == QAccessible::Window && (sendWindow || sendWindow_activate)))
+                if (!iface || !(iface->role() == QAccessible::Window && (sendWindow || sendWindow_activate)))
                     return;
                 QString windowTitle = iface->text(QAccessible::Name);
                 QDBusVariant data;
@@ -1092,9 +1091,15 @@ void AtSpiAdaptor::notify(QAccessibleEvent *event)
                 QString path = pathForInterface(iface);
                 sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_WINDOW), status, args);
 
-                QVariantList stateArgs = packDBusSignalArguments(QLatin1String("active"), iface->state().active ? 1 : 0, 0, variantForPath(path));
-                sendDBusSignal(path, QLatin1String(ATSPI_DBUS_INTERFACE_EVENT_OBJECT),
-                               QLatin1String("StateChanged"), stateArgs);
+                int isActive = iface->state().active;
+                notifyStateChange(iface, QLatin1String("active"), isActive);
+            } else if (stateChange.disabled) {
+                QAIPointer iface = QAIPointer(event->accessibleInterface());
+                QAccessible::State state = iface->state();
+                bool enabled = !state.disabled;
+
+                notifyStateChange(iface, QLatin1String("enabled"), enabled);
+                notifyStateChange(iface, QLatin1String("sensitive"), enabled);
             }
         }
         break;
@@ -2093,44 +2098,35 @@ bool AtSpiAdaptor::editableTextInterface(const QAIPointer &interface, const QStr
 // Value interface
 bool AtSpiAdaptor::valueInterface(const QAIPointer &interface, const QString &function, const QDBusMessage &message, const QDBusConnection &connection)
 {
-    if (0) {
-    } else if (function == QLatin1String("SetCurrentValue")) {
+    if (function == QLatin1String("SetCurrentValue")) {
         QDBusVariant v = message.arguments().at(2).value<QDBusVariant>();
         double value = v.variant().toDouble();
         //Temporary fix
         //See https://bugzilla.gnome.org/show_bug.cgi?id=652596
         interface->valueInterface()->setCurrentValue(value);
         connection.send(message.createReply()); // FIXME is the reply needed?
-    } else if (function == QLatin1String("GetCurrentValue")) {
-        bool success;
-        double val = interface->valueInterface()->currentValue().toDouble(&success);
-        if (!success) {
-            qAtspiDebug ("AtSpiAdaptor::valueInterface: Could not convert current value to double.");
-        }
-        connection.send(message.createReply(
-                            QVariant::fromValue(QDBusVariant(QVariant::fromValue(val)))));
-    } else if (function == QLatin1String("GetMaximumValue")) {
-        bool success;
-        double val = interface->valueInterface()->maximumValue().toDouble(&success);
-        if (!success) {
-            qAtspiDebug ("AtSpiAdaptor::valueInterface: Could not convert current value to double.");
-        }
-        connection.send(message.createReply(
-                            QVariant::fromValue(QDBusVariant(QVariant::fromValue(val)))));
-    } else if (function == QLatin1String("GetMinimumIncrement")) {
-        connection.send(message.createReply(
-                            QVariant::fromValue(QDBusVariant(QVariant::fromValue(0.0)))));
-    } else if (function == QLatin1String("GetMinimumValue")) {
-        bool success;
-        double val = interface->valueInterface()->minimumValue().toDouble(&success);
-        if (!success) {
-            qAtspiDebug ("AtSpiAdaptor::valueInterface: Could not convert current value to double.");
-        }
-        connection.send(message.createReply(
-                            QVariant::fromValue(QDBusVariant(QVariant::fromValue(val)))));
     } else {
-        qAtspiDebug() << "WARNING: AtSpiAdaptor::valueInterface does not implement " << function << message.path();
-        return false;
+        QVariant value;
+        if (function == QLatin1String("GetCurrentValue"))
+            value = interface->valueInterface()->currentValue();
+        else if (function == QLatin1String("GetMaximumValue"))
+            value = interface->valueInterface()->maximumValue();
+        else if (function == QLatin1String("GetMinimumIncrement"))
+            value = interface->valueInterface()->minimumStepSize();
+        else if (function == QLatin1String("GetMinimumValue"))
+            value = interface->valueInterface()->minimumValue();
+        else {
+            qAtspiDebug() << "WARNING: AtSpiAdaptor::valueInterface does not implement " << function << message.path();
+            return false;
+        }
+        if (!value.canConvert(QVariant::Double)) {
+            qAtspiDebug() << "AtSpiAdaptor::valueInterface: Could not convert to double: " << function;
+        }
+
+        // explicitly convert to dbus-variant containing one double since atspi expects that
+        // everything else might fail to convert back on the other end
+        connection.send(message.createReply(
+                            QVariant::fromValue(QDBusVariant(QVariant::fromValue(value.toDouble())))));
     }
     return true;
 }

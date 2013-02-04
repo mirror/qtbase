@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,7 +28,7 @@
 /*!
     \example itemviews/customsortfiltermodel
     \title Custom Sort/Filter Model Example
-
+    \ingroup examples-itemviews
     \brief The Custom Sort/Filter Model example illustrates how to subclass
     QSortFilterProxyModel to perform advanced sorting and filtering.
 

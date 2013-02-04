@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,7 +28,7 @@
 /*!
     \example itemviews/spinboxdelegate
     \title Spin Box Delegate Example
-
+    \ingroup examples-itemviews
     \brief The Spin Box Delegate example shows how to create an editor for a custom delegate in
     the model/view framework by reusing a standard Qt editor widget.
 

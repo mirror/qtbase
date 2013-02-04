@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -82,7 +82,7 @@ settings.value("HKEY_CURRENT_USER\\MySoft\\Star Runner\\Galaxy\\Default"); // re
 
 
 //! [7]
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
     QSettings settings("grenoullelogique.fr", "Squash");
 #else
     QSettings settings("Grenoulle Logique", "Squash");

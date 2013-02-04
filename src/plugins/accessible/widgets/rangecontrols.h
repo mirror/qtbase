@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -71,6 +71,7 @@ public:
     void setCurrentValue(const QVariant &value);
     QVariant maximumValue() const;
     QVariant minimumValue() const;
+    QVariant minimumStepSize() const;
 
     // FIXME Action interface
 
@@ -110,6 +111,7 @@ public:
     void setCurrentValue(const QVariant &value);
     QVariant maximumValue() const;
     QVariant minimumValue() const;
+    QVariant minimumStepSize() const;
 
 protected:
     QAbstractSlider *abstractSlider() const;

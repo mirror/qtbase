@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 static const qreal Q_PI   = qreal(3.14159265358979323846);   // pi
 static const qreal Q_2PI  = qreal(6.28318530717958647693);   // 2*pi
 static const qreal Q_PI2  = qreal(1.57079632679489661923);   // pi/2
+static const qreal Q_MM_PER_INCH = 25.4;
 
 inline int qIntSqrtInt(int v)
 {

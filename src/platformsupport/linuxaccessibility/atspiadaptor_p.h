@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -53,7 +53,6 @@
 #include "dbusconnection_p.h"
 #include "struct_marshallers_p.h"
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 class QAccessibleInterface;
@@ -75,8 +74,8 @@ public:
     bool handleMessage(const QDBusMessage &message, const QDBusConnection &connection);
     void notify(QAccessibleEvent *event);
 
-    void setInitialized(bool init);
-
+    void init();
+    void checkInitializedAndEnabled();
 public Q_SLOTS:
     void eventListenerRegistered(const QString &bus, const QString &path);
     void eventListenerDeregistered(const QString &bus, const QString &path);
@@ -111,6 +110,8 @@ private:
     QString pathForInterface(const QAIPointer &interface, bool inDestructor = false) const;
     QString pathForObject(QObject *object) const;
 
+    void notifyStateChange(const QAIPointer& interface, const QString& state, int value);
+
     // accessible helper functions
     AtspiRole getRole(const QAIPointer &interface) const;
     QSpiRelationArray relationSet(const QAIPointer &interface, const QDBusConnection &connection) const;
@@ -138,7 +139,6 @@ private:
 
     /// Assigned from the accessibility registry.
     int m_applicationId;
-    bool initialized;
 
     mutable QHash<quintptr, QPointer<QObject> > m_handledObjects;
 
@@ -215,6 +215,5 @@ private:
 };
 
 QT_END_NAMESPACE
-QT_END_HEADER
 
 #endif

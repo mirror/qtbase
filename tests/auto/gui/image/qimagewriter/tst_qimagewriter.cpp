@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -58,11 +58,7 @@
 
 typedef QMap<QString, QString> QStringMap;
 typedef QList<int> QIntList;
-Q_DECLARE_METATYPE(QImage)
-Q_DECLARE_METATYPE(QStringMap)
-Q_DECLARE_METATYPE(QIntList)
 Q_DECLARE_METATYPE(QImageWriter::ImageWriterError)
-Q_DECLARE_METATYPE(QIODevice *)
 Q_DECLARE_METATYPE(QImage::Format)
 
 class tst_QImageWriter : public QObject
@@ -85,6 +81,7 @@ private slots:
     void writeImage2_data();
     void writeImage2();
     void supportedFormats();
+    void supportedMimeTypes();
 
     void writeToInvalidDevice();
 
@@ -354,6 +351,26 @@ void tst_QImageWriter::supportedFormats()
 
     // check that the list does not contain duplicates
     QCOMPARE(formatSet.size(), formats.size());
+}
+
+void tst_QImageWriter::supportedMimeTypes()
+{
+    QList<QByteArray> mimeTypes = QImageWriter::supportedMimeTypes();
+    QList<QByteArray> sortedMimeTypes = mimeTypes;
+    qSort(sortedMimeTypes);
+
+    // check that the list is sorted
+    QCOMPARE(mimeTypes, sortedMimeTypes);
+
+    QSet<QByteArray> mimeTypeSet;
+    foreach (QByteArray mimeType, mimeTypes)
+        mimeTypeSet << mimeType;
+
+    // check the list as a minimum contains image/bmp
+    QVERIFY(mimeTypeSet.contains("image/bmp"));
+
+    // check that the list does not contain duplicates
+    QCOMPARE(mimeTypeSet.size(), mimeTypes.size());
 }
 
 void tst_QImageWriter::writeToInvalidDevice()

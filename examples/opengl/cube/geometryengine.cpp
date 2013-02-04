@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -49,14 +49,13 @@ struct VertexData
     QVector2D texCoord;
 };
 
-GeometryEngine::GeometryEngine() : vboIds(new GLuint[2])
+GeometryEngine::GeometryEngine()
 {    
 }
 
 GeometryEngine::~GeometryEngine()
 {
     glDeleteBuffers(2, vboIds);
-    delete[] vboIds;
 }
 
 void GeometryEngine::init()

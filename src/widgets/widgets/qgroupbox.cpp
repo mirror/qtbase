@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -171,10 +171,10 @@ void QGroupBoxPrivate::click()
     \snippet widgets/groupbox/window.cpp 2
 
     \table 100%
-    \row \li \inlineimage windowsxp-groupbox.png Screenshot of a Windows XP style group box
+    \row \li \inlineimage windowsvista-groupbox.png Screenshot of a Windows Vista style group box
          \li \inlineimage macintosh-groupbox.png Screenshot of a Macintosh style group box
          \li \inlineimage fusion-groupbox.png Screenshot of a Fusion style group box
-    \row \li A \l{Windows XP Style Widget Gallery}{Windows XP style} group box.
+    \row \li A \l{Windows Vista Style Widget Gallery}{Windows Vista style} group box.
          \li A \l{Macintosh Style Widget Gallery}{Macintosh style} group box.
          \li A \l{Fusion Style Widget Gallery}{Fusion style} group box.
     \endtable

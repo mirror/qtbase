@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -56,7 +56,7 @@
 
 #define PROGRAMNAME     "qdbusxml2cpp"
 #define PROGRAMVERSION  "0.8"
-#define PROGRAMCOPYRIGHT "Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies)."
+#define PROGRAMCOPYRIGHT "Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies)."
 
 #define ANNOTATION_NO_WAIT      "org.freedesktop.DBus.Method.NoReply"
 
@@ -498,7 +498,7 @@ static QString stringify(const QString &data)
                 retval += QLatin1String("\\\"");
             else
                 retval += data[i];
-        if (data[i] == QLatin1Char('\r') && data[i+1] == QLatin1Char('\n'))
+        if (i+1 < data.length() && data[i] == QLatin1Char('\r') && data[i+1] == QLatin1Char('\n'))
             i++;
         retval += QLatin1String("\\n\"\n");
     }

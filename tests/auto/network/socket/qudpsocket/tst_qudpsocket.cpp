@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -63,9 +63,6 @@
 
 Q_DECLARE_METATYPE(QHostAddress)
 Q_DECLARE_METATYPE(QNetworkInterface)
-#ifndef QT_NO_BEARERMANAGEMENT
-Q_DECLARE_METATYPE(QSharedPointer<QNetworkSession>)
-#endif
 
 QT_FORWARD_DECLARE_CLASS(QUdpSocket)
 
@@ -674,7 +671,6 @@ void tst_QUdpSocket::writeDatagram()
     client.setProperty("_q_networksession", QVariant::fromValue(networkSession));
 #endif
 
-    qRegisterMetaType<qint64>("qint64");
     qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
 
     for(int i=0;;i++) {
@@ -1151,7 +1147,7 @@ void tst_QUdpSocket::multicastLeaveAfterClose()
     QFETCH(QHostAddress, groupAddress);
     if (setProxy)
         QSKIP("UDP Multicast does not work with proxies");
-    if (groupAddress.protocol() == QAbstractSocket::IPv6Protocol)
+    if (!QtNetworkSettings::hasIPv6() && groupAddress.protocol() == QAbstractSocket::IPv6Protocol)
         QSKIP("system doesn't support ipv6!");
 
     QUdpSocket udpSocket;

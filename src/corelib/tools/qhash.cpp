@@ -1,7 +1,7 @@
 
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Giuseppe D'Angelo <dangelog@gmail.com>.
 ** Contact: http://www.qt-project.org/legal
 **
@@ -924,6 +924,16 @@ void QHashData::checkSanity()
     \sa clear()
 */
 
+/*! \fn QHash::QHash(std::initializer_list<std::pair<Key,T> > list)
+    \since 5.1
+
+    Constructs a hash with a copy of each of the elements in the
+    initializer list \a list.
+
+    This function is only available if the program is being
+    compiled in C++11 mode.
+*/
+
 /*! \fn QHash::QHash(const QHash<Key, T> &other)
 
     Constructs a copy of \a other.
@@ -1261,7 +1271,7 @@ void QHashData::checkSanity()
 
 /*! \fn QHash::iterator QHash::begin()
 
-    Returns an \l{STL-style iterator} pointing to the first item in
+    Returns an \l{STL-style iterators}{STL-style iterator} pointing to the first item in
     the hash.
 
     \sa constBegin(), end()
@@ -1275,7 +1285,7 @@ void QHashData::checkSanity()
 /*! \fn QHash::const_iterator QHash::cbegin() const
     \since 5.0
 
-    Returns a const \l{STL-style iterator} pointing to the first item
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first item
     in the hash.
 
     \sa begin(), cend()
@@ -1283,7 +1293,7 @@ void QHashData::checkSanity()
 
 /*! \fn QHash::const_iterator QHash::constBegin() const
 
-    Returns a const \l{STL-style iterator} pointing to the first item
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first item
     in the hash.
 
     \sa begin(), constEnd()
@@ -1291,7 +1301,7 @@ void QHashData::checkSanity()
 
 /*! \fn QHash::iterator QHash::end()
 
-    Returns an \l{STL-style iterator} pointing to the imaginary item
+    Returns an \l{STL-style iterators}{STL-style iterator} pointing to the imaginary item
     after the last item in the hash.
 
     \sa begin(), constEnd()
@@ -1304,7 +1314,7 @@ void QHashData::checkSanity()
 
 /*! \fn QHash::const_iterator QHash::constEnd() const
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary
     item after the last item in the hash.
 
     \sa constBegin(), end()
@@ -1313,7 +1323,7 @@ void QHashData::checkSanity()
 /*! \fn QHash::const_iterator QHash::cend() const
     \since 5.0
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary
     item after the last item in the hash.
 
     \sa cbegin(), end()
@@ -1979,6 +1989,16 @@ void QHashData::checkSanity()
 /*! \fn QMultiHash::QMultiHash()
 
     Constructs an empty hash.
+*/
+
+/*! \fn QMultiHash::QMultiHash(std::initializer_list<std::pair<Key,T> > list)
+    \since 5.1
+
+    Constructs a multi hash with a copy of each of the elements in the
+    initializer list \a list.
+
+    This function is only available if the program is being
+    compiled in C++11 mode.
 */
 
 /*! \fn QMultiHash::QMultiHash(const QHash<Key, T> &other)

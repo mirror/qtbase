@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -45,8 +45,6 @@
 #include <QtCore/qnamespace.h>
 #include <QtCore/qstring.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -61,7 +59,7 @@ Q_GUI_EXPORT QDataStream &operator<<(QDataStream &in, const QKeySequence &ks);
 Q_GUI_EXPORT QDataStream &operator>>(QDataStream &out, QKeySequence &ks);
 #endif
 
-#ifdef qdoc
+#ifdef Q_QDOC
 void qt_set_sequence_auto_mnemonic(bool b);
 #endif
 
@@ -230,7 +228,5 @@ public:
 #endif // QT_NO_SHORTCUT
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QKEYSEQUENCE_H

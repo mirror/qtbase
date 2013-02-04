@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -602,20 +602,6 @@ QList<QMimeType> QMimeDatabase::allMimeTypes() const
     \value MatchExtension Only the file name is used to look for a match
 
     \value MatchContent The file content is used to look for a match
-*/
-
-/*!
-    \fn QMimeType QMimeDatabase::mimeTypeForNameAndData(const QString &fileName, QIODevice *device) const
-    \obsolete
-
-    This function is replaced by \l mimeTypeForFileNameAndData()
-*/
-
-/*!
-    \fn QMimeType QMimeDatabase::mimeTypeForNameAndData(const QString &fileName, const QByteArray &data) const
-    \obsolete
-
-    This function is replaced by \l mimeTypeForFileNameAndData()
 */
 
 QT_END_NAMESPACE

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -77,10 +77,12 @@
         int numKids = m_accessibleRoot->childCount();
         NSMutableArray *kids = [NSMutableArray arrayWithCapacity:numKids];
         for (int i = 0; i < numKids; ++i) {
-            [kids addObject:[QCocoaAccessibleElement elementWithInterface: m_accessibleRoot->child(i) parent:self ]];
+            QCocoaAccessibleElement *element = [QCocoaAccessibleElement createElementWithInterface: m_accessibleRoot->child(i) parent:self ];
+            [kids addObject: element];
+            [element release];
         }
 
-        return NSAccessibilityUnignoredChildren(kids);
+        return kids;
     } else {
         return [super accessibilityAttributeValue:attribute];
     }
@@ -98,7 +100,8 @@
 
     // Hit a child, forward to child accessible interface.
 
-    QCocoaAccessibleElement *accessibleElement = [QCocoaAccessibleElement elementWithInterface: childInterface parent:self ];
+    QCocoaAccessibleElement *accessibleElement = [QCocoaAccessibleElement createElementWithInterface: childInterface parent:self ];
+    [accessibleElement autorelease];
     return [accessibleElement accessibilityHitTest:point];
 }
 

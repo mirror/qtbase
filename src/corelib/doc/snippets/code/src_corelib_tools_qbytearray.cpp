@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -251,7 +251,7 @@ ba.lastIndexOf("X");        // returns -1
 
 
 //! [25]
-QByteArray url("ftp://ftp.qt.nokia.com/");
+QByteArray url("ftp://ftp.qt-project.org/");
 if (url.startsWith("ftp:"))
     ...
 //! [25]

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -46,8 +46,6 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qvector.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -252,78 +250,78 @@ Q_SIGNALS:
     void layoutAboutToBeChanged(const QList<QPersistentModelIndex> &parents = QList<QPersistentModelIndex>(), QAbstractItemModel::LayoutChangeHint hint = QAbstractItemModel::NoLayoutChangeHint);
 
     void rowsAboutToBeInserted(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void rowsInserted(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
 
     void rowsAboutToBeRemoved(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void rowsRemoved(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
 
     void columnsAboutToBeInserted(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void columnsInserted(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
 
     void columnsAboutToBeRemoved(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void columnsRemoved(const QModelIndex &parent, int first, int last
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
 
     void modelAboutToBeReset(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       QPrivateSignal
 #endif
     );
     void modelReset(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       QPrivateSignal
 #endif
     );
 
     void rowsAboutToBeMoved( const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationRow
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void rowsMoved( const QModelIndex &parent, int start, int end, const QModelIndex &destination, int row
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
 
     void columnsAboutToBeMoved( const QModelIndex &sourceParent, int sourceStart, int sourceEnd, const QModelIndex &destinationParent, int destinationColumn
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void columnsMoved( const QModelIndex &parent, int start, int end, const QModelIndex &destination, int column
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
@@ -331,6 +329,10 @@ Q_SIGNALS:
 public Q_SLOTS:
     virtual bool submit();
     virtual void revert();
+
+protected Q_SLOTS:
+    // Qt 6: Make virtual
+    void resetInternalData();
 
 protected:
     QAbstractItemModel(QAbstractItemModelPrivate &dd, QObject *parent = 0);
@@ -421,6 +423,7 @@ public:
     bool dropMimeData(const QMimeData *data, Qt::DropAction action,
                       int row, int column, const QModelIndex &parent);
 
+    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
 protected:
     QAbstractTableModel(QAbstractItemModelPrivate &dd, QObject *parent);
 
@@ -441,6 +444,8 @@ public:
     QModelIndex index(int row, int column = 0, const QModelIndex &parent = QModelIndex()) const;
     bool dropMimeData(const QMimeData *data, Qt::DropAction action,
                       int row, int column, const QModelIndex &parent);
+
+    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
 protected:
     QAbstractListModel(QAbstractItemModelPrivate &dd, QObject *parent);
 
@@ -472,7 +477,5 @@ inline uint qHash(const QModelIndex &index)
 { return uint((index.row() << 4) + index.column() + index.internalId()); }
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QABSTRACTITEMMODEL_H

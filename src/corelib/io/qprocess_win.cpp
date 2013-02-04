@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -82,7 +82,8 @@ static void qt_create_pipe(Q_PIPE *pipe, bool isInputPipe)
     forever {
         // ### The user must make sure to call qsrand() to make the pipe names less predictable.
         // ### Replace the call to qrand() with a secure version, once we have it in Qt.
-        swprintf(pipeName, L"\\\\.\\pipe\\qt-%X", qrand());
+        _snwprintf(pipeName, sizeof(pipeName) / sizeof(pipeName[0]),
+                L"\\\\.\\pipe\\qt-%X", qrand());
 
         DWORD dwPipeFlags = PIPE_TYPE_BYTE | PIPE_WAIT;
         if (QSysInfo::windowsVersion() >= QSysInfo::WV_VISTA)

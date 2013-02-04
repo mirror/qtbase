@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -56,6 +56,17 @@
 QT_BEGIN_NAMESPACE
 
 extern QString qt_error_string(int code);
+
+QStringList QLibraryPrivate::suffixes_sys(const QString& fullVersion)
+{
+    Q_UNUSED(fullVersion);
+    return QStringList(QStringLiteral(".dll"));
+}
+
+QStringList QLibraryPrivate::prefixes_sys()
+{
+    return QStringList();
+}
 
 bool QLibraryPrivate::load_sys()
 {

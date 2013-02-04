@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Intel Corporation.
 ** Contact: http://www.qt-project.org/legal
 **
@@ -50,6 +50,7 @@
 
 #include "externaltests.h"
 #include "forwarddeclared.h"
+#include "nontracked.h"
 #include "wrapper.h"
 
 #include <stdlib.h>
@@ -88,6 +89,7 @@ private slots:
     void dynamicCastDifferentPointers();
     void dynamicCastVirtualBase();
     void dynamicCastFailure();
+    void dynamicCastFailureNoLeak();
 #endif
     void constCorrectness();
     void customDeleter();
@@ -1110,6 +1112,11 @@ void tst_QSharedPointer::dynamicCastFailure()
     QCOMPARE(int(refCountData(baseptr)->weakref.load()), 1);
     QCOMPARE(int(refCountData(baseptr)->strongref.load()), 1);
 }
+
+void tst_QSharedPointer::dynamicCastFailureNoLeak()
+{
+    NonTracked::dynamicCastFailureNoLeak();
+}
 #endif
 
 void tst_QSharedPointer::constCorrectness()
@@ -1989,7 +1996,7 @@ void tst_QSharedPointer::invalidConstructs()
     QByteArray body = code.toLatin1();
 
     bool result = (test.*testFunction)(body);
-    if (qgetenv("QTEST_EXTERNAL_DEBUG").toInt() > 0) {
+    if (!result || qgetenv("QTEST_EXTERNAL_DEBUG").toInt() > 0) {
         qDebug("External test output:");
 #ifdef Q_CC_MSVC
         // MSVC prints errors to stdout

@@ -1,7 +1,7 @@
 /*
 *********************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the autotests of the Qt Toolkit.
@@ -44,8 +44,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'trpreviewtool.ui'
 **
-** Created: Fri Sep 4 10:17:15 2009
-**      by: Qt User Interface Compiler version 4.6.0
+** Created by: Qt User Interface Compiler version 5.0.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/

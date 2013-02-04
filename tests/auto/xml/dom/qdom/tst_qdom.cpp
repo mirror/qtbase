@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -143,7 +143,6 @@ private:
     QList<QByteArray> m_testCodecs;
 };
 
-Q_DECLARE_METATYPE(QList<QVariant>)
 
 void tst_QDom::setContent_data()
 {

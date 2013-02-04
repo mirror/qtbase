@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -1945,6 +1945,7 @@ void tst_QApplication::touchEventPropagation()
     {
         // touch event behavior on a window
         TouchEventPropagationTestWidget window;
+        window.resize(200, 200);
         window.setObjectName("1. window");
         window.show(); // Must have an explicitly specified QWindow for handleTouchEvent,
                        // passing 0 would result in using topLevelAt() which is not ok in this case
@@ -1999,6 +2000,7 @@ void tst_QApplication::touchEventPropagation()
     {
         // touch event behavior on a window with a child widget
         TouchEventPropagationTestWidget window;
+        window.resize(200, 200);
         window.setObjectName("2. window");
         TouchEventPropagationTestWidget widget(&window);
         widget.setObjectName("2. widget");
@@ -2140,6 +2142,7 @@ void tst_QApplication::qtbug_12673()
     QVERIFY2(!path.isEmpty(), "Cannot locate modal helper application");
     path += "modal";
 
+#ifndef QT_NO_PROCESS
     QProcess testProcess;
     QStringList arguments;
     testProcess.start(path, arguments);
@@ -2147,6 +2150,9 @@ void tst_QApplication::qtbug_12673()
              qPrintable(QString::fromLatin1("Cannot start '%1': %2").arg(path, testProcess.errorString())));
     QVERIFY(testProcess.waitForFinished(20000));
     QCOMPARE(testProcess.exitStatus(), QProcess::NormalExit);
+#else
+    QSKIP( "No QProcess support", SkipAll);
+#endif
 }
 
 class NoQuitOnHideWidget : public QWidget
@@ -2220,7 +2226,9 @@ void tst_QApplication::abortQuitOnShow()
     executed *after* the destruction of QApplication.
  */
 Q_GLOBAL_STATIC(QLocale, tst_qapp_locale);
+#ifndef QT_NO_PROCESS
 Q_GLOBAL_STATIC(QProcess, tst_qapp_process);
+#endif
 Q_GLOBAL_STATIC(QFileSystemWatcher, tst_qapp_fileSystemWatcher);
 #ifndef QT_NO_SHAREDMEMORY
 Q_GLOBAL_STATIC(QSharedMemory, tst_qapp_sharedMemory);
@@ -2241,7 +2249,9 @@ void tst_QApplication::globalStaticObjectDestruction()
     int argc = 1;
     QApplication app(argc, &argv0);
     QVERIFY(tst_qapp_locale());
+#ifndef QT_NO_PROCESS
     QVERIFY(tst_qapp_process());
+#endif
     QVERIFY(tst_qapp_fileSystemWatcher());
 #ifndef QT_NO_SHAREDMEMORY
     QVERIFY(tst_qapp_sharedMemory());

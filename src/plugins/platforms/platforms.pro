@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 android : SUBDIRS += android
 #   else : SUBDIRS += minimal
 
-SUBDIRS += minimal
+SUBDIRS += minimal offscreen
 
 contains(QT_CONFIG, xcb) {
     SUBDIRS += xcb

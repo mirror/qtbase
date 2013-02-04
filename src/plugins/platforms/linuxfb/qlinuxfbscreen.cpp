@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -264,7 +264,7 @@ static int openTtyDevice(const QString &device)
 
 static bool switchToGraphicsMode(int ttyfd, int *oldMode)
 {
-    ioctl(ttyfd, KDGETMODE, &oldMode);
+    ioctl(ttyfd, KDGETMODE, oldMode);
     if (*oldMode != KD_GRAPHICS) {
        if (ioctl(ttyfd, KDSETMODE, KD_GRAPHICS) != 0)
             return false;

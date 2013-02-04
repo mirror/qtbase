@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -28,6 +28,8 @@
 /*!
     \example itemviews/interview
     \title Interview
+    \ingroup examples-itemviews
+    \brief This example demonstrates the usage of the model/view framework.
 
     \brief The Interview example explores the flexibility and scalability of the
     model/view framework by presenting an infinitely deep data structure using a model

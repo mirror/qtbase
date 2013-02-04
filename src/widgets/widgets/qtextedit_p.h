@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -99,6 +99,7 @@ public:
     { control->processEvent(e, QPointF(horizontalOffset(), verticalOffset()), viewport); }
 
     void _q_currentCharFormatChanged(const QTextCharFormat &format);
+    void _q_cursorPositionChanged();
 
     void updateDefaultTextOption();
 

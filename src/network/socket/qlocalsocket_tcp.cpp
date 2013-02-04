@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtNetwork module of the Qt Toolkit.
@@ -238,7 +238,7 @@ void QLocalSocket::connectToServer(const QString &name, OpenMode openMode)
     else
         d->fullServerName = prefix + name;
 
-    QSettings settings(QLatin1String("Trolltech"), QLatin1String("Qt"));
+    QSettings settings(QLatin1String("QtProject"), QLatin1String("Qt"));
     bool ok;
     const quint16 port = settings.value(d->fullServerName).toUInt(&ok);
     if (!ok) {

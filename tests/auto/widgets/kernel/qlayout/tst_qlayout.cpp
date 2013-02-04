@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -56,6 +56,14 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <private/qlayoutengine_p.h>
+
+static inline void setFrameless(QWidget *w)
+{
+    Qt::WindowFlags flags = w->windowFlags();
+    flags |= Qt::FramelessWindowHint;
+    flags &= ~(Qt::WindowTitleHint | Qt::WindowSystemMenuHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    w->setWindowFlags(flags);
+}
 
 class tst_QLayout : public QObject
 {
@@ -126,6 +134,7 @@ void tst_QLayout::geometry()
     // should be the same.
     QApplication::setStyle(QStyleFactory::create(QLatin1String("Windows")));
     QWidget topLevel;
+    setFrameless(&topLevel);
     QWidget w(&topLevel);
     QVBoxLayout layout(&w);
     SizeHinterFrame widget(QSize(100,100));

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -73,10 +73,7 @@
 //Used in copyAvailable
 typedef QPair<Qt::Key, Qt::KeyboardModifier> keyPairType;
 typedef QList<keyPairType> pairListType;
-Q_DECLARE_METATYPE(pairListType);
 Q_DECLARE_METATYPE(keyPairType);
-Q_DECLARE_METATYPE(QList<bool>);
-Q_DECLARE_METATYPE(QList<int>);
 
 QT_FORWARD_DECLARE_CLASS(QTextEdit)
 

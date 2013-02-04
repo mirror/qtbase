@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -44,8 +44,6 @@
 
 #include <QtCore/qeasingcurve.h>
 #include <QtCore/qobject.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -126,22 +124,22 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void valueChanged(qreal x
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void frameChanged(int
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void stateChanged(QTimeLine::State newState
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       , QPrivateSignal
 #endif
     );
     void finished(
-#if !defined(qdoc)
+#if !defined(Q_QDOC)
       QPrivateSignal
 #endif
     );
@@ -155,8 +153,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif
 

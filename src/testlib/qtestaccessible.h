@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtTest module of the Qt Toolkit.
@@ -56,8 +56,8 @@
 #include <QtCore/qdebug.h>
 #include <QtGui/qaccessible.h>
 #include <QtGui/qguiapplication.h>
-
-QT_BEGIN_HEADER
+#include <QtTest/qtest_global.h>
+#include <QtTest/qtestsystem.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -254,7 +254,7 @@ private:
         str << "Event " << needle->object() <<  ", type: "
            << needle->type() << ", child: " << needle->child()
            <<  " not found at head of event list of size " << haystack.size() << " :";
-        foreach (const QAccessibleEvent *e, haystack)
+        Q_FOREACH (const QAccessibleEvent *e, haystack)
             str << ' ' << e->object() << ", type: "
                 << e->type() << ", child: " << e->child();
         return rc;
@@ -263,8 +263,6 @@ private:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QT_NO_ACCESSIBILITY
 #endif // QTESTACCESSIBLE_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -120,6 +120,11 @@ QVariant QAccessibleAbstractSpinBox::maximumValue() const
 QVariant QAccessibleAbstractSpinBox::minimumValue() const
 {
     return abstractSpinBox()->property("minimum");
+}
+
+QVariant QAccessibleAbstractSpinBox::minimumStepSize() const
+{
+    return abstractSpinBox()->property("stepSize");
 }
 
 /*!
@@ -276,6 +281,11 @@ QVariant QAccessibleAbstractSlider::maximumValue() const
 QVariant QAccessibleAbstractSlider::minimumValue() const
 {
     return abstractSlider()->minimum();
+}
+
+QVariant QAccessibleAbstractSlider::minimumStepSize() const
+{
+    return abstractSlider()->singleStep();
 }
 
 QAbstractSlider *QAccessibleAbstractSlider::abstractSlider() const

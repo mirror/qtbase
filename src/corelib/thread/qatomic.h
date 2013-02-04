@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -46,8 +46,6 @@
 
 #include <QtCore/qbasicatomic.h>
 
-QT_BEGIN_HEADER
-
 QT_BEGIN_NAMESPACE
 
 
@@ -81,7 +79,12 @@ public:
         return *this;
     }
 
-#ifdef qdoc
+#ifdef Q_QDOC
+    int load() const;
+    int loadAcquire() const;
+    void store(int newValue);
+    void storeRelease(int newValue);
+
     static Q_DECL_CONSTEXPR bool isReferenceCountingNative();
     static Q_DECL_CONSTEXPR bool isReferenceCountingWaitFree();
 
@@ -138,7 +141,12 @@ public:
         return *this;
     }
 
-#ifdef qdoc
+#ifdef Q_QDOC
+    T *load() const;
+    T *loadAcquire() const;
+    void store(T *newValue);
+    void storeRelease(T *newValue);
+
     static Q_DECL_CONSTEXPR bool isTestAndSetNative();
     static Q_DECL_CONSTEXPR bool isTestAndSetWaitFree();
 
@@ -210,6 +218,4 @@ inline void qAtomicDetach(T *&d)
 }
 
 QT_END_NAMESPACE
-QT_END_HEADER
-
 #endif // QATOMIC_H

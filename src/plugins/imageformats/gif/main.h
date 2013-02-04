@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -42,6 +42,8 @@
 #include <qimageiohandler.h>
 #include <qstringlist.h>
 
+#ifndef QT_NO_IMAGEFORMATPLUGIN
+
 #ifdef QT_NO_IMAGEFORMAT_GIF
 #undef QT_NO_IMAGEFORMAT_GIF
 #endif
@@ -62,3 +64,5 @@ public:
 };
 
 QT_END_NAMESPACE
+
+#endif // QT_NO_IMAGEFORMATPLUGIN

@@ -102,13 +102,13 @@
 //  - Use Qt macros for long long type differences on Windows.
 //  - Enclose in QtPrivate namespace.
 
+#include "QtCore/qglobal.h"
+
 #ifndef QTYPETRAITS_H
 #define QTYPETRAITS_H
 
 #include <utility>                  // For pair
-#include "QtCore/qglobal.h"
 
-QT_BEGIN_HEADER
 QT_BEGIN_NAMESPACE
 
 namespace QtPrivate {
@@ -504,6 +504,4 @@ Q_STATIC_ASSERT(( is_signed<qint64>::value));
 } // namespace QtPrivate
 
 QT_END_NAMESPACE
-QT_END_HEADER
-
 #endif  // QTYPETRAITS_H

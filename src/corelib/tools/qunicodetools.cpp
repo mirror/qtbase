@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -44,7 +44,8 @@
 #include "qunicodetables_p.h"
 #include "qvarlengtharray.h"
 
-#include "qharfbuzz_p.h"
+#include <private/harfbuzz-shaper.h>
+#include <private/qharfbuzz_p.h>
 
 #define FLAG(x) (1 << (x))
 

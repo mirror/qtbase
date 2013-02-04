@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -121,7 +121,7 @@ public:
 
 tst_QAbstractNetworkCache::tst_QAbstractNetworkCache()
 {
-    QCoreApplication::setOrganizationName(QLatin1String("Trolltech"));
+    QCoreApplication::setOrganizationName(QLatin1String("QtProject"));
     QCoreApplication::setApplicationName(QLatin1String("autotest_qabstractnetworkcache"));
     QCoreApplication::setApplicationVersion(QLatin1String("1.0"));
 }

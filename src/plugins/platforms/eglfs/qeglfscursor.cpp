@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the plugins of the Qt Toolkit.
@@ -55,8 +55,10 @@ QEglFSCursor::QEglFSCursor(QEglFSScreen *screen)
     initCursorAtlas();
 
     // initialize the cursor
+#ifndef QT_NO_CURSOR
     QCursor cursor(Qt::ArrowCursor);
     setCurrentCursor(&cursor);
+#endif
 }
 
 QEglFSCursor::~QEglFSCursor()
@@ -183,6 +185,7 @@ void QEglFSCursor::initCursorAtlas()
     m_cursorAtlas.image = image;
 }
 
+#ifndef QT_NO_CURSOR
 void QEglFSCursor::changeCursor(QCursor *cursor, QWindow *window)
 {
     Q_UNUSED(window);
@@ -193,15 +196,16 @@ void QEglFSCursor::changeCursor(QCursor *cursor, QWindow *window)
 
 bool QEglFSCursor::setCurrentCursor(QCursor *cursor)
 {
-    if (m_cursor.shape == cursor->shape() && cursor->shape() != Qt::BitmapCursor)
+    const Qt::CursorShape newShape = cursor ? cursor->shape() : Qt::ArrowCursor;
+    if (m_cursor.shape == newShape && newShape != Qt::BitmapCursor)
         return false;
 
     if (m_cursor.shape == Qt::BitmapCursor) {
         m_cursor.customCursorImage = QImage(); // in case render() never uploaded it
     }
 
-    m_cursor.shape = cursor->shape();
-    if (cursor->shape() != Qt::BitmapCursor) { // standard cursor
+    m_cursor.shape = newShape;
+    if (newShape != Qt::BitmapCursor) { // standard cursor
         const float ws = (float)m_cursorAtlas.cursorWidth / m_cursorAtlas.width,
                     hs = (float)m_cursorAtlas.cursorHeight / m_cursorAtlas.height;
         m_cursor.textureRect = QRectF(ws * (m_cursor.shape % m_cursorAtlas.cursorsPerRow),
@@ -221,6 +225,7 @@ bool QEglFSCursor::setCurrentCursor(QCursor *cursor)
 
     return true;
 }
+#endif
 
 void QEglFSCursor::update(const QRegion &rgn)
 {

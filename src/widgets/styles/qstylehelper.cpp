@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -78,12 +78,26 @@ QString uniqueName(const QString &key, const QStyleOption *option, const QSize &
 qreal dpiScaled(qreal value)
 {
 #ifdef Q_OS_MAC
-    // On mac the DPI is allways 72 so we should not scale it
+    // On mac the DPI is always 72 so we should not scale it
     return value;
 #else
     static const qreal scale = qreal(qt_defaultDpiX()) / 96.0;
     return value * scale;
 #endif
+}
+
+bool isInstanceOf(QObject *obj, QAccessible::Role role)
+{
+    bool match = false;
+#ifndef QT_NO_ACCESSIBILITY
+    QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(obj);
+    match = iface && iface->role() == role;
+    delete iface;
+#else
+    Q_UNUSED(obj)
+    Q_UNUSED(role)
+#endif // QT_NO_ACCESSIBILITY
+    return match;
 }
 
 // Searches for an ancestor of a particular accessible role
@@ -93,10 +107,8 @@ bool hasAncestor(QObject *obj, QAccessible::Role role)
 #ifndef QT_NO_ACCESSIBILITY
     QObject *parent = obj ? obj->parent() : 0;
     while (parent && !found) {
-        QAccessibleInterface *iface = QAccessible::queryAccessibleInterface(parent);
-        if (iface && iface->role() == role)
+        if (isInstanceOf(parent, role))
             found = true;
-        delete iface;
         parent = parent->parent();
     }
 #else

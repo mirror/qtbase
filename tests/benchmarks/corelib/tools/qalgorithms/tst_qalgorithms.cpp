@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Copyright (C) 2012 Robin Burchell <robin+qt@viroteck.net>
 ** Contact: http://www.qt-project.org/legal
 **
@@ -97,7 +97,6 @@ QVector<DataType> generateData(QString dataSetType, const int length)
     return container;
 }
 
-Q_DECLARE_METATYPE(QVector<int>)
 
 void tst_QAlgorithms::stableSort_data()
 {

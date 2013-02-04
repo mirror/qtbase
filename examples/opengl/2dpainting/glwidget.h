@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -45,10 +45,6 @@
 
 //! [0]
 class Helper;
-QT_BEGIN_NAMESPACE
-class QPaintEvent;
-class QWidget;
-QT_END_NAMESPACE
 
 class GLWidget : public QGLWidget
 {

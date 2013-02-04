@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -538,6 +538,16 @@ void QMapDataBase::freeData(QMapDataBase *d)
     \sa toStdMap()
 */
 
+/*! \fn QMap::QMap(std::initializer_list<std::pair<Key,T> > list)
+    \since 5.1
+
+    Constructs a map with a copy of each of the elements in the
+    initializer list \a list.
+
+    This function is only available if the program is being
+    compiled in C++11 mode.
+*/
+
 /*! \fn std::map<Key, T> QMap::toStdMap() const
 
     Returns an STL map equivalent to this QMap.
@@ -811,7 +821,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 
 /*! \fn QMap::iterator QMap::begin()
 
-    Returns an \l{STL-style iterator} pointing to the first item in
+    Returns an \l{STL-style iterators}{STL-style iterator} pointing to the first item in
     the map.
 
     \sa constBegin(), end()
@@ -825,7 +835,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 /*! \fn QMap::const_iterator QMap::cbegin() const
     \since 5.0
 
-    Returns a const \l{STL-style iterator} pointing to the first item
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first item
     in the map.
 
     \sa begin(), cend()
@@ -833,7 +843,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 
 /*! \fn QMap::const_iterator QMap::constBegin() const
 
-    Returns a const \l{STL-style iterator} pointing to the first item
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the first item
     in the map.
 
     \sa begin(), constEnd()
@@ -841,7 +851,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 
 /*! \fn QMap::iterator QMap::end()
 
-    Returns an \l{STL-style iterator} pointing to the imaginary item
+    Returns an \l{STL-style iterators}{STL-style iterator} pointing to the imaginary item
     after the last item in the map.
 
     \sa begin(), constEnd()
@@ -855,7 +865,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 /*! \fn QMap::const_iterator QMap::cend() const
     \since 5.0
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary
     item after the last item in the map.
 
     \sa cbegin(), end()
@@ -863,7 +873,7 @@ void QMapDataBase::freeData(QMapDataBase *d)
 
 /*! \fn QMap::const_iterator QMap::constEnd() const
 
-    Returns a const \l{STL-style iterator} pointing to the imaginary
+    Returns a const \l{STL-style iterators}{STL-style iterator} pointing to the imaginary
     item after the last item in the map.
 
     \sa constBegin(), end()
@@ -1574,6 +1584,16 @@ void QMapDataBase::freeData(QMapDataBase *d)
 /*! \fn QMultiMap::QMultiMap()
 
     Constructs an empty map.
+*/
+
+/*! \fn QMultiMap::QMultiMap(std::initializer_list<std::pair<Key,T> > list)
+    \since 5.1
+
+    Constructs a multi map with a copy of each of the elements in the
+    initializer list \a list.
+
+    This function is only available if the program is being
+    compiled in C++11 mode.
 */
 
 /*! \fn QMultiMap::QMultiMap(const QMap<Key, T> &other)

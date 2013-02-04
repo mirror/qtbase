@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -60,8 +60,6 @@
 #include <qdebug.h>
 
 #include "../../../network-settings.h"
-
-Q_DECLARE_METATYPE(QQueue<QByteArray>)
 
 class tst_QSocks5SocketEngine : public QObject, public QAbstractSocketEngineReceiver
 {

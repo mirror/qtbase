@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -218,23 +218,6 @@ static inline qint64 qPointDistanceFromLine(const QPodPoint &p, const QPodPoint 
 static inline bool qPointIsLeftOfLine(const QPodPoint &p, const QPodPoint &v1, const QPodPoint &v2)
 {
     return QT_PREPEND_NAMESPACE(qPointDistanceFromLine)(p, v1, v2) < 0;
-}
-
-// Return:
-// -1 if u < v
-//  0 if u == v
-//  1 if u > v
-static int comparePoints(const QPodPoint &u, const QPodPoint &v)
-{
-    if (u.y < v.y)
-        return -1;
-    if (u.y > v.y)
-        return 1;
-    if (u.x < v.x)
-        return -1;
-    if (u.x > v.x)
-        return 1;
-    return 0;
 }
 
 //============================================================================//
@@ -630,16 +613,6 @@ public:
             int winding;
             bool mayIntersect;
             bool pointingUp, originallyPointingUp;
-        };
-
-        friend class CompareEdges;
-        class CompareEdges
-        {
-        public:
-            inline CompareEdges(ComplexToSimple *parent) : m_parent(parent) { }
-            bool operator () (int i, int j) const;
-        private:
-            ComplexToSimple *m_parent;
         };
 
         struct Intersection
@@ -1651,18 +1624,6 @@ void QTriangulator<T>::ComplexToSimple::removeUnusedPoints() {
         m_edges.at(i).from = newMapping.at(m_edges.at(i).from);
         m_edges.at(i).to = newMapping.at(m_edges.at(i).to);
     }
-}
-
-template <typename T>
-bool QTriangulator<T>::ComplexToSimple::CompareEdges::operator () (int i, int j) const
-{
-    int cmp = comparePoints(m_parent->m_parent->m_vertices.at(m_parent->m_edges.at(i).from),
-        m_parent->m_parent->m_vertices.at(m_parent->m_edges.at(j).from));
-    if (cmp == 0) {
-        cmp = comparePoints(m_parent->m_parent->m_vertices.at(m_parent->m_edges.at(i).to),
-            m_parent->m_parent->m_vertices.at(m_parent->m_edges.at(j).to));
-    }
-    return cmp > 0;
 }
 
 template <typename T>

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -75,6 +75,7 @@
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
 
+#ifndef Q_OS_MAC
 // X11 Includes:
 
 // the following is necessary to work around breakage in many versions
@@ -90,6 +91,7 @@
 #undef XRegisterIMInstantiateCallback
 #undef XUnregisterIMInstantiateCallback
 #undef XSetIMValues
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -210,7 +212,9 @@ Ptr_gconf_client_get_bool QGtkStylePrivate::gconf_client_get_bool = 0;
 Ptr_gnome_icon_lookup_sync QGtkStylePrivate::gnome_icon_lookup_sync = 0;
 Ptr_gnome_vfs_init QGtkStylePrivate::gnome_vfs_init = 0;
 
+#ifndef Q_OS_MAC
 typedef int (*x11ErrorHandler)(Display*, XErrorEvent*);
+#endif
 
 QT_END_NAMESPACE
 
@@ -540,10 +544,14 @@ void QGtkStylePrivate::initGtkWidgets() const
     }
 
     if (QGtkStylePrivate::gtk_init) {
+#ifndef Q_OS_MAC
         // Gtk will set the Qt error handler so we have to reset it afterwards
         x11ErrorHandler qt_x_errhandler = XSetErrorHandler(0);
+#endif
         QGtkStylePrivate::gtk_init (NULL, NULL);
+#ifndef Q_OS_MAC
         XSetErrorHandler(qt_x_errhandler);
+#endif
 
         // make a window
         GtkWidget* gtkWindow = QGtkStylePrivate::gtk_window_new(GTK_WINDOW_POPUP);
@@ -571,7 +579,17 @@ void QGtkStylePrivate::initGtkWidgets() const
                 addWidget(QGtkStylePrivate::gtk_combo_box_entry_new());
             if (gtk_combo_box_new_with_entry)
                 addWidget(QGtkStylePrivate::gtk_combo_box_new_with_entry());
-            addWidget(QGtkStylePrivate::gtk_entry_new());
+            GtkWidget *entry = QGtkStylePrivate::gtk_entry_new();
+            // gtk-im-context-none is supported in gtk+ since 2.19.5
+            // and also exists in gtk3
+            // http://git.gnome.org/browse/gtk+/tree/gtk/gtkimmulticontext.c?id=2.19.5#n33
+            // reason that we don't use gtk-im-context-simple here is,
+            // gtk-im-context-none has less overhead, and 2.19.5 is
+            // relatively old. and even for older gtk+, it will fallback
+            // to gtk-im-context-simple if gtk-im-context-none doesn't
+            // exists.
+            g_object_set(entry, "im-module", "gtk-im-context-none", NULL);
+            addWidget(entry);
             addWidget(QGtkStylePrivate::gtk_frame_new(NULL));
             addWidget(QGtkStylePrivate::gtk_expander_new(""));
             addWidget(QGtkStylePrivate::gtk_statusbar_new());
@@ -967,13 +985,14 @@ void QGtkStylePrivate::setupGtkFileChooser(GtkWidget* gtkFileChooser, QWidget *p
     QWidget *modalFor = parent ? parent->window() : qApp->activeWindow();
     if (modalFor) {
         QGtkStylePrivate::gtk_widget_realize(gtkFileChooser); // Creates X window
+#ifndef Q_OS_MAC
         XSetTransientForHint(QGtkStylePrivate::gdk_x11_drawable_get_xdisplay(gtkFileChooser->window),
                              QGtkStylePrivate::gdk_x11_drawable_get_xid(gtkFileChooser->window),
                              modalFor->winId());
 #ifdef Q_WS_X11
         QGtkStylePrivate::gdk_x11_window_set_user_time (gtkFileChooser->window, QX11Info::appUserTime());
 #endif
-
+#endif
     }
 
     QFileInfo fileinfo(dir);

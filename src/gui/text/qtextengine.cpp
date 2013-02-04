@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -1853,7 +1853,7 @@ void QTextEngine::justify(const QScriptLine &line)
     itemize();
 
     if (!forceJustification) {
-        int end = line.from + (int)line.length;
+        int end = line.from + (int)line.length + line.trailingSpaces;
         if (end == layoutData->string.length())
             return; // no justification at end of paragraph
         if (end && layoutData->items[findItem(end-1)].analysis.flags == QScriptAnalysis::LineOrParagraphSeparator)
@@ -1907,6 +1907,8 @@ void QTextEngine::justify(const QScriptLine &line)
 
         int gs = log_clusters[start];
         int ge = (end == length(firstItem+i) ? si.num_glyphs : log_clusters[end]);
+
+        Q_ASSERT(ge <= si.num_glyphs);
 
         const QGlyphLayout g = shapedGlyphs(&si);
 

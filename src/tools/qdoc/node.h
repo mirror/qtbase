@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the tools applications of the Qt Toolkit.
@@ -822,13 +822,8 @@ private:
 
     QString     rt;
     QStringList pp;
-#ifdef Q_WS_WIN
     Metaness    met;
     Virtualness vir;
-#else
-    Metaness met : 4;
-    Virtualness vir : 2;
-#endif
     bool con : 1;
     bool sta : 1;
     bool ove : 1;

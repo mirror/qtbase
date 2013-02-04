@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -43,8 +43,6 @@
 #define QNAMESPACE_H
 
 #include <QtCore/qglobal.h>
-
-QT_BEGIN_HEADER
 
 QT_BEGIN_NAMESPACE
 
@@ -1400,7 +1398,8 @@ public:
         ItemIsDropEnabled = 8,
         ItemIsUserCheckable = 16,
         ItemIsEnabled = 32,
-        ItemIsTristate = 64
+        ItemIsTristate = 64,
+        ItemNeverHasChildren = 128
     };
     Q_DECLARE_FLAGS(ItemFlags, ItemFlag)
 
@@ -1605,7 +1604,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
-QT_END_HEADER
 
 #endif // QNAMESPACE_H

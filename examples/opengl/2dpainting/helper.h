@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -44,11 +44,7 @@
 #include <QBrush>
 #include <QFont>
 #include <QPen>
-
-QT_BEGIN_NAMESPACE
-class QPainter;
-class QPaintEvent;
-QT_END_NAMESPACE
+#include <QWidget>
 
 //! [0]
 class Helper

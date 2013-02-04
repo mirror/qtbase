@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtGui module of the Qt Toolkit.
@@ -108,7 +108,7 @@ QT_BEGIN_NAMESPACE
     subElementRect() are documented here.
     \endomit
 
-    \sa QStyle, QWindowsStyle
+    \sa QStyle, QProxyStyle
 */
 
 /*!
@@ -1149,15 +1149,17 @@ void QCommonStylePrivate::startAnimation(QStyleAnimation *animation) const
     stopAnimation(animation->target());
     q->connect(animation, SIGNAL(destroyed()), SLOT(_q_removeAnimation()), Qt::UniqueConnection);
     animations.insert(animation->target(), animation);
-    animation->start();
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 /*! \internal */
 void QCommonStylePrivate::stopAnimation(const QObject *target) const
 {
     QStyleAnimation *animation = animations.take(target);
-    if (animation && animation->state() != QAbstractAnimation::Stopped)
+    if (animation) {
         animation->stop();
+        delete animation;
+    }
 }
 
 /*! \internal */
@@ -4634,7 +4636,7 @@ int QCommonStyle::pixelMetric(PixelMetric m, const QStyleOption *opt, const QWid
         ret = int(QStyleHelper::dpiScaled(13.));
         break;
     case PM_MessageBoxIconSize:
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
         if (QApplication::desktopSettingsAware()) {
             ret = 64; // No DPI scaling, it's handled elsewhere.
         } else

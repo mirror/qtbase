@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -53,10 +53,6 @@
 
 #include <private/qpixmap_raster_p.h>
 
-Q_DECLARE_METATYPE(QLine)
-Q_DECLARE_METATYPE(QRect)
-Q_DECLARE_METATYPE(QSize)
-Q_DECLARE_METATYPE(QPoint)
 Q_DECLARE_METATYPE(QPainterPath)
 Q_DECLARE_METATYPE(QPainter::RenderHint)
 Q_DECLARE_METATYPE(QPainter::CompositionMode)

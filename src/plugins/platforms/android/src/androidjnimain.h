@@ -92,18 +92,23 @@ namespace QtAndroid
     {
         AttachedJNIEnv()
         {
-            if (QtAndroid::javaVM()->AttachCurrentThread(&jniEnv, NULL) < 0) {
-                __android_log_print(ANDROID_LOG_ERROR, "Qt", "AttachCurrentThread failed");
-                jniEnv = 0;
-                return;
+            attached = false;
+            if (QtAndroid::javaVM()->GetEnv((void**)&jniEnv, JNI_VERSION_1_6) < 0) {
+                if (QtAndroid::javaVM()->AttachCurrentThread(&jniEnv, NULL) < 0) {
+                    __android_log_print(ANDROID_LOG_ERROR, "Qt", "AttachCurrentThread failed");
+                    jniEnv = 0;
+                    return;
+                }
+                attached = true;
             }
         }
 
         ~AttachedJNIEnv()
         {
-             QtAndroid::javaVM()->DetachCurrentThread();
+            if (attached)
+                QtAndroid::javaVM()->DetachCurrentThread();
         }
-
+        bool attached;
         JNIEnv *jniEnv;
     };
     const char *classErrorMsgFmt();

@@ -542,6 +542,14 @@ jboolean QAndroidInputContext::setComposingText(const QString &text, jint newCur
 
     QInputMethodEvent event(m_composingText, attributes);
     sendInputMethodEvent(&event);
+
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (!query.isNull()) {
+        int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+        int preeditLength = text.length();
+        QtAndroidInput::updateSelection(cursorPos+preeditLength, cursorPos+preeditLength, cursorPos, cursorPos+preeditLength);
+    }
+
     return JNI_TRUE;
 }
 

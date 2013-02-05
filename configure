@@ -2626,22 +2626,6 @@ case "$XPLATFORM" in *qnx-*|*blackberry-*) XPLATFORM_QNX=yes;; esac
 case "$XPLATFORM" in *android*) XPLATFORM_ANDROID=yes;; esac
 
 if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-    if [ -z "$CFG_DEFAULT_ANDROID_NDK_ROOT" ]; then
-        echo
-        echo "Can not find Android NDK. Please use -android-ndk option to specify one"
-        exit 1
-    fi
-    if [ -z "$CFG_DEFAULT_ANDROID_SDK_ROOT" ]; then
-        echo
-        echo "Can not find Android SDK. Please use -android-sdk option to specify one"
-        exit 1
-    fi
-
-    QT_QPA_DEFAULT_PLATFORM="android"
-    CFG_LARGEFILE="no"
-
-    cp -f $CFG_DEFAULT_ANDROID_NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/libs/$CFG_DEFAULT_ANDROID_TARGET_ARCH/libgnustl_shared.so $outpath/lib
-
     if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
         case $PLATFORM in
         linux-*-64)
@@ -2676,12 +2660,30 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
         exit 0
     fi
 
-    DeviceVar set DEFAULT_ANDROID_SDK_ROOT "$CFG_DEFAULT_ANDROID_SDK_ROOT"
-    DeviceVar set DEFAULT_ANDROID_NDK_ROOT "$CFG_DEFAULT_ANDROID_NDK_ROOT"
-    DeviceVar set DEFAULT_ANDROID_PLATFORM "$CFG_DEFAULT_ANDROID_PLATFORM"
-    DeviceVar set DEFAULT_ANDROID_NDK_HOST "$CFG_DEFAULT_ANDROID_NDK_HOST"
-    DeviceVar set DEFAULT_ANDROID_TARGET_ARCH "$CFG_DEFAULT_ANDROID_TARGET_ARCH"
-    DeviceVar set DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION "$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION"
+    if [ "$OPT_HELP" != "yes" ]; then
+        if [ -z "$CFG_DEFAULT_ANDROID_NDK_ROOT" ]; then
+            echo
+            echo "Can not find Android NDK. Please use -android-ndk option to specify one"
+            exit 1
+        fi
+        if [ -z "$CFG_DEFAULT_ANDROID_SDK_ROOT" ]; then
+            echo
+            echo "Can not find Android SDK. Please use -android-sdk option to specify one"
+            exit 1
+        fi
+
+        QT_QPA_DEFAULT_PLATFORM="android"
+        CFG_LARGEFILE="no"
+
+        cp -f $CFG_DEFAULT_ANDROID_NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/libs/$CFG_DEFAULT_ANDROID_TARGET_ARCH/libgnustl_shared.so $outpath/lib
+
+        DeviceVar set DEFAULT_ANDROID_SDK_ROOT "$CFG_DEFAULT_ANDROID_SDK_ROOT"
+        DeviceVar set DEFAULT_ANDROID_NDK_ROOT "$CFG_DEFAULT_ANDROID_NDK_ROOT"
+        DeviceVar set DEFAULT_ANDROID_PLATFORM "$CFG_DEFAULT_ANDROID_PLATFORM"
+        DeviceVar set DEFAULT_ANDROID_NDK_HOST "$CFG_DEFAULT_ANDROID_NDK_HOST"
+        DeviceVar set DEFAULT_ANDROID_TARGET_ARCH "$CFG_DEFAULT_ANDROID_TARGET_ARCH"
+        DeviceVar set DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION "$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION"
+    fi
 fi
 
 if [ -d "$PLATFORM" ]; then
@@ -2821,7 +2823,7 @@ QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`
 
 TEST_COMPILER=$QMAKE_CONF_COMPILER
 
-if [ "$XPLATFORM_ANDROID" = "yes" ] ; then
+if [ "$OPT_HELP" != "yes" ] && [ "$XPLATFORM_ANDROID" = "yes" ] ; then
     ANDROID_NDK_TOOLS_PREFIX=
     ANDROID_PLATFORM_ARCH=
     case $CFG_DEFAULT_ANDROID_TARGET_ARCH in

@@ -24,7 +24,7 @@
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.kde.necessitas.industrius;
+package org.qtproject.qt5.android;
 
 import java.io.File;
 import java.io.IOException;

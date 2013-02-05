@@ -4,7 +4,7 @@
             <depends>
                 <lib file="plugins/platforms/android/libqtforandroid.so"/>
                 <lib file="libs/libgnustl_shared.so"/>
-                <jar file="jar/QtIndustrius.jar"/>
+                <jar file="jar/QtAndroid.jar"/>
             </depends>
         </lib>
 

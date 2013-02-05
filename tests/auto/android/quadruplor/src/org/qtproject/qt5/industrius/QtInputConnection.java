@@ -24,10 +24,14 @@
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.kde.necessitas.industrius;
+package org.qtproject.qt5.android;
 
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.CompletionInfo;
@@ -68,6 +72,8 @@ class QtNativeInputConnection
 public class QtInputConnection extends BaseInputConnection
 {
     private static final int ID_SELECT_ALL = android.R.id.selectAll;
+    private static final int ID_START_SELECTING_TEXT = android.R.id.startSelectingText;
+    private static final int ID_STOP_SELECTING_TEXT = android.R.id.stopSelectingText;
     private static final int ID_CUT = android.R.id.cut;
     private static final int ID_COPY = android.R.id.copy;
     private static final int ID_PASTE = android.R.id.paste;
@@ -75,61 +81,40 @@ public class QtInputConnection extends BaseInputConnection
     private static final int ID_SWITCH_INPUT_METHOD = android.R.id.switchInputMethod;
     private static final int ID_ADD_TO_DICTIONARY = android.R.id.addToDictionary;
     View m_view;
-    boolean m_closing;
+
     public QtInputConnection(View targetView)
     {
         super(targetView, true);
         m_view = targetView;
-        m_closing = false;
     }
 
     @Override
     public boolean beginBatchEdit() {
-        m_closing = false;
         return true;
     }
 
     @Override
     public boolean endBatchEdit() {
-        m_closing = false;
         return true;
     }
 
     @Override
     public boolean commitCompletion(CompletionInfo text) {
-        m_closing = false;
         return QtNativeInputConnection.commitCompletion(text.getText().toString(), text.getPosition());
     }
 
     @Override
     public boolean commitText(CharSequence text, int newCursorPosition) {
-        m_closing = false;
         return QtNativeInputConnection.commitText(text.toString(), newCursorPosition);
     }
 
     @Override
     public boolean deleteSurroundingText(int leftLength, int rightLength) {
-        m_closing = false;
         return QtNativeInputConnection.deleteSurroundingText(leftLength, rightLength);
     }
 
     @Override
     public boolean finishComposingText() {
-        if (m_closing)
-        {
-            QtNative.activityDelegate().m_keyboardIsHiding=true;
-            m_view.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (QtNative.activityDelegate().m_keyboardIsHiding)
-                        QtNative.activityDelegate().m_keyboardIsVisible=false;
-                }
-            }, 5000); // it seems finishComposingText comes musch faster than onKeyUp event,
-                      // so we must delay hide notification
-            m_closing = false;
-        }
-        else
-            m_closing = true;
         return QtNativeInputConnection.finishComposingText();
     }
 

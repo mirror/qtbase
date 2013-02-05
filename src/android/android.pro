@@ -1,8 +1,8 @@
 CONFIG += java
-TARGET = QtIndustrius
+TARGET = QtAndroid
 DESTDIR = $$[QT_INSTALL_PREFIX/get]/jar
 
-PATHPREFIX = $$PWD/jar/src/org/kde/necessitas/industrius
+PATHPREFIX = $$PWD/jar/src/org/qtproject/qt5/android/
 
 JAVACLASSPATH += $$PWD/jar/src/
 JAVASOURCES += \

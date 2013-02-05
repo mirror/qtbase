@@ -24,7 +24,7 @@
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.kde.necessitas.origo;
+package org.qtproject.qt5.android.bindings;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -351,7 +351,7 @@ public class QtActivity extends Activity
                 loaderParams.putString(DEX_PATH_KEY, dexPaths);
                 loaderParams.putString(LOADER_CLASS_NAME_KEY, getIntent().getExtras().containsKey("loader_class_name")
                                                             ?getIntent().getExtras().getString("loader_class_name")
-                                                            :"org.kde.necessitas.industrius.QtActivityDelegate");
+                                                            :"org.qtproject.qt5.android.QtActivityDelegate");
                 if (getIntent().getExtras().containsKey("static_init_classes"))
                     loaderParams.putStringArray(STATIC_INIT_CLASSES_KEY, getIntent().getExtras().getString("static_init_classes").split(":"));
                 loaderParams.putStringArrayList(NATIVE_LIBRARIES_KEY, libraryList);

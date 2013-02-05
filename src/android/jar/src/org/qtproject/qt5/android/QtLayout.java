@@ -24,7 +24,7 @@
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.kde.necessitas.industrius;
+package org.qtproject.qt5.android;
 
 import android.content.Context;
 import android.util.AttributeSet;

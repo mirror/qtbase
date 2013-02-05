@@ -24,7 +24,7 @@
     THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.kde.necessitas.origo;
+package org.qtproject.qt5.android.bindings;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

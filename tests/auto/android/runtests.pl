@@ -12,7 +12,7 @@ use Pod::Usage;
 my @stack = cwd;
 my $device_serial=""; # "-s device_serial";
 my $packageName="org.kde.necessitas.quadruplor";
-my $intentName="$packageName/org.kde.necessitas.industrius.QtActivity";
+my $intentName="$packageName/org.qtproject.qt5.android.QtActivity";
 my $jobs = 4;
 my $testsubset = "";
 my $man = 0;

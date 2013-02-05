@@ -132,7 +132,7 @@ static AndroidAssetsFileEngineHandler *m_androidAssetsFileEngineHandler = 0;
 
 
 static const char m_qtTag[] = "Qt";
-static const char m_classErrorMsg[] = "Can't find class \"$s\"";
+static const char m_classErrorMsg[] = "Can't find class \"%s\"";
 static const char m_methodErrorMsg[] = "Can't find method \"%s%s\"";
 
 static inline void checkPauseApplication()

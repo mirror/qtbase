@@ -11,7 +11,7 @@ use Pod::Usage;
 ### default options
 my @stack = cwd;
 my $device_serial=""; # "-s device_serial";
-my $packageName="org.kde.necessitas.quadruplor";
+my $packageName="org.qtproject.qt5.android.tests";
 my $intentName="$packageName/org.qtproject.qt5.android.QtActivity";
 my $jobs = 4;
 my $testsubset = "";
@@ -101,7 +101,7 @@ sub waitForProcess
 }
 
 my $src_dir_qt=abs_path(dirname($0)."/..");
-my $quadruplor_dir="$src_dir_qt/android/quadruplor";
+my $quadruplor_dir="$src_dir_qt/tests/auto/android";
 my $qmake_path="$src_dir_qt/bin/qmake";
 my $tests_dir="$src_dir_qt/tests$testsubset";
 my $temp_dir=tempdir(CLEANUP => 1);

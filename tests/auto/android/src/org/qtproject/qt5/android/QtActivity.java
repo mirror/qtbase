@@ -30,7 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.kde.necessitas.quadruplor.R;
+import org.qtproject.qt5.android.tests.R;
 
 import android.app.Activity;
 import android.content.Context;

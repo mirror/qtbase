@@ -9,6 +9,7 @@ contains(TEMPLATE, ".*app") {
         contains(ANDROID_TARGET_ARCH, armeabi-v7a) : target.path=/libs/armeabi-v7a/
         contains(ANDROID_TARGET_ARCH, armeabi)     : target.path=/libs/armeabi/
         contains(ANDROID_TARGET_ARCH, x86)         : target.path=/libs/x86/
+        contains(ANDROID_TARGET_ARCH, mips)        : target.path=/libs/mips/
     } else {
         target.path=/
     }

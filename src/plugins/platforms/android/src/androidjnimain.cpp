@@ -667,14 +667,9 @@ static void setDisplayMetrics(JNIEnv */*env*/, jclass /*clazz*/,
                                                                 qRound(double(desktopWidthPixels)  / xdpi * 25.4),
                                                                 qRound(double(desktopHeightPixels) / ydpi * 25.4));
     } else {
-// ### TODO
-#ifndef ANDROID_PLUGIN_OPENGL
         m_androidPlatformIntegration->setDisplayMetrics(qRound(double(desktopWidthPixels)  / xdpi * 25.4),
                                                         qRound(double(desktopHeightPixels) / ydpi * 25.4));
         m_androidPlatformIntegration->setDesktopSize(desktopWidthPixels, desktopHeightPixels);
-#else
-        qWarning("setDisplayMetrics: Not implemented yet on OpenGL");
-#endif
     }
 }
 

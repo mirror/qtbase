@@ -41,6 +41,7 @@
 
 #include "qeglfshooks.h"
 #include "androidjnimain.h"
+#include "qandroidplatformintegration.h"
 
 #include <android/native_window.h>
 #include <jni.h>
@@ -54,6 +55,7 @@ public:
     void platformDestroy();
     EGLNativeDisplayType platformDisplay() const;
     QSize screenSize() const;
+    QSizeF physicalScreenSize() const;
     int screenDepth() const;
     QSurfaceFormat surfaceFormatFor(const QSurfaceFormat &inputFormat) const;
     EGLNativeWindowType createNativeWindow(const QSize &size, const QSurfaceFormat &format);
@@ -79,6 +81,12 @@ QSize QEglFSAndroidHooks::screenSize() const
 {
     return QtAndroid::nativeWindowSize();
 }
+
+QSizeF QEglFSAndroidHooks::physicalScreenSize() const
+{
+    return QSizeF(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth, QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
+}
+
 
 EGLNativeWindowType QEglFSAndroidHooks::createNativeWindow(const QSize &size, const QSurfaceFormat &format)
 {

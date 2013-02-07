@@ -241,7 +241,7 @@ void QAndroidPlatformIntegration::setDefaultDesktopSize(int gw, int gh)
     m_defaultGeometryHeight = gh;
 }
 
-// ### TODO: Needs implementation for OpenGL?
+
 #ifndef ANDROID_PLUGIN_OPENGL
 void QAndroidPlatformIntegration::setDesktopSize(int width, int height)
 {
@@ -262,6 +262,27 @@ void QAndroidPlatformIntegration::setDisplayMetrics(int width, int height)
 
     qDebug() << "setDisplayMetrics done";
 }
+#else
+void QAndroidPlatformIntegration::setDesktopSize(int width, int height)
+{
+    qDebug() << "setDesktopSize OpenGL" << width << height;
+
+    m_defaultGeometryWidth = width;
+    m_defaultGeometryHeight = height;
+
+    qDebug() << "setDesktopSize done";
+}
+
+void QAndroidPlatformIntegration::setDisplayMetrics(int width, int height)
+{
+    qDebug() << "setDisplayMetrics OpenGL" << width << height;
+
+    m_defaultPhysicalSizeWidth = width;
+    m_defaultPhysicalSizeHeight = height;
+
+    qDebug() << "setDisplayMetrics done";
+}
+
 #endif
 
 void QAndroidPlatformIntegration::pauseApp()

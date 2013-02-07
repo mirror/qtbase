@@ -91,8 +91,6 @@ public:
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     QAbstractEventDispatcher *guiThreadEventDispatcher() const;
     QAndroidPlatformScreen *screen() { return m_primaryScreen; }
-    virtual void setDesktopSize(int width, int height);
-    virtual void setDisplayMetrics(int width, int height);
 #else
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     void invalidateNativeSurface();
@@ -100,6 +98,8 @@ public:
     QEglFSWindow *primaryWindow() const { return m_primaryWindow; }
 #endif
 
+    virtual void setDesktopSize(int width, int height);
+    virtual void setDisplayMetrics(int width, int height);
     bool isVirtualDesktop() { return true; }
 
     QPlatformFontDatabase *fontDatabase() const;
@@ -127,6 +127,7 @@ public:
 
 private:
 
+    friend class QEglFSAndroidHooks;
 #ifndef ANDROID_PLUGIN_OPENGL
     QAbstractEventDispatcher *m_eventDispatcher;
     QAndroidPlatformScreen *m_primaryScreen;

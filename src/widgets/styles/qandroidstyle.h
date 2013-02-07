@@ -340,10 +340,6 @@ public:
 
     virtual QPixmap generatedIconPixmap(QIcon::Mode iconMode, const QPixmap &pixmap,
                                         const QStyleOption *opt) const;
-signals:
-
-public slots:
-
 private:
     Q_DISABLE_COPY(QAndroidStyle)
     static ItemType qtControl(QStyle::ComplexControl control);

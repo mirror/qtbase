@@ -1,7 +1,6 @@
 TEMPLATE = subdirs
 
 android : SUBDIRS += android
-#   else : SUBDIRS += minimal
 
 SUBDIRS += minimal offscreen
 

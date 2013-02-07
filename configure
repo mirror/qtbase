@@ -53,16 +53,6 @@ relpath=`(cd "$relpath"; /bin/pwd)`
 # the current directory is the "build tree" or "object tree"
 outpath=`/bin/pwd`
 
-# Fix the paths. pwd -W returns C:/whatever
-if [ "msys" = "$OSTYPE" ]; then
-    pushd . > /dev/null
-    cd $relpath
-    relpath=`pwd -W`
-    cd $outpath
-    outpath=`pwd -W`
-    popd > /dev/null
-fi
-
 #license file location
 LICENSE_FILE="$QT_LICENSE_FILE"
 [ -z "$LICENSE_FILE" ] && LICENSE_FILE="$HOME/.qt-license"
@@ -387,13 +377,6 @@ PLATFORM_MAC=no
 if [ -d /System/Library/Frameworks/Carbon.framework ]; then
     BUILD_ON_MAC=yes
     PLATFORM_MAC=maybe
-fi
-
-BUILD_ON_MSYS=no
-if [ "msys" = "$OSTYPE" ]; then
-    BUILD_ON_MSYS=yes
-else
-    BUILD_ON_MSYS=no
 fi
 
 #-----------------------------------------------------------------------------
@@ -902,8 +885,6 @@ CFG_PCRE=auto
 QPA_PLATFORM_GUARD=yes
 CFG_CXX11=auto
 CFG_OPENSSL_SOURCE=
-CFG_MS_BITFIELDS=no
-CFG_CROSS_QMAKE=
 CFG_DIRECTWRITE=no
 
 # initalize variables used for installation
@@ -1104,11 +1085,6 @@ while [ "$#" -gt 0 ]; do
         ;;
     -qtlibinfix)
         VAR="qtlibinfix"
-        shift
-        VAL="$1"
-        ;;
-    -cross-qmake)
-        VAR="cross-qmake"
         shift
         VAL="$1"
         ;;
@@ -1440,9 +1416,6 @@ while [ "$#" -gt 0 ]; do
 	    if [ ! -z "$NATIVE_64_ARCH" ]; then
 		QTCONFIG_CONFIG="$QTCONFIG_CONFIG $NATIVE_64_ARCH"
             fi
-            ;;
-        win32-g++)
-            PLATFORM=win32-g++
             ;;
         esac
         ;;
@@ -2158,20 +2131,9 @@ while [ "$#" -gt 0 ]; do
             UNKNOWN_OPT=yes
         fi
         ;;
-    cross-qmake)
-        CFG_CROSS_QMAKE=$VAL
-        QT_CROSS_COMPILE=yes
-        ;;
-    ms-bitfields)
+    system-proxies)
         if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
-            CFG_MS_BITFIELDS="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
-        ;;
-    BUILD_ON_MSYS)
-        if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
-            BUILD_ON_MSYS="$VAL"
+            CFG_SYSTEM_PROXIES="$VAL"
         else
             UNKNOWN_OPT=yes
         fi
@@ -2321,10 +2283,6 @@ if [ "$CFG_SILENT" = "yes" ]; then
     QMAKE_CONFIG="$QMAKE_CONFIG silent"
 fi
 
-if [ "$PLATFORM" = "win32-g++" ] || [ "$XPLATFORM" = "win32-g++" ] && [ "$CFG_MS_BITFIELDS" = "yes" ]; then
-    QMAKE_CONFIG="$QMAKE_CONFIG ms_bitfields"
-fi
-
 # Without this hack, OpenGLES2 test fails for Android:
 # (undefined reference to `android::egl_get_image_for_current_context(void*))')
 # See http://blog.vlad1.com/2010/03/19/things-i-learned-today-android-opengl-edition-2/
@@ -2381,11 +2339,7 @@ if [ "$OPT_SHADOW" = "yes" ]; then
     # symlink the mkspecs directory
     mkdir -p "$outpath/mkspecs"
     rm -rf "$outpath"/mkspecs/*
-    if [ "$OSTYPE" = "msys" ] ; then
-        cp -rf "$relpath"/mkspecs "$outpath/"
-    else
-        ln -s "$relpath"/mkspecs/* "$outpath/mkspecs/"
-    fi
+    ln -s "$relpath"/mkspecs/* "$outpath/mkspecs"
 
     ShadowMkspecs()
     {
@@ -2696,7 +2650,7 @@ if [ -d "$XPLATFORM" ]; then
 else
   XQMAKESPEC="$relpath/mkspecs/${XPLATFORM}"
 fi
-if [ "$PLATFORM" != "$XPLATFORM" ] || [ "$QT_CROSS_COMPILE" = "yes" ]; then
+if [ "$PLATFORM" != "$XPLATFORM" ]; then
     QT_CROSS_COMPILE=yes
     QMAKE_CONFIG="$QMAKE_CONFIG cross_compile"
     QTCONFIG_CONFIG="$QTCONFIG_CONFIG cross_compile"
@@ -3729,12 +3683,6 @@ elif [ "$Edition" != "OpenSource" ]; then
             more "$outpath/LICENSE"
         fi
     done
-    MAC_CONFIG_TEST_COMMANDLINE="-arch i386 -arch x86_64"
-    CFG_MAC_ARCHS="x86 x86_64"
-fi
-
-if [ "$CFG_HOST_ARCH" = "macosx" ]; then
-    CFG_MAC_ARCHS="x86 x86_64"
 fi
 
 # this should be moved somewhere else
@@ -3861,11 +3809,7 @@ if true; then ###[ '!' -f "$outpath/bin/qmake" ];
 #           if which qmake >/dev/null 2>&1 && [ -f qmake/qmake.pro ]; then
 #               (cd qmake && qmake) >/dev/null 2>&1 && continue
 #           fi
-            if [ "$BUILD_ON_MSYS" = "yes" ]; then
-                in_mkfile="${mkfile}.win32-g++-sh"
-            else
-                in_mkfile="${mkfile}.unix"
-            fi
+            in_mkfile="${mkfile}.unix"
         fi
         in_mkfile="$relpath/qmake/$in_mkfile"
         mkfile="$outpath/qmake/$mkfile"
@@ -5842,7 +5786,7 @@ case "$XPLATFORM" in
 	# the assembly it generates cannot be compiled
 
 	# Check gcc's version
-	case "${QMAKE_CONF_COMPILER} -dumpversion" in
+        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*)
 		;;
 	    3.4*)
@@ -5863,7 +5807,7 @@ case "$XPLATFORM" in
 	;;
     *-g++*)
 	# Check gcc's version
-	case "${QMAKE_CONF_COMPILER} -dumpversion" in
+        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*|3.4*)
 		;;
             3.3*)

@@ -115,7 +115,7 @@ public class QtApplication extends Application
 
         ArrayList<Method> delegateMethods = new ArrayList<Method>();
         for (Method m: listener.getClass().getMethods())
-            if (m.getDeclaringClass().getName().startsWith("org.kde.necessitas"))
+            if (m.getDeclaringClass().getName().startsWith("org.qtproject.qt5.android"))
                 delegateMethods.add(m);
 
         ArrayList<Field> applicationFields = new ArrayList<Field>();

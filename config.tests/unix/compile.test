@@ -76,21 +76,15 @@ test -r Makefile && $MAKE distclean >/dev/null 2>&1
 rm -f "$EXE" "${EXE}.exe"
 
 set -- "$OUTDIR/bin/qmake" -nocache -spec "$QMKSPEC" "CONFIG+=$QMAKE_CONFIG" "CONFIG-=debug_and_release" "LIBS*=$LFLAGS" "LIBS+=$MAC_ARCH_LFLAGS" "INCLUDEPATH*=$INCLUDEPATH" "QMAKE_CXXFLAGS*=$CXXFLAGS" "QMAKE_CXXFLAGS+=$MAC_ARCH_CXXFLAGS" "QT_BUILD_TREE=$OUTDIR" "$SRCDIR/$TEST/$EXE.pro" -o "$OUTDIR/$TEST/Makefile"
-QMAKE="qmake"
-
-if [ -f "$OUTDIR/bin/qmake" ]; then
-    QMAKE="$OUTDIR/bin/qmake"
-fi
-
 if [ "$VERBOSE" = "yes" ]; then
     OUTDIR=$OUTDIR "$@"
-    $MAKE && SUCCESS=yes
+    $MAKE
 else
     OUTDIR=$OUTDIR "$@" >/dev/null 2>&1
-    $MAKE >/dev/null 2>&1 && SUCCESS=yes
+    $MAKE >/dev/null 2>&1
 fi
 
-# ( [ -x "$EXE" ] || [ -x "${EXE}.exe" ] ) && SUCCESS=yes
+( [ -x "$EXE" ] || [ -x "${EXE}.exe" ] ) && SUCCESS=yes
 
 # done
 if [ "$SUCCESS" != "yes" ]; then

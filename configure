@@ -2769,6 +2769,7 @@ QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`
 TEST_COMPILER=$QMAKE_CONF_COMPILER
 
 if [ "$OPT_HELP" != "yes" ] && [ "$XPLATFORM_ANDROID" = "yes" ] ; then
+    ANDROID_COMPILE_TEST_CONFIG="-config android_app"
     ANDROID_NDK_TOOLS_PREFIX=
     ANDROID_PLATFORM_ARCH=
     case $CFG_DEFAULT_ANDROID_TARGET_ARCH in
@@ -2791,6 +2792,8 @@ if [ "$OPT_HELP" != "yes" ] && [ "$XPLATFORM_ANDROID" = "yes" ] ; then
     esac
     QMAKE_CONF_COMPILER=$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/$ANDROID_NDK_TOOLS_PREFIX-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST/bin/$ANDROID_NDK_TOOLS_PREFIX-g++
     TEST_COMPILER="$QMAKE_CONF_COMPILER --sysroot=$CFG_DEFAULT_ANDROID_NDK_ROOT/platforms/$CFG_DEFAULT_ANDROID_PLATFORM/$ANDROID_PLATFORM_ARCH/"
+else
+    ANDROID_COMPILE_TEST_CONFIG=
 fi
 
 if [ "$XPLATFORM_SYMBIAN_SBSV2" = "no" ]; then
@@ -3997,7 +4000,7 @@ compileTest()
     path=config.tests/$1
     name=$2
     shift 2
-    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS $MAC_SDK_FLAG "$@"
+    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS $MAC_SDK_FLAG $ANDROID_COMPILE_TEST_CONFIG "$@"
 }
 
 #-------------------------------------------------------------------------------
@@ -4174,7 +4177,7 @@ fi
 
 # detect mips_dsp support
 if [ "$CFG_ARCH" = "mips" ] && [ "${CFG_MIPS_DSP}" = "auto" ]; then
-    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dsp "mips_dsp" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS; then
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dsp "mips_dsp" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS $ANDROID_COMPILE_TEST_CONFIG; then
         CFG_MIPS_DSP=yes
     else
         CFG_MIPS_DSP=no
@@ -4185,7 +4188,7 @@ fi
 
 # detect mips_dspr2 support
 if [ "$CFG_ARCH" = "mips" ] && [ "${CFG_MIPS_DSPR2}" = "auto" ]; then
-    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dspr2 "mips_dspr2" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS; then
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dspr2 "mips_dspr2" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS $ANDROID_COMPILE_TEST_CONFIG; then
         CFG_MIPS_DSPR2=yes
     else
         CFG_MIPS_DSPR2=no

@@ -28,6 +28,8 @@
 #ifndef CPU_FEATURES_H
 #define CPU_FEATURES_H
 
+#if defined(Q_OS_ANDROID)
+
 #include <sys/cdefs.h>
 #include <stdint.h>
 
@@ -67,5 +69,7 @@ __END_DECLS
 QT_END_NAMESPACE
 QT_END_HEADER
 #endif
+
+#endif // Q_OS_ANDROID
 
 #endif /* CPU_FEATURES_H */

@@ -417,31 +417,12 @@ static jboolean startQtAndroidPlugin(JNIEnv* /*env*/, jobject /*object*//*, jobj
 #endif
 }
 
-static void androidMessageHandler(QtMsgType type,
-                                  const QMessageLogContext &context,
-                                  const QString &message)
-{
-    android_LogPriority priority;
-    switch (type) {
-    case QtDebugMsg: priority = ANDROID_LOG_DEBUG; break;
-    case QtWarningMsg: priority = ANDROID_LOG_WARN; break;
-    case QtCriticalMsg: priority = ANDROID_LOG_ERROR; break;
-    case QtFatalMsg: priority = ANDROID_LOG_FATAL; break;
-    };
-
-    __android_log_print(priority, "Qt",
-                        qPrintable(QString::fromLatin1("Qt (%1:%2 (%3): %4")
-                                   .arg(context.file).arg(context.line).arg(context.function).arg(message)));
-}
-
 static void *startMainMethod(void */*data*/)
 {
     char const **params;
     params = static_cast<char const **>(malloc(m_applicationParams.length() * sizeof(char *)));
     for (int i = 0; i < m_applicationParams.size(); i++)
         params[i] = static_cast<const char *>(m_applicationParams[i].constData());
-
-    qInstallMessageHandler(androidMessageHandler);
 
     int ret = m_main(m_applicationParams.length(), const_cast<char **>(params));
 

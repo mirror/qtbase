@@ -155,6 +155,7 @@ INCLUDEPATH += ../3rdparty/md5 \
 
 TR_EXCLUDE += ../3rdparty/*
 contains(CONFIG, android){
-    SOURCES += tools/android/cpu-features.c
-    HEADERS += tools/android/cpu-features.h
+    INCLUDEPATH += $$PWD/../../3rdparty/android/src
+    SOURCES += ../3rdparty/android/src/tools/android/cpu-features.c
+    HEADERS += ../3rdparty/android/src/tools/android/cpu-features.h
 }

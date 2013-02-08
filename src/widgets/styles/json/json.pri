@@ -1,2 +1,0 @@
-INCLUDEPATH += $$PWD
-SOURCES += $$PWD/json.cpp

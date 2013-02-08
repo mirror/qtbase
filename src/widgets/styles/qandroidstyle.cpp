@@ -52,9 +52,10 @@
 #include <QFileInfo>
 #include <QStyleOption>
 #include <QPainter>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <QDebug>
-#include "json.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -86,45 +87,59 @@ QAndroidStyle::QAndroidStyle()
     if (!f.open(QIODevice::ReadOnly))
         return;
 
-    JsonReader reader;
-    if (!reader.parse(f.readAll()))
-    {
-        qCritical() << reader.errorString();
+    QJsonParseError error;
+    QJsonDocument document = QJsonDocument::fromJson(f.readAll(), &error);
+    if (document.isNull())  {
+        qCritical() << error.errorString();
         return;
     }
 
     qDebug() << "Reading json file took" << t.elapsed() << "ms";
     t.restart();
 
-    QVariantMap jsDocument = reader.result().toMap();
-    foreach (QString key, jsDocument.keys())
-    {
-        QVariantMap item = jsDocument.value(key).toMap();
-        if (item.contains(QLatin1String("qtClass"))) {
+    if (!document.isObject()) {
+        qCritical() << "Style.json does not contain a valid style.";
+        return;
+    }
+
+    QJsonObject object = document.object();
+    for (QJsonObject::const_iterator objectIterator = object.constBegin();
+         objectIterator != object.constEnd();
+         ++objectIterator) {
+        QString key = objectIterator.key();
+        QJsonValue value = objectIterator.value();
+        if (!value.isObject()) {
+            qWarning("Style.json structure is unrecognized.");
+            continue;
+        }
+
+        QJsonObject item = value.toObject();
+        QJsonObject::const_iterator attributeIterator = item.find(QLatin1String("qtClass"));
+        if (attributeIterator != item.constEnd()) {
             // The item has palette and font information for a specific Qt Class (e.g. QWidget, QPushButton, etc.)
-            const QString qtClassName = item.value(QLatin1String("qtClass")).toString();
+            const QString qtClassName = attributeIterator.value().toString();
 
             // Extract font information
             QFont font;
 
             // Font size (in pixels)
-            QVariantMap::const_iterator it = item.find(QLatin1String("TextAppearance_textSize"));
-            if (it != item.end())
-                font.setPixelSize(it.value().toInt());
+            attributeIterator = item.find(QLatin1String("TextAppearance_textSize"));
+            if (attributeIterator != item.constEnd())
+                font.setPixelSize(int(attributeIterator.value().toDouble()));
 
             // Font style
-            it = item.find(QLatin1String("TextAppearance_textStyle"));
-            if (it != item.end()) {
-                const int style = it.value().toInt();
+            attributeIterator = item.find(QLatin1String("TextAppearance_textStyle"));
+            if (attributeIterator != item.constEnd()) {
+                const int style = int(attributeIterator.value().toDouble());
                 font.setBold(style & textStyle_bold);
                 font.setItalic(style & textStyle_italic);
             }
 
             // Font typeface
-            it = item.find(QLatin1String("TextAppearance_typeface"));
-            if (it != item.end()) {
+            attributeIterator = item.find(QLatin1String("TextAppearance_typeface"));
+            if (attributeIterator != item.constEnd()) {
                 QFont::StyleHint styleHint = QFont::AnyStyle;
-                switch (it.value().toInt()) {
+                switch (int(attributeIterator.value().toDouble())) {
                     case typeface_sans:
                         styleHint = QFont::SansSerif;
                         break;
@@ -142,17 +157,17 @@ QAndroidStyle::QAndroidStyle()
 
             // Extract palette information
             QPalette palette;
-            it = item.find(QLatin1String("TextAppearance_textColor"));
-            if (it != item.end())
-                setPaletteColor(it.value().toMap(), palette, QPalette::WindowText);
+            attributeIterator = item.find(QLatin1String("TextAppearance_textColor"));
+            if (attributeIterator != item.constEnd())
+                setPaletteColor(attributeIterator.value().toObject().toVariantMap(), palette, QPalette::WindowText);
 
-            it = item.find(QLatin1String("TextAppearance_textColorLink"));
-            if (it != item.end())
-                setPaletteColor(it.value().toMap(), palette, QPalette::Link);
+            attributeIterator = item.find(QLatin1String("TextAppearance_textColorLink"));
+            if (attributeIterator != item.constEnd())
+                setPaletteColor(attributeIterator.value().toObject().toVariantMap(), palette, QPalette::Link);
 
-            it = item.find(QLatin1String("TextAppearance_textColorHighlight"));
-            if (it != item.end())
-                palette.setColor(QPalette::Highlight, QRgb(it.value().toInt()));
+            attributeIterator = item.find(QLatin1String("TextAppearance_textColorHighlight"));
+            if (attributeIterator != item.constEnd())
+                palette.setColor(QPalette::Highlight, QRgb(int(attributeIterator.value().toDouble())));
             palette.setColor(QPalette::Window, Qt::black);
             QApplication::setPalette(palette, qtClassName.toUtf8());
             // Extract palette information
@@ -168,23 +183,28 @@ QAndroidStyle::QAndroidStyle()
         switch (itemType) {
         case QC_Checkbox:
         case QC_RadioButton:
-            m_androidControlsHash[int(itemType)] = new AndroidCompoundButtonControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidCompoundButtonControl(item.toVariantMap(),
+                                                                                    itemType);
             break;
 
         case QC_ProgressBar:
-            m_androidControlsHash[int(itemType)] = new AndroidProgressBarControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidProgressBarControl(item.toVariantMap(),
+                                                                                 itemType);
             break;
 
         case QC_Slider:
-            m_androidControlsHash[int(itemType)] = new AndroidSeekBarControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidSeekBarControl(item.toVariantMap(),
+                                                                             itemType);
             break;
 
         case QC_Combobox:
-            m_androidControlsHash[int(itemType)] = new AndroidSpinnerControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidSpinnerControl(item.toVariantMap(),
+                                                                             itemType);
             break;
 
         default:
-            m_androidControlsHash[int(itemType)] = new AndroidControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidControl(item.toVariantMap(),
+                                                                      itemType);
             break;
         }
     }

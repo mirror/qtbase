@@ -138,9 +138,8 @@ contains( styles, windowsmobile ) {
 }
 
 contains( styles, android ) {
-       include(json/json.pri)
-       HEADERS += styles/qandroidstyle.h
-       SOURCES += styles/qandroidstyle.cpp
+    HEADERS += styles/qandroidstyle.h
+    SOURCES += styles/qandroidstyle.cpp
 } else {
-       DEFINES += QT_NO_STYLE_ANDROID
+    DEFINES += QT_NO_STYLE_ANDROID
 }

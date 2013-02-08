@@ -7,6 +7,7 @@ CONFIG += qpa/genericunixfontdatabase
 OTHER_FILES += $$PWD/android.json
 
 INCLUDEPATH += $$PWD
+INCLUDEPATH += $$PWD/../../../../3rdparty/android/src
 
 SOURCES += $$PWD/androidplatformplugin.cpp \
            $$PWD/androidjnimain.cpp \

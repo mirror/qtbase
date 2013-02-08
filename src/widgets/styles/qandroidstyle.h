@@ -117,10 +117,10 @@ public:
         virtual ~AndroidDrawable();
         virtual void initPadding(const QVariantMap &drawable);
         virtual AndroidDrawableType type() const = 0;
-        virtual void draw(QPainter * painter,const QStyleOption *opt) const = 0;
-        const QMargins & padding() const;
+        virtual void draw(QPainter *painter,const QStyleOption *opt) const = 0;
+        const QMargins &padding() const;
         virtual QSize size() const;
-        static AndroidDrawable * fromMap(const QVariantMap &drawable, ItemType itemType);
+        static AndroidDrawable *fromMap(const QVariantMap &drawable, ItemType itemType);
         static QMargins extractMargins(const QVariantMap &value);
     protected:
         ItemType m_itemType;
@@ -132,7 +132,7 @@ public:
     public:
         AndroidColorDrawable(const QVariantMap &drawable, ItemType itemType);
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter,const QStyleOption *opt) const;
+        virtual void draw(QPainter *painter,const QStyleOption *opt) const;
 
     protected:
         QColor m_color;
@@ -143,7 +143,7 @@ public:
     public:
         AndroidImageDrawable(const QVariantMap &drawable, ItemType itemType);
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter,const QStyleOption *opt) const;
+        virtual void draw(QPainter *painter,const QStyleOption *opt) const;
         virtual QSize size() const;
 
     protected:
@@ -157,12 +157,12 @@ public:
     public:
         Android9PatchDrawable(const QVariantMap &drawable, ItemType itemType);
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter, const QStyleOption *opt) const;
+        virtual void draw(QPainter *painter, const QStyleOption *opt) const;
     private:
         static int calculateStretch(int boundsLimit, int startingPoint,
                                   int srcSpace, int numStrechyPixelsRemaining,
                                   int numFixedPixelsRemaining);
-        void extractIntArray(const QVariantList &values, QVector<int> & array);
+        void extractIntArray(const QVariantList &values, QVector<int> &array);
     private:
         Android9PatchChunk m_chunkData;
     };
@@ -185,7 +185,7 @@ public:
     public:
         AndroidGradientDrawable(const QVariantMap &drawable, ItemType itemType);
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter, const QStyleOption *opt) const;
+        virtual void draw(QPainter *painter, const QStyleOption *opt) const;
         QSize size();
     private:
         mutable QLinearGradient m_gradient;
@@ -200,12 +200,12 @@ public:
         ~AndroidClipDrawable();
         virtual AndroidDrawableType type() const;
         virtual void setFactor(double factor, Qt::Orientation orientation);
-        virtual void draw(QPainter * painter, const QStyleOption *opt) const;
+        virtual void draw(QPainter *painter, const QStyleOption *opt) const;
 
     private:
         double m_factor;
         Qt::Orientation m_orientation;
-        const AndroidDrawable * m_drawable;
+        const AndroidDrawable *m_drawable;
     };
 
     class AndroidStateDrawable: public AndroidDrawable
@@ -214,13 +214,13 @@ public:
         AndroidStateDrawable(const QVariantMap &drawable, ItemType itemType);
         ~AndroidStateDrawable();
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter, const QStyleOption *opt) const;
-        inline const AndroidDrawable* bestAndroidStateMatch(const QStyleOption *opt) const;
-        static int extractState(const QVariantMap & value);
+        virtual void draw(QPainter *painter, const QStyleOption *opt) const;
+        inline const AndroidDrawable *bestAndroidStateMatch(const QStyleOption *opt) const;
+        static int extractState(const QVariantMap &value);
 
     private:
-        typedef QPair<int, const AndroidDrawable*> StateType;
-        QList< StateType > m_states;
+        typedef QPair<int, const AndroidDrawable *> StateType;
+        QList<StateType> m_states;
     };
 
     class AndroidLayerDrawable: public AndroidDrawable
@@ -229,11 +229,11 @@ public:
         AndroidLayerDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType);
         ~AndroidLayerDrawable();
         virtual AndroidDrawableType type() const;
-        virtual void draw(QPainter * painter, const QStyleOption *opt) const;
-        AndroidDrawable * layer(int id) const;
+        virtual void draw(QPainter *painter, const QStyleOption *opt) const;
+        AndroidDrawable *layer(int id) const;
         QSize size();
     private:
-        typedef QPair<int, AndroidDrawable*> LayerType;
+        typedef QPair<int, AndroidDrawable *> LayerType;
         QList<LayerType> m_layers;
     };
 
@@ -243,15 +243,18 @@ public:
         AndroidControl(const QVariantMap &control, ItemType itemType);
         virtual ~AndroidControl();
         virtual void drawControl(const QStyleOption *opt, QPainter *p, const QWidget *w);
-        virtual QRect subElementRect(SubElement subElement, const QStyleOption *option,
+        virtual QRect subElementRect(SubElement subElement,
+                                     const QStyleOption *option,
                                      const QWidget *widget = 0) const;
-        virtual QRect subControlRect(const QStyleOptionComplex *option, SubControl sc,
+        virtual QRect subControlRect(const QStyleOptionComplex *option,
+                                     SubControl sc,
                                      const QWidget *widget = 0) const;
         virtual QSize sizeFromContents(const QStyleOption *opt,
-                                       const QSize &contentsSize, const QWidget *w) const;
+                                       const QSize &contentsSize,
+                                       const QWidget *w) const;
         virtual QMargins padding();
     protected:
-        const AndroidDrawable * m_background;
+        const AndroidDrawable *m_background;
         QSize m_minSize;
         QSize m_maxSize;
     };
@@ -264,28 +267,30 @@ public:
         virtual void drawControl(const QStyleOption *opt, QPainter *p, const QWidget *w);
 
     protected:
-        const AndroidDrawable * m_button;
+        const AndroidDrawable *m_button;
     };
 
-    class AndroidProgressBarControl: public AndroidControl
+    class AndroidProgressBarControl : public AndroidControl
     {
     public:
         AndroidProgressBarControl(const QVariantMap &control, ItemType itemType);
         virtual ~AndroidProgressBarControl();
         virtual void drawControl(const QStyleOption *option, QPainter *p, const QWidget *w);
-        virtual QRect subElementRect(SubElement subElement, const QStyleOption *option,
+        virtual QRect subElementRect(SubElement subElement,
+                                     const QStyleOption *option,
                                      const QWidget *widget = 0) const;
 
         QSize sizeFromContents(const QStyleOption *opt,
-                                       const QSize &contentsSize, const QWidget *w) const;
+                               const QSize &contentsSize,
+                               const QWidget *w) const;
     protected:
-        AndroidDrawable * m_progressDrawable;
-        AndroidDrawable * m_indeterminateDrawable;
+        AndroidDrawable *m_progressDrawable;
+        AndroidDrawable *m_indeterminateDrawable;
         int m_secondaryProgress_id;
         int m_progressId;
     };
 
-    class AndroidSeekBarControl: public AndroidProgressBarControl
+    class AndroidSeekBarControl : public AndroidProgressBarControl
     {
     public:
         AndroidSeekBarControl(const QVariantMap &control, ItemType itemType);
@@ -296,15 +301,16 @@ public:
         QRect subControlRect(const QStyleOptionComplex *option, SubControl sc,
                                      const QWidget *widget = 0) const;
     private:
-        AndroidDrawable * m_seekBarThumb;
+        AndroidDrawable *m_seekBarThumb;
     };
 
-    class AndroidSpinnerControl: public AndroidControl
+    class AndroidSpinnerControl : public AndroidControl
     {
     public:
         AndroidSpinnerControl(const QVariantMap &control, ItemType itemType);
         virtual ~AndroidSpinnerControl(){}
-        virtual QRect subControlRect(const QStyleOptionComplex *option, SubControl sc,
+        virtual QRect subControlRect(const QStyleOptionComplex *option,
+                                     SubControl sc,
                                      const QWidget *widget = 0) const;
     };
 
@@ -347,12 +353,13 @@ private:
     static ItemType qtControl(QStyle::ControlElement controlElement);
     static ItemType qtControl(QStyle::PrimitiveElement primitiveElement);
     static ItemType qtControl(QStyle::SubElement subElement);
-    static ItemType qtControl(const QString & android);
+    static ItemType qtControl(const QString &android);
 
-    static void setPaletteColor(const QVariantMap & object, QPalette & palette
-                         , QPalette::ColorRole role);
+    static void setPaletteColor(const QVariantMap &object,
+                                QPalette &palette,
+                                QPalette::ColorRole role);
 private:
-    typedef QHash<int, AndroidControl * > AndroidControlsHash;
+    typedef QHash<int, AndroidControl *> AndroidControlsHash;
     AndroidControlsHash m_androidControlsHash;
 };
 

@@ -71,180 +71,192 @@ namespace {
 }
 
 
-QAndroidStyle::QAndroidStyle() :
-    QCommonStyle()
+QAndroidStyle::QAndroidStyle()
+    : QCommonStyle()
 {
     QTime t;
     t.start();
+
     QString stylePath(QLatin1String(qgetenv("MINISTRO_ANDROID_STYLE_PATH")));
     if (stylePath.isEmpty())
-        stylePath=QLatin1String("/data/data/org.kde.necessitas.ministro/files/qt/style/");
+        stylePath = QLatin1String("/data/data/org.kde.necessitas.ministro/files/qt/style/");
     Q_ASSERT(!stylePath.isEmpty());
-    QFile f(stylePath+QLatin1String("style.json"));
+
+    QFile f(stylePath + QLatin1String("style.json"));
     if (!f.open(QIODevice::ReadOnly))
         return;
+
     JsonReader reader;
     if (!reader.parse(f.readAll()))
     {
-        qCritical()<<reader.errorString();
+        qCritical() << reader.errorString();
         return;
     }
-    qDebug()<<"Reading json file took"<<t.elapsed()<<"ms";
-    t.restart();
-    QVariantMap jsDocument = reader.result().toMap();
-    foreach(QString key, jsDocument.keys())
-    {
-        QVariantMap item=jsDocument.value(key).toMap();
-        if(item.contains(QLatin1String("qtClass")))
-        { // the item has palette and font informations for a specifi Qt Class (e.g. QWidget, QPushButton, etc.)
-            const QString qtClassName=item.value(QLatin1String("qtClass")).toString();
 
-            // extract font information
+    qDebug() << "Reading json file took" << t.elapsed() << "ms";
+    t.restart();
+
+    QVariantMap jsDocument = reader.result().toMap();
+    foreach (QString key, jsDocument.keys())
+    {
+        QVariantMap item = jsDocument.value(key).toMap();
+        if (item.contains(QLatin1String("qtClass"))) {
+            // The item has palette and font information for a specific Qt Class (e.g. QWidget, QPushButton, etc.)
+            const QString qtClassName = item.value(QLatin1String("qtClass")).toString();
+
+            // Extract font information
             QFont font;
 
-            // font size (in pixels)
-            QVariantMap::const_iterator it=item.find(QLatin1String("TextAppearance_textSize"));
-            if (it!=item.end())
+            // Font size (in pixels)
+            QVariantMap::const_iterator it = item.find(QLatin1String("TextAppearance_textSize"));
+            if (it != item.end())
                 font.setPixelSize(it.value().toInt());
 
-            // font style
-            it=item.find(QLatin1String("TextAppearance_textStyle"));
-            if (it!=item.end())
-            {
-                const int style=it.value().toInt();
+            // Font style
+            it = item.find(QLatin1String("TextAppearance_textStyle"));
+            if (it != item.end()) {
+                const int style = it.value().toInt();
                 font.setBold(style & textStyle_bold);
                 font.setItalic(style & textStyle_italic);
             }
 
-            // font typefac
-            it=item.find(QLatin1String(QLatin1String("TextAppearance_typeface")));
-            if (it!=item.end())
-            {
-                QFont::StyleHint styleHint=QFont::AnyStyle;
-                switch(it.value().toInt())
-                {
+            // Font typeface
+            it = item.find(QLatin1String("TextAppearance_typeface"));
+            if (it != item.end()) {
+                QFont::StyleHint styleHint = QFont::AnyStyle;
+                switch (it.value().toInt()) {
                     case typeface_sans:
-                        styleHint=QFont::SansSerif;
+                        styleHint = QFont::SansSerif;
                         break;
                     case typeface_serif:
-                        styleHint=QFont::Serif;
+                        styleHint = QFont::Serif;
                         break;
                     case typeface_monospace:
-                        styleHint=QFont::Monospace;
+                        styleHint = QFont::Monospace;
                         break;
                 }
                 font.setStyleHint(styleHint, QFont::PreferMatch);
             }
             QApplication::setFont(font, qtClassName.toUtf8());
-            // extract font information
+            // Extract font information
 
-            // extract palette information
+            // Extract palette information
             QPalette palette;
-            it=item.find(QLatin1String("TextAppearance_textColor"));
-            if (it!=item.end())
+            it = item.find(QLatin1String("TextAppearance_textColor"));
+            if (it != item.end())
                 setPaletteColor(it.value().toMap(), palette, QPalette::WindowText);
 
-            it=item.find(QLatin1String("TextAppearance_textColorLink"));
-            if (it!=item.end())
+            it = item.find(QLatin1String("TextAppearance_textColorLink"));
+            if (it != item.end())
                 setPaletteColor(it.value().toMap(), palette, QPalette::Link);
 
-            it=item.find(QLatin1String("TextAppearance_textColorHighlight"));
-            if (it!=item.end())
-                palette.setColor(QPalette::Highlight, (QRgb)it.value().toInt());
+            it = item.find(QLatin1String("TextAppearance_textColorHighlight"));
+            if (it != item.end())
+                palette.setColor(QPalette::Highlight, QRgb(it.value().toInt()));
             palette.setColor(QPalette::Window, Qt::black);
             QApplication::setPalette(palette, qtClassName.toUtf8());
-            // extract palette information
+            // Extract palette information
         }
         QApplication::setPalette(QApplication::palette("simple_list_item"), "QListView");
         QApplication::setFont(QApplication::font("simple_list_item"), "QListView");
         QApplication::setPalette(QApplication::palette("simple_list_item"), "QAbstractItemView");
         QApplication::setFont(QApplication::font("simple_list_item"), "QAbstractItemView");
-        QAndroidStyle::ItemType itemType=qtControl(key);
-        if (QC_UnknownType==itemType)
+        QAndroidStyle::ItemType itemType = qtControl(key);
+        if (QC_UnknownType == itemType)
             continue;
 
-        switch(itemType)
-        {
+        switch (itemType) {
         case QC_Checkbox:
         case QC_RadioButton:
-            m_androidControlsHash[(int)itemType] = new AndroidCompoundButtonControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidCompoundButtonControl(item, itemType);
             break;
 
         case QC_ProgressBar:
-            m_androidControlsHash[(int)itemType] = new AndroidProgressBarControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidProgressBarControl(item, itemType);
             break;
 
         case QC_Slider:
-            m_androidControlsHash[(int)itemType] = new AndroidSeekBarControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidSeekBarControl(item, itemType);
             break;
 
         case QC_Combobox:
-            m_androidControlsHash[(int)itemType] = new AndroidSpinnerControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidSpinnerControl(item, itemType);
             break;
 
         default:
-            m_androidControlsHash[(int)itemType] = new AndroidControl(item, itemType);
+            m_androidControlsHash[int(itemType)] = new AndroidControl(item, itemType);
             break;
         }
     }
-    qDebug()<<"Parsing json file took"<<t.elapsed()<<"ms";
+    qDebug() << "Parsing json file took" << t.elapsed() << "ms";
 }
 
 QAndroidStyle::~QAndroidStyle()
 {
-    foreach(AndroidControl * control, m_androidControlsHash)
+    foreach (AndroidControl *control, m_androidControlsHash)
         delete control;
 }
 
 
-void QAndroidStyle::setPaletteColor(const QVariantMap &object, QPalette & palette
-                                   , QPalette::ColorRole role)
+void QAndroidStyle::setPaletteColor(const QVariantMap &object,
+                                    QPalette &palette,
+                                    QPalette::ColorRole role)
 {
     // QPalette::Active -> ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET
-    palette.setColor(QPalette::Active, role
-                     , (QRgb)object.value(QLatin1String("ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET")).toInt());
+    palette.setColor(QPalette::Active,
+                     role,
+                     QRgb(object.value(QLatin1String("ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET")).toInt()));
 
     // QPalette::Inactive -> ENABLED_STATE_SET
-    palette.setColor(QPalette::Inactive, role
-                     , (QRgb)object.value(QLatin1String("ENABLED_STATE_SET")).toInt());
+    palette.setColor(QPalette::Inactive,
+                     role,
+                     QRgb(object.value(QLatin1String("ENABLED_STATE_SET")).toInt()));
 
     // QPalette::Disabled -> EMPTY_STATE_SET
-    palette.setColor(QPalette::Disabled, role
-                     , (QRgb)object.value(QLatin1String("EMPTY_STATE_SET")).toInt());
+    palette.setColor(QPalette::Disabled,
+                     role,
+                     QRgb(object.value(QLatin1String("EMPTY_STATE_SET")).toInt()));
 
     palette.setColor(QPalette::Current, role, palette.color(QPalette::Active, role));
 
-    if (role == QPalette::WindowText)
-    {
+    if (role == QPalette::WindowText) {
         // QPalette::BrightText -> PRESSED
         // QPalette::Active -> PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET
-        palette.setColor(QPalette::Active, QPalette::BrightText
-                         , (QRgb)object.value(QLatin1String("PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Active,
+                         QPalette::BrightText,
+                         QRgb(object.value(QLatin1String("PRESSED_ENABLED_FOCUSED_WINDOW_FOCUSED_STATE_SET")).toInt()));
 
         // QPalette::Inactive -> PRESSED_ENABLED_STATE_SET
-        palette.setColor(QPalette::Inactive, QPalette::BrightText
-                         , (QRgb)object.value(QLatin1String("PRESSED_ENABLED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Inactive,
+                         QPalette::BrightText,
+                         QRgb(object.value(QLatin1String("PRESSED_ENABLED_STATE_SET")).toInt()));
 
         // QPalette::Disabled -> PRESSED_STATE_SET
-        palette.setColor(QPalette::Disabled, QPalette::BrightText
-                         , (QRgb)object.value(QLatin1String("PRESSED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Disabled,
+                         QPalette::BrightText,
+                         QRgb(object.value(QLatin1String("PRESSED_STATE_SET")).toInt()));
 
         palette.setColor(QPalette::Current, QPalette::BrightText, palette.color(QPalette::Active, QPalette::BrightText));
 
         // QPalette::HighlightedText -> SELECTED
         // QPalette::Active -> ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET
-        palette.setColor(QPalette::Active, QPalette::HighlightedText
-                         , (QRgb)object.value(QLatin1String("ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Active,
+                         QPalette::HighlightedText,
+                         QRgb(object.value(QLatin1String("ENABLED_SELECTED_WINDOW_FOCUSED_STATE_SET")).toInt()));
 
         // QPalette::Inactive -> ENABLED_SELECTED_STATE_SET
-        palette.setColor(QPalette::Inactive, QPalette::HighlightedText
-                         , (QRgb)object.value(QLatin1String("ENABLED_SELECTED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Inactive,
+                         QPalette::HighlightedText,
+                         QRgb(object.value(QLatin1String("ENABLED_SELECTED_STATE_SET")).toInt()));
 
         // QPalette::Disabled -> SELECTED_STATE_SET
-        palette.setColor(QPalette::Disabled, QPalette::HighlightedText
-                         , (QRgb)object.value(QLatin1String("SELECTED_STATE_SET")).toInt());
+        palette.setColor(QPalette::Disabled,
+                         QPalette::HighlightedText,
+                         QRgb(object.value(QLatin1String("SELECTED_STATE_SET")).toInt()));
 
-        palette.setColor(QPalette::Current, QPalette::HighlightedText, palette.color(QPalette::Active, QPalette::HighlightedText));
+        palette.setColor(QPalette::Current,
+                         QPalette::HighlightedText,
+                         palette.color(QPalette::Active, QPalette::HighlightedText));
 
         // Same colors for Text
         palette.setColor(QPalette::Active, QPalette::Text, palette.color(QPalette::Active, role));
@@ -260,7 +272,7 @@ void QAndroidStyle::setPaletteColor(const QVariantMap &object, QPalette & palett
     }
 }
 
-QAndroidStyle::ItemType QAndroidStyle::qtControl(const QString & android)
+QAndroidStyle::ItemType QAndroidStyle::qtControl(const QString &android)
 {
     if (android == QLatin1String("buttonStyle"))
         return QC_Button;
@@ -286,8 +298,7 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(const QString & android)
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ComplexControl control)
 {
-    switch(control)
-    {
+    switch (control) {
         case CC_ComboBox:
             return QC_Combobox;
         case CC_Slider:
@@ -301,8 +312,7 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ComplexControl control)
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ContentsType contentsType)
 {
-    switch(contentsType)
-    {
+    switch (contentsType) {
         case CT_PushButton:
             return QC_Button;
         case CT_CheckBox:
@@ -330,8 +340,7 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ContentsType contentsTy
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ControlElement controlElement)
 {
-    switch(controlElement)
-    {
+    switch (controlElement) {
         case CE_PushButton:
         case CE_PushButtonBevel:
         case CE_PushButtonLabel:
@@ -366,8 +375,7 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ControlElement controlE
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::PrimitiveElement primitiveElement)
 {
-    switch(primitiveElement)
-    {
+    switch (primitiveElement) {
         case QStyle::PE_PanelLineEdit:
         case QStyle::PE_FrameLineEdit:
             return QC_EditText;
@@ -384,8 +392,7 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::PrimitiveElement primit
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::SubElement subElement)
 {
-    switch(subElement)
-    {
+    switch (subElement) {
         case QStyle::SE_LineEditContents:
             return QC_EditText;
 
@@ -404,36 +411,39 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::SubElement subElement)
     }
 }
 
-void QAndroidStyle::drawPrimitive(PrimitiveElement pe, const QStyleOption *opt, QPainter *p,
-                           const QWidget *w) const
+void QAndroidStyle::drawPrimitive(PrimitiveElement pe,
+                                  const QStyleOption *opt,
+                                  QPainter *p,
+                                  const QWidget *w) const
 {
-    const ItemType itemType=qtControl(pe);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
+    const ItemType itemType = qtControl(pe);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end())
         it.value()->drawControl(opt, p, w);
     else
         QCommonStyle::drawPrimitive(pe, opt, p, w);
 }
 
 
-void QAndroidStyle::drawControl(QStyle::ControlElement element, const QStyleOption *opt, QPainter *p,
-                         const QWidget *w) const
+void QAndroidStyle::drawControl(QStyle::ControlElement element,
+                                const QStyleOption *opt,
+                                QPainter *p,
+                                const QWidget *w) const
 {
-    const ItemType itemType=qtControl(element);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
-    {
+    const ItemType itemType = qtControl(element);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end()) {
         it.value()->drawControl(opt, p, w);
 
-        switch(itemType)
-        {
+        switch (itemType) {
             case QC_Button:
                 if (const QStyleOptionButton *buttonOption =
-                        qstyleoption_cast<const QStyleOptionButton *>(opt))
-                {
-                    QMargins padding=it.value()->padding();
+                        qstyleoption_cast<const QStyleOptionButton *>(opt)) {
+                    QMargins padding = it.value()->padding();
                     QStyleOptionButton copy (*buttonOption);
                     copy.rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
                     QCommonStyle::drawControl(CE_PushButtonLabel, &copy, p, w);
@@ -442,8 +452,7 @@ void QAndroidStyle::drawControl(QStyle::ControlElement element, const QStyleOpti
             case QC_Checkbox:
             case QC_RadioButton:
                 if (const QStyleOptionButton *btn =
-                        qstyleoption_cast<const QStyleOptionButton *>(opt))
-                {
+                        qstyleoption_cast<const QStyleOptionButton *>(opt)) {
                     const bool isRadio = (element == CE_RadioButton);
                     QStyleOptionButton subopt(*btn);
                     subopt.rect = subElementRect(isRadio ? SE_RadioButtonContents
@@ -453,9 +462,8 @@ void QAndroidStyle::drawControl(QStyle::ControlElement element, const QStyleOpti
                 break;
         case QC_Combobox:
             if (const QStyleOptionComboBox *comboboxOption =
-                    qstyleoption_cast<const QStyleOptionComboBox *>(opt))
-            {
-                QMargins padding=it.value()->padding();
+                    qstyleoption_cast<const QStyleOptionComboBox *>(opt)) {
+                QMargins padding = it.value()->padding();
                 QStyleOptionComboBox copy (*comboboxOption);
                 copy.rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
                 p->setFont(QApplication::font("simple_spinner_item"));
@@ -471,46 +479,52 @@ void QAndroidStyle::drawControl(QStyle::ControlElement element, const QStyleOpti
         QCommonStyle::drawControl(element, opt, p, w);
 }
 
-QRect QAndroidStyle::subElementRect(SubElement subElement, const QStyleOption *option,
-                             const QWidget *widget) const
+QRect QAndroidStyle::subElementRect(SubElement subElement,
+                                    const QStyleOption *option,
+                                    const QWidget *widget) const
 {
-    const ItemType itemType=qtControl(subElement);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
+    const ItemType itemType = qtControl(subElement);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end())
         return it.value()->subElementRect(subElement, option, widget);
     return QCommonStyle::subElementRect(subElement, option, widget);
 }
 
-void QAndroidStyle::drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p,
-                                const QWidget *widget) const
+void QAndroidStyle::drawComplexControl(ComplexControl cc,
+                                       const QStyleOptionComplex *opt,
+                                       QPainter *p,
+                                       const QWidget *widget) const
 {
-    const ItemType itemType=qtControl(cc);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
+    const ItemType itemType = qtControl(cc);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end())
         it.value()->drawControl(opt, p, widget);
     else
         QCommonStyle::drawComplexControl(cc, opt, p, widget);
 }
 
-QStyle::SubControl QAndroidStyle::hitTestComplexControl(ComplexControl cc, const QStyleOptionComplex *opt,
-                                         const QPoint &pt, const QWidget *widget) const
+QStyle::SubControl QAndroidStyle::hitTestComplexControl(ComplexControl cc,
+                                                        const QStyleOptionComplex *opt,
+                                                        const QPoint &pt,
+                                                        const QWidget *widget) const
 {
-    const ItemType itemType=qtControl(cc);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
-    {
-        switch(cc)
-        {
+    const ItemType itemType = qtControl(cc);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end()) {
+        switch (cc) {
             case CC_Slider:
             if (const QStyleOptionSlider *slider = qstyleoption_cast<const QStyleOptionSlider *>(opt)) {
                 QRect r = it.value()->subControlRect(slider, SC_SliderHandle, widget);
                 if (r.isValid() && r.contains(pt)) {
                     return SC_SliderHandle;
                 } else {
-                    r = it.value()->subControlRect(slider, SC_SliderGroove ,widget);
+                    r = it.value()->subControlRect(slider, SC_SliderGroove, widget);
                     if (r.isValid() && r.contains(pt))
                         return SC_SliderGroove;
                 }
@@ -523,13 +537,16 @@ QStyle::SubControl QAndroidStyle::hitTestComplexControl(ComplexControl cc, const
     return QCommonStyle::hitTestComplexControl(cc, opt, pt, widget);
 }
 
-QRect QAndroidStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex *opt,
-                             SubControl sc, const QWidget *widget) const
+QRect QAndroidStyle::subControlRect(ComplexControl cc,
+                                    const QStyleOptionComplex *opt,
+                                    SubControl sc,
+                                    const QWidget *widget) const
 {
-    const ItemType itemType=qtControl(cc);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
+    const ItemType itemType = qtControl(cc);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end())
         return it.value()->subControlRect(opt, sc, widget);
     return QCommonStyle::subControlRect(cc, opt, sc, widget);
 }
@@ -537,8 +554,7 @@ QRect QAndroidStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex
 int QAndroidStyle::pixelMetric(PixelMetric metric, const QStyleOption *option,
                         const QWidget *widget) const
 {
-    switch(metric)
-    {
+    switch (metric) {
     case PM_ButtonMargin:
     case PM_FocusFrameVMargin:
     case PM_FocusFrameHMargin:
@@ -551,34 +567,39 @@ int QAndroidStyle::pixelMetric(PixelMetric metric, const QStyleOption *option,
 
 }
 
-QSize QAndroidStyle::sizeFromContents(ContentsType ct, const QStyleOption *opt,
-                               const QSize &contentsSize, const QWidget *w) const
+QSize QAndroidStyle::sizeFromContents(ContentsType ct,
+                                      const QStyleOption *opt,
+                                      const QSize &contentsSize,
+                                      const QWidget *w) const
 {
     QSize sz=QCommonStyle::sizeFromContents(ct, opt, contentsSize, w);
-    const ItemType itemType=qtControl(ct);
-    AndroidControlsHash::const_iterator it;
-    if ( itemType != QC_UnknownType
-            && (it=m_androidControlsHash.find(itemType))!=m_androidControlsHash.end() )
+    const ItemType itemType = qtControl(ct);
+    AndroidControlsHash::const_iterator it = itemType != QC_UnknownType
+                                             ? m_androidControlsHash.find(itemType)
+                                             : m_androidControlsHash.end();
+    if (it != m_androidControlsHash.end())
         return it.value()->sizeFromContents(opt, sz, w);
     return sz;
 }
 
-QPixmap QAndroidStyle::standardPixmap(StandardPixmap standardPixmap, const QStyleOption *opt,
-                               const QWidget *widget) const
+QPixmap QAndroidStyle::standardPixmap(StandardPixmap standardPixmap,
+                                      const QStyleOption *opt,
+                                      const QWidget *widget) const
 {
     return QCommonStyle::standardPixmap(standardPixmap, opt, widget);
-//    return QPixmap(); // should we support any standard pixmaps ?
 }
 
-QPixmap QAndroidStyle::generatedIconPixmap(QIcon::Mode iconMode, const QPixmap &pixmap,
-                                    const QStyleOption *opt) const
+QPixmap QAndroidStyle::generatedIconPixmap(QIcon::Mode iconMode,
+                                           const QPixmap &pixmap,
+                                           const QStyleOption *opt) const
 {
     return QCommonStyle::generatedIconPixmap(iconMode, pixmap, opt);
 }
 
 
 
-QAndroidStyle::AndroidDrawable::AndroidDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
+QAndroidStyle::AndroidDrawable::AndroidDrawable(const QVariantMap &drawable,
+                                                QAndroidStyle::ItemType itemType)
 {
     initPadding(drawable);
     m_itemType = itemType;
@@ -591,11 +612,11 @@ QAndroidStyle::AndroidDrawable::~AndroidDrawable()
 void QAndroidStyle::AndroidDrawable::initPadding(const QVariantMap &drawable)
 {
     QVariantMap::const_iterator it = drawable.find(QLatin1String("padding"));
-    if (it!=drawable.end())
+    if (it != drawable.end())
         m_padding = extractMargins(it.value().toMap());
 }
 
-const QMargins & QAndroidStyle::AndroidDrawable::padding() const
+const QMargins &QAndroidStyle::AndroidDrawable::padding() const
 {
     return m_padding;
 }
@@ -603,42 +624,32 @@ const QMargins & QAndroidStyle::AndroidDrawable::padding() const
 QSize QAndroidStyle::AndroidDrawable::size() const
 {
     if (type() == Image || type() == NinePatch)
-        return static_cast<const QAndroidStyle::AndroidImageDrawable*>(this)->size();
+        return static_cast<const QAndroidStyle::AndroidImageDrawable *>(this)->size();
+
     return QSize();
 }
 
-QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidDrawable::fromMap(const QVariantMap &drawable, ItemType itemType)
+QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidDrawable::fromMap(const QVariantMap &drawable,
+                                                                         ItemType itemType)
 {
-    const QString type=drawable.value(QLatin1String("type")).toString();
-    if (type == QLatin1String("image"))
-    {
+    const QString type = drawable.value(QLatin1String("type")).toString();
+    if (type == QLatin1String("image")) {
         return new QAndroidStyle::AndroidImageDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("9patch"))
-    {
+    } else if (type == QLatin1String("9patch")) {
         return new QAndroidStyle::Android9PatchDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("stateslist"))
-    {
+    } else if (type == QLatin1String("stateslist")) {
         return new QAndroidStyle::AndroidStateDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("layer"))
-    {
+    } else if (type == QLatin1String("layer")) {
         return new QAndroidStyle::AndroidLayerDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("gradient"))
-    {
+    } else if (type == QLatin1String("gradient")) {
         return new QAndroidStyle::AndroidGradientDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("clipDrawable"))
-    {
+    } else if (type == QLatin1String("clipDrawable")) {
         return new QAndroidStyle::AndroidClipDrawable(drawable, itemType);
-    }
-    if (type == QLatin1String("color"))
-    {
+    } if (type == QLatin1String("color")) {
         return new QAndroidStyle::AndroidColorDrawable(drawable, itemType);
+    } else {
+        return 0;
     }
-    return 0;
 }
 
 QMargins QAndroidStyle::AndroidDrawable::extractMargins(const QVariantMap &value)
@@ -652,10 +663,11 @@ QMargins QAndroidStyle::AndroidDrawable::extractMargins(const QVariantMap &value
 }
 
 
-QAndroidStyle::AndroidImageDrawable::AndroidImageDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidImageDrawable::AndroidImageDrawable(const QVariantMap &drawable,
+                                                          QAndroidStyle::ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
-    m_filePath=drawable.value(QLatin1String("path")).toString();
+    m_filePath = drawable.value(QLatin1String("path")).toString();
     m_size.setHeight(drawable.value(QLatin1String("height")).toInt());
     m_size.setWidth(drawable.value(QLatin1String("width")).toInt());
 }
@@ -665,19 +677,18 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidImageDrawable::type() c
     return QAndroidStyle::Image;
 }
 
-void QAndroidStyle::AndroidImageDrawable::draw(QPainter * painter, const QStyleOption *opt) const
+void QAndroidStyle::AndroidImageDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
     if (m_hashKey.isEmpty())
-        m_hashKey=QFileInfo(m_filePath).fileName();
+        m_hashKey = QFileInfo(m_filePath).fileName();
 
     QPixmap pm;
-    if (!QPixmapCache::find(m_hashKey, &pm))
-    {
+    if (!QPixmapCache::find(m_hashKey, &pm)) {
         pm.load(m_filePath);
         QPixmapCache::insert(m_hashKey, pm);
     }
 
-    painter->drawPixmap(opt->rect.x(),(opt->rect.height()-pm.height())/2, pm);
+    painter->drawPixmap(opt->rect.x(), (opt->rect.height() - pm.height()) / 2, pm);
 }
 
 QSize QAndroidStyle::AndroidImageDrawable::size() const
@@ -685,10 +696,11 @@ QSize QAndroidStyle::AndroidImageDrawable::size() const
     return m_size;
 }
 
-QAndroidStyle::AndroidColorDrawable::AndroidColorDrawable(const QVariantMap &drawable, ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidColorDrawable::AndroidColorDrawable(const QVariantMap &drawable,
+                                                          ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
-    m_color.setRgba((QRgb)drawable.value(QLatin1String("color")).toInt());
+    m_color.setRgba(QRgb(drawable.value(QLatin1String("color")).toInt()));
 }
 
 QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidColorDrawable::type() const
@@ -696,16 +708,17 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidColorDrawable::type() c
     return QAndroidStyle::Color;
 }
 
-void QAndroidStyle::AndroidColorDrawable::draw(QPainter * painter,const QStyleOption *opt) const
+void QAndroidStyle::AndroidColorDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
     painter->fillRect(opt->rect, m_color);
 }
 
-QAndroidStyle::Android9PatchDrawable::Android9PatchDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidImageDrawable(drawable.value(QLatin1String("drawable")).toMap(), itemType)
+QAndroidStyle::Android9PatchDrawable::Android9PatchDrawable(const QVariantMap &drawable,
+                                                            QAndroidStyle::ItemType itemType)
+    : AndroidImageDrawable(drawable.value(QLatin1String("drawable")).toMap(), itemType)
 {
     initPadding(drawable);
-    QVariantMap chunk=drawable.value(QLatin1String("chunkInfo")).toMap();
+    QVariantMap chunk = drawable.value(QLatin1String("chunkInfo")).toMap();
     extractIntArray(chunk.value(QLatin1String("xdivs")).toList(), m_chunkData.xDivs);
     extractIntArray(chunk.value(QLatin1String("ydivs")).toList(), m_chunkData.yDivs);
     extractIntArray(chunk.value(QLatin1String("colors")).toList(), m_chunkData.colors);
@@ -716,34 +729,37 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::Android9PatchDrawable::type() 
     return QAndroidStyle::NinePatch;
 }
 
-int QAndroidStyle::Android9PatchDrawable::calculateStretch(int boundsLimit, int startingPoint,
-                          int srcSpace, int numStrechyPixelsRemaining,
-                          int numFixedPixelsRemaining)
+int QAndroidStyle::Android9PatchDrawable::calculateStretch(int boundsLimit,
+                                                           int startingPoint,
+                                                           int srcSpace,
+                                                           int numStrechyPixelsRemaining,
+                                                           int numFixedPixelsRemaining)
 {
     int spaceRemaining = boundsLimit - startingPoint;
     int stretchySpaceRemaining = spaceRemaining - numFixedPixelsRemaining;
-    return ((float)srcSpace * stretchySpaceRemaining / numStrechyPixelsRemaining +.5);
+    return (float(srcSpace) * stretchySpaceRemaining / numStrechyPixelsRemaining + .5);
 }
 
-void QAndroidStyle::Android9PatchDrawable::extractIntArray(const QVariantList &values, QVector<int> & array)
+void QAndroidStyle::Android9PatchDrawable::extractIntArray(const QVariantList &values,
+                                                           QVector<int> & array)
 {
-    foreach(QVariant value, values)
-        array<<value.toInt();
+    foreach (QVariant value, values)
+        array << value.toInt();
 }
 
 
 void QAndroidStyle::Android9PatchDrawable::draw(QPainter * painter, const QStyleOption *opt) const
 {
     if (m_hashKey.isEmpty())
-        m_hashKey=QFileInfo(m_filePath).fileName();
+        m_hashKey = QFileInfo(m_filePath).fileName();
 
     QPixmap pixmap;
-    if (!QPixmapCache::find(m_hashKey, &pixmap))
-    {
+    if (!QPixmapCache::find(m_hashKey, &pixmap)) {
         pixmap.load(m_filePath);
         QPixmapCache::insert(m_hashKey, pixmap);
     }
-    const QRect & bounds=opt->rect;
+
+    const QRect &bounds=opt->rect;
 
     // shamelessly stolen from Android's sources (NinepatchImpl.cpp) and adapted for Qt
     const int pixmapWidth = pixmap.width();
@@ -752,11 +768,10 @@ void QAndroidStyle::Android9PatchDrawable::draw(QPainter * painter, const QStyle
     if (bounds.isNull() || !pixmapWidth || !pixmapHeight)
         return;
 
-    QPainter::RenderHints savedHints=painter->renderHints();
+    QPainter::RenderHints savedHints = painter->renderHints();
 
     // The patchs doesn't need smooth transform !
     painter->setRenderHints(QPainter::SmoothPixmapTransform, false);
-
 
     QRectF dst;
     QRectF src;
@@ -770,12 +785,12 @@ void QAndroidStyle::Android9PatchDrawable::draw(QPainter * painter, const QStyle
     int colorIndex = 0;
     quint32 color;
     bool xIsStretchable;
-    const bool initialXIsStretchable =  (x0 == 0);
+    const bool initialXIsStretchable = (x0 == 0);
     bool yIsStretchable = (y0 == 0);
     const int bitmapWidth = pixmap.width();
     const int bitmapHeight = pixmap.height();
 
-    int * dstRights = (int*) alloca((numXDivs + 1) * sizeof(int));
+    int *dstRights = static_cast<int *>(alloca((numXDivs + 1) * sizeof(int)));
     bool dstRightsHaveBeenCached = false;
 
     int numStretchyXPixelsRemaining = 0;
@@ -887,11 +902,12 @@ nextDiv:
     painter->setRenderHints(savedHints);
 }
 
-QAndroidStyle::AndroidGradientDrawable::AndroidGradientDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidGradientDrawable::AndroidGradientDrawable(const QVariantMap &drawable,
+                                                                QAndroidStyle::ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
     m_radius = drawable.value(QLatin1String("radius")).toInt();
-    if (m_radius<0)
+    if (m_radius < 0)
         m_radius = 0;
     QVariantList colors=drawable.value(QLatin1String("colors")).toList();
     QVariantList positions=drawable.value(QLatin1String("positions")).toList();
@@ -899,36 +915,21 @@ QAndroidStyle::AndroidGradientDrawable::AndroidGradientDrawable(const QVariantMa
     for (int i=0;i<min;i++)
         m_gradient.setColorAt(positions.at(i).toDouble(), (QRgb)colors.at(i).toInt());
     QByteArray orientation=drawable.value(QLatin1String("orientation")).toByteArray();
-    if (orientation == "TOP_BOTTOM")
-    { // draw the gradient from the top to the bottom
+    if (orientation == "TOP_BOTTOM") { // draw the gradient from the top to the bottom
         m_orientation = TOP_BOTTOM;
-    }
-    else if (orientation == "TR_BL")
-    { // draw the gradient from the top-right to the bottom-left
+    } else if (orientation == "TR_BL") { // draw the gradient from the top-right to the bottom-left
         m_orientation = TR_BL;
-    }
-    else if (orientation == "RIGHT_LEFT")
-    { // draw the gradient from the right to the left
+    } else if (orientation == "RIGHT_LEFT") { // draw the gradient from the right to the left
         m_orientation = RIGHT_LEFT;
-    }
-    else if (orientation == "BR_TL")
-    { // draw the gradient from the bottom-right to the top-left
+    } else if (orientation == "BR_TL") { // draw the gradient from the bottom-right to the top-left
         m_orientation = BR_TL;
-    }
-    else if (orientation == "BOTTOM_TOP")
-    { // draw the gradient from the bottom to the top
+    } else if (orientation == "BOTTOM_TOP") { // draw the gradient from the bottom to the top
         m_orientation = BOTTOM_TOP;
-    }
-    else if (orientation == "BL_TR")
-    { // draw the gradient from the bottom-left to the top-right
+    } else if (orientation == "BL_TR") { // draw the gradient from the bottom-left to the top-right
         m_orientation = BL_TR;
-    }
-    else if (orientation == "LEFT_RIGHT")
-    { // draw the gradient from the left to the right
+    } else if (orientation == "LEFT_RIGHT") { // draw the gradient from the left to the right
         m_orientation = LEFT_RIGHT;
-    }
-    else if (orientation == "TL_BR")
-    { // draw the gradient from the top-left to the bottom-right
+    } else if (orientation == "TL_BR") { // draw the gradient from the top-left to the bottom-right
         m_orientation = TL_BR;
     }
 }
@@ -938,12 +939,11 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidGradientDrawable::type(
     return QAndroidStyle::Gradient;
 }
 
-void QAndroidStyle::AndroidGradientDrawable::draw(QPainter * painter, const QStyleOption *opt) const
+void QAndroidStyle::AndroidGradientDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
-    const int width=opt->rect.width();
-    const int height=opt->rect.height();
-    switch (m_orientation)
-    {
+    const int width = opt->rect.width();
+    const int height = opt->rect.height();
+    switch (m_orientation) {
         case TOP_BOTTOM:
             // draw the gradient from the top to the bottom
             m_gradient.setStart(width/2,0);
@@ -979,8 +979,8 @@ void QAndroidStyle::AndroidGradientDrawable::draw(QPainter * painter, const QSty
             m_gradient.setFinalStop(width,height);
     }
 
-    const QBrush & oldBrush = painter->brush();
-    const QPen oldPen=painter->pen();
+    const QBrush &oldBrush = painter->brush();
+    const QPen oldPen = painter->pen();
     painter->setPen(Qt::NoPen);
     painter->setBrush(m_gradient);
     painter->drawRoundedRect(opt->rect, m_radius, m_radius);
@@ -993,8 +993,9 @@ QSize QAndroidStyle::AndroidGradientDrawable::size()
     return QSize(m_radius*2, m_radius*2);
 }
 
-QAndroidStyle::AndroidClipDrawable::AndroidClipDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidClipDrawable::AndroidClipDrawable(const QVariantMap &drawable,
+                                                        QAndroidStyle::ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
     m_drawable = fromMap(drawable.value(QLatin1String("drawable")).toMap(), itemType);
     m_factor = 0;
@@ -1017,7 +1018,7 @@ void QAndroidStyle::AndroidClipDrawable::setFactor(double factor, Qt::Orientatio
     m_orientation = orientation;
 }
 
-void QAndroidStyle::AndroidClipDrawable::draw(QPainter * painter, const QStyleOption *opt) const
+void QAndroidStyle::AndroidClipDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
     QStyleOption copy(*opt);
     if (m_orientation == Qt::Horizontal)
@@ -1028,17 +1029,17 @@ void QAndroidStyle::AndroidClipDrawable::draw(QPainter * painter, const QStyleOp
     m_drawable->draw(painter, &copy);
 }
 
-QAndroidStyle::AndroidStateDrawable::AndroidStateDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidStateDrawable::AndroidStateDrawable(const QVariantMap &drawable,
+                                                          QAndroidStyle::ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
-    QVariantList states=drawable.value(QLatin1String("stateslist")).toList();
-    foreach(QVariant stateVariant, states)
-    {
-        QVariantMap state=stateVariant.toMap();
-        const int s=extractState(state.value(QLatin1String("states")).toMap());
+    QVariantList states = drawable.value(QLatin1String("stateslist")).toList();
+    foreach (QVariant stateVariant, states) {
+        QVariantMap state = stateVariant.toMap();
+        const int s = extractState(state.value(QLatin1String("states")).toMap());
         if (-1 == s)
             continue;
-        const AndroidDrawable * ad = fromMap(state.value(QLatin1String("drawable")).toMap(), itemType);
+        const AndroidDrawable *ad = fromMap(state.value(QLatin1String("drawable")).toMap(), itemType);
         if (!ad)
             continue;
         StateType item;
@@ -1050,7 +1051,7 @@ QAndroidStyle::AndroidStateDrawable::AndroidStateDrawable(const QVariantMap &dra
 
 QAndroidStyle::AndroidStateDrawable::~AndroidStateDrawable()
 {
-    foreach(const StateType type, m_states)
+    foreach (const StateType type, m_states)
         delete type.second;
 }
 
@@ -1059,57 +1060,55 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidStateDrawable::type() c
     return QAndroidStyle::State;
 }
 
-void QAndroidStyle::AndroidStateDrawable::draw(QPainter * painter, const QStyleOption *opt) const
+void QAndroidStyle::AndroidStateDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
-    const AndroidDrawable* drawable=bestAndroidStateMatch(opt);
+    const AndroidDrawable *drawable=bestAndroidStateMatch(opt);
     if (drawable)
         drawable->draw(painter, opt);
 }
 
 const QAndroidStyle::AndroidDrawable* QAndroidStyle::AndroidStateDrawable::bestAndroidStateMatch(const QStyleOption *opt) const
 {
-    const AndroidDrawable* bestMatch = 0;
-    if (!opt)
-    {
+    const AndroidDrawable *bestMatch = 0;
+    if (!opt) {
         if (m_states.size())
             return m_states[0].second;
         return bestMatch;
     }
+
     uint bestCost=0xffff;
-    foreach(const StateType & state, m_states)
-    {
-        if ((int)opt->state == state.first)
+    foreach (const StateType & state, m_states) {
+        if (int(opt->state) == state.first)
             return state.second;
         uint cost = 0;
 
-        int difference=(int)opt->state^state.first;
+        int difference = int(opt->state^state.first);
 
-        if ( difference & QStyle::State_Active )
+        if (difference & QStyle::State_Active)
             cost += 1000;
 
-        if ( difference & QStyle::State_Enabled)
+        if (difference & QStyle::State_Enabled)
             cost += 1000;
 
-        if ( (m_itemType == QC_Button || m_itemType == QC_EditText) && difference & QStyle::State_Raised )
+        if ((m_itemType == QC_Button || m_itemType == QC_EditText) && (difference & QStyle::State_Raised))
             cost += 1000;
 
-        if ( (m_itemType == QC_Button || m_itemType == QC_EditText) && (difference & QStyle::State_Sunken) )
+        if ((m_itemType == QC_Button || m_itemType == QC_EditText) && (difference & QStyle::State_Sunken))
             cost += 1000;
 
-        if ( difference & QStyle::State_Off )
+        if (difference & QStyle::State_Off)
             cost += 1000;
 
-        if ( difference & QStyle::State_On )
+        if (difference & QStyle::State_On)
             cost += 1000;
 
-        if ( difference & QStyle::State_HasFocus )
+        if (difference & QStyle::State_HasFocus)
             cost += 1000;
 
-        if ( difference & QStyle::State_Selected )
+        if (difference & QStyle::State_Selected)
             cost += 1000;
 
-        if (cost<bestCost)
-        {
+        if (cost < bestCost) {
             bestCost = cost;
             bestMatch = state.second;
         }
@@ -1117,83 +1116,75 @@ const QAndroidStyle::AndroidDrawable* QAndroidStyle::AndroidStateDrawable::bestA
     return bestMatch;
 }
 
-int QAndroidStyle::AndroidStateDrawable::extractState(const QVariantMap & value)
+int QAndroidStyle::AndroidStateDrawable::extractState(const QVariantMap &value)
 {
     int state = QStyle::State_None;
-    foreach (const QString key, value.keys())
-    {
-        bool val=value.value(key).toString()==QLatin1String("true")?true:false;
-        if (key==QLatin1String("enabled") && val)
-        {
+    foreach (const QString key, value.keys()) {
+        bool val = value.value(key).toString() == QLatin1String("true");
+        if (key == QLatin1String("enabled") && val) {
             state |= QStyle::State_Enabled;
             continue;
         }
 
-        if (key==QLatin1String("window_focused") && val)
-        {
+        if (key == QLatin1String("window_focused") && val) {
             state |= QStyle::State_Active;
             continue;
         }
 
-        if (key==QLatin1String("focused") && val)
-        {
+        if (key == QLatin1String("focused") && val) {
             state |= QStyle::State_HasFocus;
             continue;
         }
 
-        if (key==QLatin1String("checked"))
-        {
-            state |= (val?QStyle::State_On:QStyle::State_Off);
+        if (key == QLatin1String("checked")) {
+            state |= val ? QStyle::State_On : QStyle::State_Off;
             continue;
         }
 
-        if (key==QLatin1String("pressed"))
-        {
-            state |= (val?QStyle::State_Raised:QStyle::State_Sunken);
+        if (key == QLatin1String("pressed")) {
+            state |= val ? QStyle::State_Raised : QStyle::State_Sunken;
             state |= QStyle::State_Enabled | QStyle::State_HasFocus;
             continue;
         }
 
-        if (key==QLatin1String("selected") && val)
-        {
+        if (key == QLatin1String("selected") && val) {
             state |= QStyle::State_Selected;
             state |= QStyle::State_Enabled | QStyle::State_HasFocus;
             continue;
         }
 
-        if (key==QLatin1String("active") && val)
-        {
+        if (key == QLatin1String("active") && val) {
             state |= QStyle::State_Active;
             continue;
         }
 
-        if (key==QLatin1String("backgroud") && val)
+        // Keep misspelling for compatibility
+        if (key == QLatin1String("backgroud") && val)
             return -1;
     }
     return state;
 }
 
-QAndroidStyle::AndroidLayerDrawable::AndroidLayerDrawable(const QVariantMap &drawable, QAndroidStyle::ItemType itemType)
-    :AndroidDrawable(drawable, itemType)
+QAndroidStyle::AndroidLayerDrawable::AndroidLayerDrawable(const QVariantMap &drawable,
+                                                          QAndroidStyle::ItemType itemType)
+    : AndroidDrawable(drawable, itemType)
 {
-    QVariantList layers=drawable.value(QLatin1String("layers")).toList();
-    foreach(QVariant layer, layers)
-    {
-        QVariantMap layerMap=layer.toMap();
-        AndroidDrawable * ad = fromMap(layerMap, itemType);
-        if (ad)
-        {
+    QVariantList layers = drawable.value(QLatin1String("layers")).toList();
+    foreach (QVariant layer, layers) {
+        QVariantMap layerMap = layer.toMap();
+        AndroidDrawable *ad = fromMap(layerMap, itemType);
+        if (ad) {
             LayerType l;
             l.second =  ad;
             l.first = layerMap.value(QLatin1String("id")).toInt();
-            m_layers<<l;
+            m_layers << l;
         }
     }
 }
 
 QAndroidStyle::AndroidLayerDrawable::~AndroidLayerDrawable()
 {
-    foreach(const LayerType & layer, m_layers)
+    foreach (const LayerType &layer, m_layers)
         delete layer.second;
 }
 
@@ -1202,15 +1193,15 @@ QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidLayerDrawable::type() c
     return QAndroidStyle::Layer;
 }
 
-void QAndroidStyle::AndroidLayerDrawable::draw(QPainter * painter, const QStyleOption *opt) const
+void QAndroidStyle::AndroidLayerDrawable::draw(QPainter *painter, const QStyleOption *opt) const
 {
-    foreach(const LayerType & layer, m_layers)
+    foreach (const LayerType &layer, m_layers)
         layer.second->draw(painter, opt);
 }
 
-QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidLayerDrawable::layer(int id) const
+QAndroidStyle::AndroidDrawable *QAndroidStyle::AndroidLayerDrawable::layer(int id) const
 {
-    foreach(const LayerType & layer, m_layers)
+    foreach (const LayerType &layer, m_layers)
         if (layer.first == id)
             return layer.second;
     return 0;
@@ -1219,33 +1210,34 @@ QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidLayerDrawable::layer(int 
 QSize QAndroidStyle::AndroidLayerDrawable::size()
 {
     QSize sz;
-    foreach(const LayerType & layer, m_layers)
-        sz=sz.expandedTo(layer.second->size());
+    foreach (const LayerType &layer, m_layers)
+        sz = sz.expandedTo(layer.second->size());
     return sz;
 }
 
-QAndroidStyle::AndroidControl::AndroidControl(const QVariantMap &control, QAndroidStyle::ItemType itemType)
+QAndroidStyle::AndroidControl::AndroidControl(const QVariantMap &control,
+                                              QAndroidStyle::ItemType itemType)
 {
-    QVariantMap::const_iterator it=control.find(QLatin1String("View_background"));
-    if (it!=control.end())
+    QVariantMap::const_iterator it = control.find(QLatin1String("View_background"));
+    if (it != control.end())
         m_background = AndroidDrawable::fromMap(it.value().toMap(), itemType);
     else
         m_background = 0;
 
-    it=control.find(QLatin1String("View_minWidth"));
+    it = control.find(QLatin1String("View_minWidth"));
     if (it!=control.end())
         m_minSize.setWidth(it.value().toInt());
 
-    it=control.find(QLatin1String("View_minHeight"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("View_minHeight"));
+    if (it != control.end())
         m_minSize.setHeight(it.value().toInt());
 
-    it=control.find(QLatin1String("View_maxWidth"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("View_maxWidth"));
+    if (it != control.end())
         m_maxSize.setWidth(it.value().toInt());
 
-    it=control.find(QLatin1String("View_maxHeight"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("View_maxHeight"));
+    if (it != control.end())
         m_maxSize.setHeight(it.value().toInt());
 }
 
@@ -1260,22 +1252,23 @@ void QAndroidStyle::AndroidControl::drawControl(const QStyleOption *opt, QPainte
         m_background->draw(p, opt);
 }
 
-QRect QAndroidStyle::AndroidControl::subElementRect(QStyle::SubElement /*subElement*/, const QStyleOption *option,
-                             const QWidget */*widget*/) const
+QRect QAndroidStyle::AndroidControl::subElementRect(QStyle::SubElement /*subElement*/,
+                                                    const QStyleOption *option,
+                                                    const QWidget */*widget*/) const
 {
-    if (const AndroidDrawable* drawable=m_background)
-    {
+    if (const AndroidDrawable *drawable=m_background) {
         if (drawable->type() == State)
-            drawable = static_cast<const AndroidStateDrawable*>(m_background)->bestAndroidStateMatch(option);
+            drawable = static_cast<const AndroidStateDrawable *>(m_background)->bestAndroidStateMatch(option);
 
-        const QMargins & padding=drawable->padding();
+        const QMargins &padding = drawable->padding();
 
-        QRect r = option->rect.adjusted(padding.left(), padding.top(), -padding.right(), -padding.bottom());
+        QRect r = option->rect.adjusted(padding.left(), padding.top(),
+                                        -padding.right(), -padding.bottom());
 
-        if (r.width()<m_minSize.width())
+        if (r.width() < m_minSize.width())
             r.setWidth(m_minSize.width());
 
-        if (r.height()<m_minSize.height())
+        if (r.height() < m_minSize.height())
             r.setHeight(m_minSize.height());
 
         return visualRect(option->direction, option->rect, r);
@@ -1284,54 +1277,55 @@ QRect QAndroidStyle::AndroidControl::subElementRect(QStyle::SubElement /*subElem
 
 }
 
-QRect QAndroidStyle::AndroidControl::subControlRect(const QStyleOptionComplex *option, QStyle::SubControl /*sc*/,
-                             const QWidget *widget) const
+QRect QAndroidStyle::AndroidControl::subControlRect(const QStyleOptionComplex *option,
+                                                    QStyle::SubControl /*sc*/,
+                                                    const QWidget *widget) const
 {
     return subElementRect(QStyle::SE_CustomBase, option, widget);
 }
 
 QSize QAndroidStyle::AndroidControl::sizeFromContents(const QStyleOption *opt,
-                               const QSize &contentsSize, const QWidget */*w*/) const
+                                                      const QSize &contentsSize,
+                                                      const QWidget */*w*/) const
 {
     QSize sz;
-    if (const AndroidDrawable* drawable=m_background)
-    {
+    if (const AndroidDrawable *drawable=m_background) {
 
         if (drawable->type() == State)
-            drawable=static_cast<const AndroidStateDrawable*>(m_background)->bestAndroidStateMatch(opt);
-        const QMargins & padding = drawable->padding();
-        sz.setWidth(padding.left()+padding.right());
-        sz.setHeight(padding.top()+padding.bottom());
+            drawable = static_cast<const AndroidStateDrawable*>(m_background)->bestAndroidStateMatch(opt);
+        const QMargins &padding = drawable->padding();
+        sz.setWidth(padding.left() + padding.right());
+        sz.setHeight(padding.top() + padding.bottom());
         if (sz.isEmpty())
-            sz=drawable->size();
+            sz = drawable->size();
     }
-    sz+=contentsSize;
-    if (contentsSize.height()<opt->fontMetrics.height())
-        sz.setHeight(sz.height()+(opt->fontMetrics.height()-contentsSize.height()));
-    if (sz.height()<m_minSize.height())
+    sz += contentsSize;
+    if (contentsSize.height() < opt->fontMetrics.height())
+        sz.setHeight(sz.height() + (opt->fontMetrics.height() - contentsSize.height()));
+    if (sz.height() < m_minSize.height())
         sz.setHeight(m_minSize.height());
-    if (sz.width()<m_minSize.width())
+    if (sz.width() < m_minSize.width())
         sz.setWidth(m_minSize.width());
     return sz;
 }
 
 QMargins QAndroidStyle::AndroidControl::padding()
 {
-    if (const AndroidDrawable* drawable=m_background)
+    if (const AndroidDrawable *drawable = m_background)
     {
         if (drawable->type() == State)
-            drawable=static_cast<const AndroidStateDrawable*>(m_background)->bestAndroidStateMatch(0);
+            drawable=static_cast<const AndroidStateDrawable *>(m_background)->bestAndroidStateMatch(0);
         return drawable->padding();
     }
     return QMargins();
 }
 
-
-QAndroidStyle::AndroidCompoundButtonControl::AndroidCompoundButtonControl(const QVariantMap &control, ItemType itemType)
-    :AndroidControl(control, itemType)
+QAndroidStyle::AndroidCompoundButtonControl::AndroidCompoundButtonControl(const QVariantMap &control,
+                                                                          ItemType itemType)
+    : AndroidControl(control, itemType)
 {
-    QVariantMap::const_iterator it=control.find(QLatin1String("CompoundButton_button"));
-    if (it!=control.end())
+    QVariantMap::const_iterator it = control.find(QLatin1String("CompoundButton_button"));
+    if (it != control.end())
         m_button = AndroidDrawable::fromMap(it.value().toMap(), itemType);
     else
         m_button = 0;
@@ -1342,52 +1336,54 @@ QAndroidStyle::AndroidCompoundButtonControl::~AndroidCompoundButtonControl()
     delete m_button;
 }
 
-void QAndroidStyle::AndroidCompoundButtonControl::drawControl(const QStyleOption *opt, QPainter *p, const QWidget *w)
+void QAndroidStyle::AndroidCompoundButtonControl::drawControl(const QStyleOption *opt,
+                                                              QPainter *p,
+                                                              const QWidget *w)
 {
     AndroidControl::drawControl(opt, p, w);
     if (m_button)
         m_button->draw(p, opt);
 }
 
-QAndroidStyle::AndroidProgressBarControl::AndroidProgressBarControl(const QVariantMap &control, ItemType itemType)
-    :AndroidControl(control, itemType)
+QAndroidStyle::AndroidProgressBarControl::AndroidProgressBarControl(const QVariantMap &control,
+                                                                    ItemType itemType)
+    : AndroidControl(control, itemType)
 {
-    QVariantMap::const_iterator it=control.find(QLatin1String("ProgressBar_indeterminateDrawable"));
-    if (it!=control.end())
+    QVariantMap::const_iterator it = control.find(QLatin1String("ProgressBar_indeterminateDrawable"));
+    if (it != control.end())
         m_indeterminateDrawable = AndroidDrawable::fromMap(it.value().toMap(), itemType);
     else
         m_indeterminateDrawable = 0;
 
-    it=control.find(QLatin1String("ProgressBar_progressDrawable"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("ProgressBar_progressDrawable"));
+    if (it != control.end())
         m_progressDrawable = AndroidDrawable::fromMap(it.value().toMap(), itemType);
     else
         m_progressDrawable = 0;
 
-    it=control.find(QLatin1String("ProgressBar_progress_id"));
-    if (it!=control.end())
-        m_progressId= it.value().toInt();
+    it = control.find(QLatin1String("ProgressBar_progress_id"));
+    if (it != control.end())
+        m_progressId = it.value().toInt();
 
-    it=control.find(QLatin1String("ProgressBar_secondaryProgress_id"));
-    if (it!=control.end())
-        m_secondaryProgress_id= it.value().toInt();
+    it = control.find(QLatin1String("ProgressBar_secondaryProgress_id"));
+    if (it != control.end())
+        m_secondaryProgress_id = it.value().toInt();
 
-    it=control.find(QLatin1String("ProgressBar_minWidth"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("ProgressBar_minWidth"));
+    if (it != control.end())
         m_minSize.setWidth(it.value().toInt());
 
-    it=control.find(QLatin1String("ProgressBar_minHeight"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("ProgressBar_minHeight"));
+    if (it != control.end())
         m_minSize.setHeight(it.value().toInt());
 
-    it=control.find(QLatin1String("ProgressBar_maxWidth"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("ProgressBar_maxWidth"));
+    if (it != control.end())
         m_maxSize.setWidth(it.value().toInt());
 
-    it=control.find(QLatin1String("ProgressBar_maxHeight"));
-    if (it!=control.end())
+    it = control.find(QLatin1String("ProgressBar_maxHeight"));
+    if (it != control.end())
         m_maxSize.setHeight(it.value().toInt());
-
 }
 
 QAndroidStyle::AndroidProgressBarControl::~AndroidProgressBarControl()
@@ -1402,25 +1398,24 @@ void QAndroidStyle::AndroidProgressBarControl::drawControl(const QStyleOption *o
         return;
 
     if (const QStyleOptionProgressBar *progressBarOption =
-           qstyleoption_cast<const QStyleOptionProgressBar *>(option))
-    {
+           qstyleoption_cast<const QStyleOptionProgressBar *>(option)) {
         QStyleOptionProgressBarV2 progressBarV2(*progressBarOption);
-        if (m_progressDrawable->type()==QAndroidStyle::Layer)
-        {
-            QAndroidStyle::AndroidDrawable * clipDrawable = static_cast<QAndroidStyle::AndroidLayerDrawable *>(m_progressDrawable)->layer(m_progressId);
+        if (m_progressDrawable->type() == QAndroidStyle::Layer) {
+            QAndroidStyle::AndroidDrawable *clipDrawable = static_cast<QAndroidStyle::AndroidLayerDrawable *>(m_progressDrawable)->layer(m_progressId);
             if (clipDrawable->type() == QAndroidStyle::Clip)
-                static_cast<QAndroidStyle::AndroidClipDrawable *>(clipDrawable)->setFactor((double)progressBarV2.progress/(progressBarV2.maximum-progressBarV2.minimum), progressBarV2.orientation);
+                static_cast<QAndroidStyle::AndroidClipDrawable *>(clipDrawable)->setFactor(double(progressBarV2.progress/(progressBarV2.maximum-progressBarV2.minimum)),
+                                                                                           progressBarV2.orientation);
         }
         m_progressDrawable->draw(p, option);
     }
 }
 
-QRect QAndroidStyle::AndroidProgressBarControl::subElementRect(QStyle::SubElement subElement, const QStyleOption *option,
-                             const QWidget *widget) const
+QRect QAndroidStyle::AndroidProgressBarControl::subElementRect(QStyle::SubElement subElement,
+                                                               const QStyleOption *option,
+                                                               const QWidget *widget) const
 {
     if (const QStyleOptionProgressBar *progressBarOption =
-           qstyleoption_cast<const QStyleOptionProgressBar *>(option))
-    {
+           qstyleoption_cast<const QStyleOptionProgressBar *>(option)) {
         QStyleOptionProgressBarV2 progressBarV2(*progressBarOption);
         const bool horizontal = progressBarV2.orientation == Qt::Vertical;
         if (!m_background)
@@ -1428,23 +1423,20 @@ QRect QAndroidStyle::AndroidProgressBarControl::subElementRect(QStyle::SubElemen
 
         QMargins padding = m_background->padding();
         QRect p(padding.left(), padding.top(), padding.right()-padding.left(), padding.bottom()-padding.top());
-        padding=m_indeterminateDrawable->padding();
-        p|=QRect(padding.left(), padding.top(), padding.right()-padding.left(), padding.bottom()-padding.top());
-        padding=m_progressDrawable->padding();
-        p|=QRect(padding.left(), padding.top(), padding.right()-padding.left(), padding.bottom()-padding.top());
+        padding = m_indeterminateDrawable->padding();
+        p |= QRect(padding.left(), padding.top(), padding.right()-padding.left(), padding.bottom()-padding.top());
+        padding = m_progressDrawable->padding();
+        p |= QRect(padding.left(), padding.top(), padding.right()-padding.left(), padding.bottom()-padding.top());
 
         QRect r = option->rect.adjusted(p.left(), p.top(), -p.right(), -p.bottom());
 
-        if (horizontal)
-        {
+        if (horizontal) {
             if (r.height()<m_minSize.height())
                 r.setHeight(m_minSize.height());
 
             if (r.height()>m_maxSize.height())
                 r.setHeight(m_maxSize.height());
-        }
-        else
-        {
+        } else {
             if (r.width()<m_minSize.width())
                 r.setWidth(m_minSize.width());
 
@@ -1457,39 +1449,35 @@ QRect QAndroidStyle::AndroidProgressBarControl::subElementRect(QStyle::SubElemen
 }
 
 QSize QAndroidStyle::AndroidProgressBarControl::sizeFromContents(const QStyleOption *opt,
-                               const QSize &contentsSize, const QWidget */*w*/) const
+                                                                 const QSize &contentsSize,
+                                                                 const QWidget */*w*/) const
 {
     QSize sz(contentsSize);
-    if (sz.height()<m_minSize.height())
+    if (sz.height() < m_minSize.height())
         sz.setHeight(m_minSize.height());
-    if (sz.width()<m_minSize.width())
+    if (sz.width() < m_minSize.width())
         sz.setWidth(m_minSize.width());
 
     if (const QStyleOptionProgressBar *progressBarOption =
-           qstyleoption_cast<const QStyleOptionProgressBar *>(opt))
-    {
+           qstyleoption_cast<const QStyleOptionProgressBar *>(opt)) {
         QStyleOptionProgressBarV2 progressBarV2(*progressBarOption);
-        if (progressBarV2.orientation == Qt::Vertical)
-        {
-
-            if (sz.height()>m_maxSize.height())
+        if (progressBarV2.orientation == Qt::Vertical) {
+            if (sz.height() > m_maxSize.height())
                 sz.setHeight(m_maxSize.height());
-        }
-        else
-        {
-
-            if (sz.width()>m_maxSize.width())
+        } else {
+            if (sz.width() > m_maxSize.width())
                 sz.setWidth(m_maxSize.width());
         }
     }
     return contentsSize;
 }
 
-QAndroidStyle::AndroidSeekBarControl::AndroidSeekBarControl(const QVariantMap &control, ItemType itemType)
-    :AndroidProgressBarControl(control, itemType)
+QAndroidStyle::AndroidSeekBarControl::AndroidSeekBarControl(const QVariantMap &control,
+                                                            ItemType itemType)
+    : AndroidProgressBarControl(control, itemType)
 {
-    QVariantMap::const_iterator it=control.find(QLatin1String("SeekBar_thumb"));
-    if (it!=control.end())
+    QVariantMap::const_iterator it = control.find(QLatin1String("SeekBar_thumb"));
+    if (it != control.end())
         m_seekBarThumb = AndroidDrawable::fromMap(it.value().toMap(), itemType);
     else
         m_seekBarThumb = 0;
@@ -1500,24 +1488,24 @@ QAndroidStyle::AndroidSeekBarControl::~AndroidSeekBarControl()
     delete m_seekBarThumb;
 }
 
-void QAndroidStyle::AndroidSeekBarControl::drawControl(const QStyleOption *option, QPainter *p, const QWidget */*w*/)
+void QAndroidStyle::AndroidSeekBarControl::drawControl(const QStyleOption *option,
+                                                       QPainter *p,
+                                                       const QWidget */*w*/)
 {
     if (!m_seekBarThumb || !m_progressDrawable)
         return;
 
     if (const QStyleOptionSlider *styleOption =
-           qstyleoption_cast<const QStyleOptionSlider *>(option))
-    {
-        double factor = (double)styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum);
-        if (m_progressDrawable->type()==QAndroidStyle::Layer)
-        {
-            QAndroidStyle::AndroidDrawable * clipDrawable = static_cast<QAndroidStyle::AndroidLayerDrawable *>(m_progressDrawable)->layer(m_progressId);
+           qstyleoption_cast<const QStyleOptionSlider *>(option)) {
+        double factor = double(styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum));
+        if (m_progressDrawable->type()==QAndroidStyle::Layer) {
+            QAndroidStyle::AndroidDrawable *clipDrawable = static_cast<QAndroidStyle::AndroidLayerDrawable *>(m_progressDrawable)->layer(m_progressId);
             if (clipDrawable->type() == QAndroidStyle::Clip)
                 static_cast<QAndroidStyle::AndroidClipDrawable *>(clipDrawable)->setFactor(factor, styleOption->orientation);
         }
-        const AndroidDrawable* drawable=m_seekBarThumb;
+        const AndroidDrawable *drawable=m_seekBarThumb;
         if (drawable->type() == State)
-            drawable = static_cast<const QAndroidStyle::AndroidStateDrawable*>(m_seekBarThumb)->bestAndroidStateMatch(option);
+            drawable = static_cast<const QAndroidStyle::AndroidStateDrawable *>(m_seekBarThumb)->bestAndroidStateMatch(option);
         QStyleOption copy(*option);
         copy.rect.setY((copy.rect.height()-m_minSize.height())/2);
         copy.rect.setHeight(m_minSize.height());
@@ -1525,8 +1513,8 @@ void QAndroidStyle::AndroidSeekBarControl::drawControl(const QStyleOption *optio
         copy.rect.translate(drawable->size().width()/2,0);
         m_progressDrawable->draw(p, &copy);
         if (styleOption->orientation == Qt::Vertical)
-            qCritical()<<"Vertical slider are not supported";
-        int pos=((double)copy.rect.width()*factor)-(drawable->size().width()/2);
+            qCritical() << "Vertical slider are not supported";
+        int pos = (double(copy.rect.width()*factor - drawable->size().width()) / 2);
         copy.rect.translate(pos, 0);
         copy.rect.setSize(drawable->size());
         m_seekBarThumb->draw(p, &copy);
@@ -1534,32 +1522,33 @@ void QAndroidStyle::AndroidSeekBarControl::drawControl(const QStyleOption *optio
 }
 
 QSize QAndroidStyle::AndroidSeekBarControl::sizeFromContents(const QStyleOption *opt,
-                               const QSize &contentsSize, const QWidget *w) const
+                                                             const QSize &contentsSize,
+                                                             const QWidget *w) const
 {
     QSize sz = AndroidProgressBarControl::sizeFromContents(opt, contentsSize, w);
     if (!m_seekBarThumb)
         return sz;
-    const AndroidDrawable* drawable=m_seekBarThumb;
+    const AndroidDrawable *drawable=m_seekBarThumb;
     if (drawable->type() == State)
-        drawable = static_cast<const QAndroidStyle::AndroidStateDrawable*>(m_seekBarThumb)->bestAndroidStateMatch(opt);
+        drawable = static_cast<const QAndroidStyle::AndroidStateDrawable *>(m_seekBarThumb)->bestAndroidStateMatch(opt);
     return sz.expandedTo(drawable->size());
 }
 
-QRect QAndroidStyle::AndroidSeekBarControl::subControlRect(const QStyleOptionComplex *option, SubControl sc,
-                             const QWidget */*widget*/) const
+QRect QAndroidStyle::AndroidSeekBarControl::subControlRect(const QStyleOptionComplex *option,
+                                                           SubControl sc,
+                                                           const QWidget */*widget*/) const
 {
     const QStyleOptionSlider *styleOption =
                    qstyleoption_cast<const QStyleOptionSlider *>(option);
 
-    if (m_seekBarThumb && sc == SC_SliderHandle && styleOption)
-    {
-            const AndroidDrawable* drawable=m_seekBarThumb;
+    if (m_seekBarThumb && sc == SC_SliderHandle && styleOption) {
+            const AndroidDrawable *drawable = m_seekBarThumb;
             if (drawable->type() == State)
-                drawable = static_cast<const QAndroidStyle::AndroidStateDrawable*>(m_seekBarThumb)->bestAndroidStateMatch(option);
+                drawable = static_cast<const QAndroidStyle::AndroidStateDrawable *>(m_seekBarThumb)->bestAndroidStateMatch(option);
 
             QRect r(option->rect);
-            double factor = (double)styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum);
-            int pos=((double)option->rect.width()*factor)-(drawable->size().width()/2);
+            double factor = double(styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum));
+            int pos=(double(option->rect.width()*factor - drawable->size().width()) / 2);
             r.setX(r.x()+pos);
             r.setSize(drawable->size());
             return r;
@@ -1567,11 +1556,13 @@ QRect QAndroidStyle::AndroidSeekBarControl::subControlRect(const QStyleOptionCom
     return option->rect;
 }
 
-QAndroidStyle::AndroidSpinnerControl::AndroidSpinnerControl(const QVariantMap &control, QAndroidStyle::ItemType itemType)
-    :AndroidControl(control, itemType)
+QAndroidStyle::AndroidSpinnerControl::AndroidSpinnerControl(const QVariantMap &control,
+                                                            QAndroidStyle::ItemType itemType)
+    : AndroidControl(control, itemType)
 {}
 
-QRect QAndroidStyle::AndroidSpinnerControl::subControlRect(const QStyleOptionComplex *option, SubControl sc,
+QRect QAndroidStyle::AndroidSpinnerControl::subControlRect(const QStyleOptionComplex *option,
+                                                           SubControl sc,
                                                            const QWidget *widget) const
 {
     if (sc == QStyle::SC_ComboBoxListBoxPopup)

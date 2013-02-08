@@ -4235,9 +4235,6 @@ fi
 
 case "$XPLATFORM" in *android*)
     QMakeVar add styles "android"
-    if compileTest unix/ipc_android "ipc_android"; then
-        QT_CONFIG="$QT_CONFIG ashmem"
-    fi
 esac
 
 

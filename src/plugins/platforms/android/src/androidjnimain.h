@@ -51,7 +51,7 @@
 #include <QtCore/qsize.h>
 
 #include <jni.h>
-#include "native/include/android/asset_manager.h"
+#include <android/asset_manager.h>
 
 class QImage;
 class QRect;

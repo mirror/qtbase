@@ -46,8 +46,6 @@
 #include <qpa/qwindowsysteminterface.h>
 #include <QThread>
 #include <qpa/qplatformwindow.h>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QCommonStyle>
 #include "qandroidplatformservices.h"
 #include "qandroidplatformfontdatabase.h"
 #include "qandroidplatformclipboard.h"
@@ -93,14 +91,6 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
 #endif
 
     m_androidPlatformNativeInterface = new QAndroidPlatformNativeInterface();
-    if (qgetenv("QT_USE_ANDROID_NATIVE_STYLE").toInt()
-            && qgetenv("NECESSITAS_API_LEVEL").toInt() > 1
-            && !qgetenv("MINISTRO_ANDROID_STYLE_PATH").isEmpty()) {
-        QApplication::setStyle(new QCommonStyle); // don't remove, it's used to set the default things (fonts, palette, etc)
-        QApplication::setStyle("android");
-    } else {
-        QApplication::setStyle("fusion");
-    }
 
 #ifndef ANDROID_PLUGIN_OPENGL
     qDebug() << "QAndroidPlatformIntegration::QAndroidPlatformIntegration():  creating QAndroidPlatformScreen => Using Raster (Software) for painting";

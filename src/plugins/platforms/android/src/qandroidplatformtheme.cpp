@@ -43,6 +43,8 @@
 #include "qandroidplatformmenubar.h"
 #include "qandroidplatformmenu.h"
 #include "qandroidplatformmenuitem.h"
+#include <QVariant>
+#include <QFileInfo>
 
 QPlatformMenuBar *QAndroidPlatformTheme::createPlatformMenuBar() const
 {
@@ -57,4 +59,20 @@ QPlatformMenu *QAndroidPlatformTheme::createPlatformMenu() const
 QPlatformMenuItem *QAndroidPlatformTheme::createPlatformMenuItem() const
 {
     return new QAndroidPlatformMenuItem;
+}
+
+QVariant QAndroidPlatformTheme::themeHint(ThemeHint hint) const
+{
+    switch (hint) {
+    case StyleNames:
+        if (qgetenv("QT_USE_ANDROID_NATIVE_STYLE").toInt()
+                && (!qgetenv("MINISTRO_ANDROID_STYLE_PATH").isEmpty()
+                    || QFileInfo("/data/data/org.kde.necessitas.ministro/files/qt/style/style.json").exists())) {
+            return QStringList("android");
+        }
+        return QStringList("fusion");
+        break;
+    default:
+        return QPlatformTheme::themeHint(hint);
+    }
 }

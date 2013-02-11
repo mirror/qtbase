@@ -50,6 +50,7 @@ public:
     virtual QPlatformMenuBar *createPlatformMenuBar() const;
     virtual QPlatformMenu *createPlatformMenu() const;
     virtual QPlatformMenuItem *createPlatformMenuItem() const;
+    virtual QVariant themeHint(ThemeHint hint) const;
 };
 
 #endif // QANDROIDPLATFORMTHEME_H

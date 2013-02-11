@@ -95,7 +95,6 @@ QAndroidStyle::QAndroidStyle()
     }
 
     qDebug() << "Reading json file took" << t.elapsed() << "ms";
-    t.restart();
 
     if (!document.isObject()) {
         qCritical() << "Style.json does not contain a valid style.";
@@ -170,12 +169,10 @@ QAndroidStyle::QAndroidStyle()
                 palette.setColor(QPalette::Highlight, QRgb(int(attributeIterator.value().toDouble())));
             palette.setColor(QPalette::Window, Qt::black);
             QApplication::setPalette(palette, qtClassName.toUtf8());
+            if (QLatin1String("QWidget") == qtClassName)
+                m_standardPalette = palette;
             // Extract palette information
         }
-        QApplication::setPalette(QApplication::palette("simple_list_item"), "QListView");
-        QApplication::setFont(QApplication::font("simple_list_item"), "QListView");
-        QApplication::setPalette(QApplication::palette("simple_list_item"), "QAbstractItemView");
-        QApplication::setFont(QApplication::font("simple_list_item"), "QAbstractItemView");
         QAndroidStyle::ItemType itemType = qtControl(key);
         if (QC_UnknownType == itemType)
             continue;
@@ -208,6 +205,10 @@ QAndroidStyle::QAndroidStyle()
             break;
         }
     }
+    QApplication::setPalette(QApplication::palette("simple_list_item"), "QListView");
+    QApplication::setFont(QApplication::font("simple_list_item"), "QListView");
+    QApplication::setPalette(QApplication::palette("simple_list_item"), "QAbstractItemView");
+    QApplication::setFont(QApplication::font("simple_list_item"), "QAbstractItemView");
     qDebug() << "Parsing json file took" << t.elapsed() << "ms";
 }
 
@@ -616,7 +617,10 @@ QPixmap QAndroidStyle::generatedIconPixmap(QIcon::Mode iconMode,
     return QCommonStyle::generatedIconPixmap(iconMode, pixmap, opt);
 }
 
-
+QPalette QAndroidStyle::standardPalette() const
+{
+    return m_standardPalette;
+}
 
 QAndroidStyle::AndroidDrawable::AndroidDrawable(const QVariantMap &drawable,
                                                 QAndroidStyle::ItemType itemType)

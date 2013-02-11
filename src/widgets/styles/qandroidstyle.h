@@ -346,6 +346,8 @@ public:
 
     virtual QPixmap generatedIconPixmap(QIcon::Mode iconMode, const QPixmap &pixmap,
                                         const QStyleOption *opt) const;
+
+    virtual QPalette standardPalette() const;
 private:
     Q_DISABLE_COPY(QAndroidStyle)
     static ItemType qtControl(QStyle::ComplexControl control);
@@ -361,6 +363,7 @@ private:
 private:
     typedef QHash<int, AndroidControl *> AndroidControlsHash;
     AndroidControlsHash m_androidControlsHash;
+    QPalette m_standardPalette;
 };
 
 #endif // QT_NO_STYLE_ANDROID

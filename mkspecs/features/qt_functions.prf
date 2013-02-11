@@ -173,7 +173,7 @@ defineTest(qtAddModules) {
     for(QTLIB, $$1) {
         QTLIBNAME = $$eval(QT.$${QTLIB}.name)
         isEmpty(QTLIBNAME) {
-            !isEqual(QTLIB, android): BAD_QT += $$QTLIB
+            BAD_QT += $$QTLIB
             next()
         }
 

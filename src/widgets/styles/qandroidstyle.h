@@ -186,7 +186,7 @@ public:
         AndroidGradientDrawable(const QVariantMap &drawable, ItemType itemType);
         virtual AndroidDrawableType type() const;
         virtual void draw(QPainter *painter, const QStyleOption *opt) const;
-        QSize size();
+        QSize size() const;
     private:
         mutable QLinearGradient m_gradient;
         GradientOrientation m_orientation;
@@ -231,7 +231,7 @@ public:
         virtual AndroidDrawableType type() const;
         virtual void draw(QPainter *painter, const QStyleOption *opt) const;
         AndroidDrawable *layer(int id) const;
-        QSize size();
+        QSize size() const;
     private:
         typedef QPair<int, AndroidDrawable *> LayerType;
         QList<LayerType> m_layers;

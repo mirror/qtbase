@@ -1012,7 +1012,7 @@ void QAndroidStyle::AndroidGradientDrawable::draw(QPainter *painter, const QStyl
     painter->setPen(oldPen);
 }
 
-QSize QAndroidStyle::AndroidGradientDrawable::size()
+QSize QAndroidStyle::AndroidGradientDrawable::size() const
 {
     return QSize(m_radius*2, m_radius*2);
 }
@@ -1231,7 +1231,7 @@ QAndroidStyle::AndroidDrawable *QAndroidStyle::AndroidLayerDrawable::layer(int i
     return 0;
 }
 
-QSize QAndroidStyle::AndroidLayerDrawable::size()
+QSize QAndroidStyle::AndroidLayerDrawable::size() const
 {
     QSize sz;
     foreach (const LayerType &layer, m_layers)

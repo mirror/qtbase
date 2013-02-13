@@ -2601,8 +2601,6 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
             echo "Can not detect the android host, please use -android-ndk-host option to specify one"
             exit 1
         fi
-    else
-        exit 0
     fi
 
     if [ "$OPT_HELP" != "yes" ]; then

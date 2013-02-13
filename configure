@@ -2574,7 +2574,7 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
     if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
         case $PLATFORM in
         linux-*-64)
-            if [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/linux-x86_64" ]; then
+            if [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/linux-x86_64" ]; then
                 CFG_DEFAULT_ANDROID_NDK_HOST=linux-x86_64
             else
                 CFG_DEFAULT_ANDROID_NDK_HOST=linux-x86
@@ -2585,18 +2585,18 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
             ;;
         macx-*)
             CFG_DEFAULT_ANDROID_NDK_HOST=darwin-x86
-            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/darwin-x86_64" ]; then
+            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/darwin-x86_64" ]; then
                 CFG_DEFAULT_ANDROID_NDK_HOST=darwin-x86_64
             fi
             ;;
         win32-*)
             CFG_DEFAULT_ANDROID_NDK_HOST=windows
-            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/windows-x86_64" ]; then
+            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/windows-x86_64" ]; then
                 CFG_DEFAULT_ANDROID_NDK_HOST=windows-x86_64
             fi
             ;;
         esac
-        if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ] || [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
+        if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ] || [ ! -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
             echo
             echo "Can not detect the android host, please use -android-ndk-host option to specify one"
             exit 1

@@ -161,7 +161,7 @@ public:
     // pending socket notifiers list
     QSockNotType::List sn_pending_list;
 
-    QAtomicInt goToSleep;
+    QAtomicInt wakeUps;
     bool interrupt;
 };
 

@@ -49,3 +49,8 @@ void QAndroidPlatformWindow::setGeometry(const QRect &rect)
 {
     QFbWindow::setGeometry(rect);
 }
+
+void QAndroidPlatformWindow::propagateSizeHints()
+{
+    //shut up warning from default implementation
+}

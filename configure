@@ -1,4 +1,5 @@
 #!/bin/sh
+
 #############################################################################
 ##
 ## Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
@@ -351,6 +352,14 @@ UNAME_MACHINE=`(uname -m) 2>/dev/null` || UNAME_MACHINE=unknown
 UNAME_RELEASE=`(uname -r) 2>/dev/null` || UNAME_RELEASE=unknown
 UNAME_SYSTEM=`(uname -s) 2>/dev/null`  || UNAME_SYSTEM=unknown
 UNAME_VERSION=`(uname -v) 2>/dev/null` || UNAME_VERSION=unknown
+# early detection of Android, needed for linuxfb and linuxtp.
+XPLATFORM_ANDROID=no
+for ARG in $@
+do
+    if [ "$ARG" = "android-g++" ]; then
+        XPLATFORM_ANDROID=yes
+    fi
+done
 
 # detect the "echo without newline" style. usage: echo $ECHO_N "<string>$ECHO_C"
 if echo '\c' | grep '\c' >/dev/null; then
@@ -774,7 +783,7 @@ CFG_SSE=auto
 CFG_FONTCONFIG=auto
 CFG_LIBFREETYPE=auto
 CFG_SQL_AVAILABLE=
-QT_DEFAULT_BUILD_PARTS="libs tools examples"
+QT_DEFAULT_BUILD_PARTS="libs tools"
 CFG_BUILD_PARTS=""
 CFG_NOBUILD_PARTS=""
 CFG_RELEASE_QMAKE=no
@@ -935,6 +944,15 @@ CFG_SQL_oci=no
 CFG_SQL_db2=no
 
 CFG_SQL_AVAILABLE=
+
+# Android vars
+CFG_DEFAULT_ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT
+CFG_DEFAULT_ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
+CFG_DEFAULT_ANDROID_PLATFORM=android-9
+CFG_DEFAULT_ANDROID_TARGET_ARCH=armeabi-v7a
+CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION=4.4.3
+CFG_DEFAULT_ANDROID_NDK_HOST=$ANDROID_NDK_HOST
+
 if [ -d "$relpath/src/plugins/sqldrivers" ]; then
   for a in "$relpath/src/plugins/sqldrivers/"*; do
      if [ -d "$a" ]; then
@@ -996,7 +1014,7 @@ while [ "$#" -gt 0 ]; do
         VAL=no
         ;;
     #Qt style options that pass an argument
-    -prefix|-docdir|-headerdir|-plugindir|-importdir|-qmldir|-archdatadir|-datadir|-libdir|-bindir|-libexecdir|-translationdir|-sysconfdir|-examplesdir|-testsdir|-depths|-make|-nomake|-platform|-xplatform|-device|-device-option|-sdk|-arch|-host-arch|-mysql_config|-sysroot|-hostdatadir|-hostbindir|-qpa|-qconfig)
+    -prefix|-docdir|-headerdir|-plugindir|-importdir|-qmldir|-archdatadir|-datadir|-libdir|-bindir|-libexecdir|-translationdir|-sysconfdir|-examplesdir|-testsdir|-depths|-make|-nomake|-platform|-xplatform|-device|-device-option|-sdk|-arch|-host-arch|-mysql_config|-sysroot|-hostdatadir|-hostbindir|-qpa|-qconfig|-android-sdk|-android-ndk|-android-ndk-platform|-android-ndk-host|-android-arch|-android-toolchain-version)
         VAR=`echo $1 | sed "s,^-\(.*\),\1,"`
         shift
         VAL="$1"
@@ -1858,8 +1876,8 @@ while [ "$#" -gt 0 ]; do
     dbus)
         if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ] || [ "$VAL" = "linked" ]; then
             CFG_DBUS="$VAL"
-	elif [ "$VAL" = "runtime" ]; then
-	    CFG_DBUS="yes"
+        elif [ "$VAL" = "runtime" ]; then
+            CFG_DBUS="yes"
         else
             UNKNOWN_OPT=yes
         fi
@@ -2122,6 +2140,48 @@ while [ "$#" -gt 0 ]; do
             UNKNOWN_OPT=yes
         fi
         ;;
+    android-sdk)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_SDK_ROOT="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    android-ndk)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_NDK_ROOT="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    android-ndk-platform)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_PLATFORM="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    android-ndk-host)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_NDK_HOST="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    android-arch)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_TARGET_ARCH="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    android-toolchain-version)
+        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+            CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
     *)
         UNKNOWN_OPT=yes
         ;;
@@ -2212,6 +2272,18 @@ fi
 
 if [ "$CFG_SILENT" = "yes" ]; then
     QMAKE_CONFIG="$QMAKE_CONFIG silent"
+fi
+
+# Without this hack, OpenGLES2 test fails for Android:
+# (undefined reference to `android::egl_get_image_for_current_context(void*))')
+# See http://blog.vlad1.com/2010/03/19/things-i-learned-today-android-opengl-edition-2/
+# Hack is to add -Wl,-allow-shlib-undefined. Should do this for Android only though, but
+# at the minute I'm not sure if we're QPA,desktop or all of the above, so I've applied
+# it globally to all of the OpenGLES2 compile-tests. Very unlikely that it'd trip up
+# other platforms too.
+
+if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+    ANDROID_GLES2_LFLAGS=-Wl,-allow-shlib-undefined
 fi
 
 # if the source tree is different from the build tree,
@@ -2496,6 +2568,66 @@ fi
 case `basename "$XPLATFORM"` in win32-g++*) XPLATFORM_MINGW=yes;; esac
 case "$XPLATFORM" in *-maemo*) XPLATFORM_MAEMO=yes;; esac
 case "$XPLATFORM" in *qnx-*|*blackberry-*) XPLATFORM_QNX=yes;; esac
+case "$XPLATFORM" in *android*) XPLATFORM_ANDROID=yes;; esac
+
+if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+    if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
+        case $PLATFORM in
+        linux-*-64)
+            if [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/linux-x86_64" ]; then
+                CFG_DEFAULT_ANDROID_NDK_HOST=linux-x86_64
+            else
+                CFG_DEFAULT_ANDROID_NDK_HOST=linux-x86
+            fi
+            ;;
+        linux-*)
+            CFG_DEFAULT_ANDROID_NDK_HOST=linux-x86
+            ;;
+        macx-*)
+            CFG_DEFAULT_ANDROID_NDK_HOST=darwin-x86
+            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/darwin-x86_64" ]; then
+                CFG_DEFAULT_ANDROID_NDK_HOST=darwin-x86_64
+            fi
+            ;;
+        win32-*)
+            CFG_DEFAULT_ANDROID_NDK_HOST=windows
+            if [ ! -z "$NATIVE_64_ARCH" ] && [ -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/windows-x86_64" ]; then
+                CFG_DEFAULT_ANDROID_NDK_HOST=windows-x86_64
+            fi
+            ;;
+        esac
+        if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ] || [ ! -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
+            echo
+            echo "Can not detect the android host, please use -android-ndk-host option to specify one"
+            exit 1
+        fi
+    fi
+
+    if [ "$OPT_HELP" != "yes" ]; then
+        if [ -z "$CFG_DEFAULT_ANDROID_NDK_ROOT" ]; then
+            echo
+            echo "Can not find Android NDK. Please use -android-ndk option to specify one"
+            exit 1
+        fi
+        if [ -z "$CFG_DEFAULT_ANDROID_SDK_ROOT" ]; then
+            echo
+            echo "Can not find Android SDK. Please use -android-sdk option to specify one"
+            exit 1
+        fi
+
+        QT_QPA_DEFAULT_PLATFORM="android"
+        CFG_LARGEFILE="no"
+
+        cp -f $CFG_DEFAULT_ANDROID_NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/libs/$CFG_DEFAULT_ANDROID_TARGET_ARCH/libgnustl_shared.so $outpath/lib
+
+        DeviceVar set DEFAULT_ANDROID_SDK_ROOT "$CFG_DEFAULT_ANDROID_SDK_ROOT"
+        DeviceVar set DEFAULT_ANDROID_NDK_ROOT "$CFG_DEFAULT_ANDROID_NDK_ROOT"
+        DeviceVar set DEFAULT_ANDROID_PLATFORM "$CFG_DEFAULT_ANDROID_PLATFORM"
+        DeviceVar set DEFAULT_ANDROID_NDK_HOST "$CFG_DEFAULT_ANDROID_NDK_HOST"
+        DeviceVar set DEFAULT_ANDROID_TARGET_ARCH "$CFG_DEFAULT_ANDROID_TARGET_ARCH"
+        DeviceVar set DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION "$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION"
+    fi
+fi
 
 if [ -d "$PLATFORM" ]; then
   QMAKESPEC="$PLATFORM"
@@ -2601,7 +2733,7 @@ if [ "$CFG_DEBUG_RELEASE" = "yes" ]; then
 fi
 
 if [ "$CFG_FORCEDEBUGINFO" = "yes" ]; then
-    QT_CONFIG="$QT_CONFIG force_debug_info"
+    QMAKE_CONFIG="$QMAKE_CONFIG force_debug_info"
 fi
 
 # pass on $CFG_SDK to the arch/configure tests.
@@ -2633,6 +2765,35 @@ fi
 QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`
 
 TEST_COMPILER=$QMAKE_CONF_COMPILER
+
+if [ "$OPT_HELP" != "yes" ] && [ "$XPLATFORM_ANDROID" = "yes" ] ; then
+    ANDROID_COMPILE_TEST_CONFIG="-config android_app"
+    ANDROID_NDK_TOOLS_PREFIX=
+    ANDROID_PLATFORM_ARCH=
+    case $CFG_DEFAULT_ANDROID_TARGET_ARCH in
+        armeabi*)
+            ANDROID_NDK_TOOLS_PREFIX=arm-linux-androideabi
+            ANDROID_PLATFORM_ARCH=arch-arm
+            ;;
+        x86)
+            ANDROID_NDK_TOOLS_PREFIX=x86
+            ANDROID_PLATFORM_ARCH=arch-x86
+            ;;
+        mips)
+            ANDROID_NDK_TOOLS_PREFIX=mipsel-linux-android
+            ANDROID_PLATFORM_ARCH=arch-mips
+            ;;
+        *)
+            echo "ERROR: Unknown android arch $CFG_DEFAULT_ANDROID_TARGET_ARCH"
+            exit 1
+            ;;
+    esac
+    QMAKE_CONF_COMPILER=$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/$ANDROID_NDK_TOOLS_PREFIX-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST/bin/$ANDROID_NDK_TOOLS_PREFIX-g++
+    TEST_COMPILER="$QMAKE_CONF_COMPILER --sysroot=$CFG_DEFAULT_ANDROID_NDK_ROOT/platforms/$CFG_DEFAULT_ANDROID_PLATFORM/$ANDROID_PLATFORM_ARCH/"
+else
+    ANDROID_COMPILE_TEST_CONFIG=
+fi
+
 if [ "$XPLATFORM_SYMBIAN_SBSV2" = "no" ]; then
     if [ -z "$TEST_COMPILER" ]; then
         echo "ERROR: Cannot set the compiler for the configuration tests"
@@ -3291,6 +3452,7 @@ Additional options:
 
  $GBN  -no-glib ........... Do not compile Glib support.
  $GBY  -glib .............. Compile Glib support.
+
 EOF
 
 if [ "$XPLATFORM_MAEMO" = "yes" ]; then
@@ -3333,6 +3495,32 @@ Qt/Mac only:
                          QT_ENABLE_HARFBUZZ environment variable.
 
 EOF
+fi
+
+if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+    cat << EOF
+
+Android options:
+    -android-sdk path .............. The Android SDK root path.
+                                     (default $CFG_DEFAULT_ANDROID_SDK_ROOT)
+
+    -android-ndk path .............. The Android NDK root path.
+                                     (default $CFG_DEFAULT_ANDROID_NDK_ROOT)
+
+    -android-ndk-platform .......... Sets the android platform
+                                     (default $CFG_DEFAULT_ANDROID_PLATFORM)
+
+    -android-ndk-host .............. Sets the android NDK host (linux-x86, linux-x86_64, etc.)
+                                     (default $CFG_DEFAULT_ANDROID_NDK_HOST)
+
+    -android-arch .................. Sets the android architecture (armeabi, armeabi-v7a, x86, mips)
+                                     (default $CFG_DEFAULT_ANDROID_TARGET_ARCH)
+
+    -android-toolchain-version ..... Sets the android toolchain version
+                                     (default $CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION)
+
+EOF
+
 fi
 
    [ "x$ERROR" = "xyes" ] && exit 1
@@ -3810,7 +3998,7 @@ compileTest()
     path=config.tests/$1
     name=$2
     shift 2
-    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS $MAC_SDK_FLAG "$@"
+    "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" "$path" "$name" $I_FLAGS $D_FLAGS $L_FLAGS $MAC_SDK_FLAG $ANDROID_COMPILE_TEST_CONFIG "$@"
 }
 
 #-------------------------------------------------------------------------------
@@ -3987,7 +4175,7 @@ fi
 
 # detect mips_dsp support
 if [ "$CFG_ARCH" = "mips" ] && [ "${CFG_MIPS_DSP}" = "auto" ]; then
-    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dsp "mips_dsp" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS; then
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dsp "mips_dsp" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS $ANDROID_COMPILE_TEST_CONFIG; then
         CFG_MIPS_DSP=yes
     else
         CFG_MIPS_DSP=no
@@ -3998,7 +4186,7 @@ fi
 
 # detect mips_dspr2 support
 if [ "$CFG_ARCH" = "mips" ] && [ "${CFG_MIPS_DSPR2}" = "auto" ]; then
-    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dspr2 "mips_dspr2" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS; then
+    if "$unixtests/compile.test" "$XQMAKESPEC" "$QMAKE_CONFIG" $OPT_VERBOSE "$relpath" "$outpath" config.tests/unix/mips_dspr2 "mips_dspr2" $L_FLAGS $I_FLAGS $D_FLAGS $l_FLAGS $ANDROID_COMPILE_TEST_CONFIG; then
         CFG_MIPS_DSPR2=yes
     else
         CFG_MIPS_DSPR2=no
@@ -4042,6 +4230,11 @@ if [ "$CFG_ZLIB" = "auto" ]; then
        CFG_ZLIB=yes
     fi
 fi
+
+case "$XPLATFORM" in *android*)
+    QMakeVar add styles "android"
+esac
+
 
 if [ "$CFG_LARGEFILE" = "auto" ]; then
     #Large files should be enabled for all Linux systems
@@ -4116,12 +4309,12 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
         case $_SQLDR in
         mysql)
             if [ "$CFG_SQL_mysql" != "no" ]; then
-		[ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
+                [ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
                 if [ -x "$CFG_MYSQL_CONFIG" ]; then
                     QT_CFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --include 2>/dev/null | filterIncludeOptions`
                     QT_LFLAGS_MYSQL_R=`$CFG_MYSQL_CONFIG --libs_r 2>/dev/null | filterLibraryOptions`
                     QT_LFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --libs 2>/dev/null | filterLibraryOptions`
-		    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
+                    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
                     QT_MYSQL_VERSION_MAJOR=`echo $QT_MYSQL_VERSION | cut -d . -f 1`
                 fi
                 if [ -n "$QT_MYSQL_VERSION" ] && [ "$QT_MYSQL_VERSION_MAJOR" -lt 4 ]; then
@@ -4133,9 +4326,9 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
                         exit 101
                     else
                         CFG_SQL_mysql="no"
-			QT_LFLAGS_MYSQL=""
-			QT_LFLAGS_MYSQL_R=""
-			QT_CFLAGS_MYSQL=""
+                        QT_LFLAGS_MYSQL=""
+                        QT_LFLAGS_MYSQL_R=""
+                        QT_CFLAGS_MYSQL=""
                     fi
                 else
                     if compileTest unix/mysql_r "MySQL (thread-safe)" $QT_LFLAGS_MYSQL_R $QT_CFLAGS_MYSQL; then
@@ -5017,7 +5210,7 @@ if [ "$BUILD_ON_MAC" = "yes" ]; then
     fi
 fi
 
-if [ "$BUILD_ON_MAC" = "no" ] && [ "$XPLATFORM_MINGW" = "no" ] && [ "$XPLATFORM_QNX" = "no" ]; then
+if [ "$BUILD_ON_MAC" = "no" ] && [ "$XPLATFORM_MINGW" = "no" ] && [ "$XPLATFORM_QNX" = "no" ] && [ "$XPLATFORM_ANDROID" = "no" ]; then
     if [ "$CFG_XCB" = "no" ] && [ "$CFG_EGLFS" = "no" ] && [ "$CFG_DIRECTFB" = "no" ] && [ "$CFG_LINUXFB" = "no" ] && [ "$CFG_KMS" = "no" ]; then
         if [ "$QPA_PLATFORM_GUARD" = "yes" ] &&
             ( [ "$ORIG_CFG_XCB" = "auto" ] || [ "$ORIG_CFG_EGLFS" = "auto" ] || [ "$ORIG_CFG_DIRECTFB" = "auto" ] || [ "$ORIG_CFG_LINUXFB" = "auto" ] || [ "$ORIG_CFG_KMS" = "auto" ] ); then
@@ -5171,7 +5364,7 @@ if [ "$CFG_OPENSSL" != "no" ]; then
             CFG_OPENSSL=yes
         fi
     else
-        if ( [ "$CFG_OPENSSL" = "yes" ] || [ "$CFG_OPENSSL" = "linked" ] ) && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
+        if ( [ "$CFG_OPENSSL" = "yes" ] || [ "$CFG_OPENSSL" = "linked" ] ) && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]  && [ "$XPLATFORM_ANDROID" = "no" ]; then
             echo "OpenSSL support cannot be enabled due to functionality tests!"
             echo " Turn on verbose messaging (-v) to $0 to see the final report."
             echo " If you believe this message is in error you may use the continue"
@@ -5582,7 +5775,7 @@ case "$XPLATFORM" in
 	# the assembly it generates cannot be compiled
 
 	# Check gcc's version
-	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*)
 		;;
 	    3.4*)
@@ -5603,15 +5796,17 @@ case "$XPLATFORM" in
 	;;
     *-g++*)
 	# Check gcc's version
-	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*|3.4*)
 		;;
             3.3*)
                 canBuildWebKit="no"
                 ;;
 	    *)
-		canBuildWebKit="no"
-		canBuildQtXmlPatterns="no"
+        if [ "$XPLATFORM_ANDROID" != "yes" ]; then
+            canBuildWebKit="no"
+            canBuildQtXmlPatterns="no"
+        fi
 		;;
 	esac
 	;;
@@ -5913,7 +6108,6 @@ QMakeVar set sql-plugins "$SQL_PLUGINS"
 [ "$CFG_NIS" = "no" ]        && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_NIS"
 [ "$CFG_OPENSSL" = "no" ]    && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_OPENSSL QT_NO_SSL"
 [ "$CFG_OPENSSL" = "linked" ]&& QCONFIG_FLAGS="$QCONFIG_FLAGS QT_LINKED_OPENSSL"
-
 [ "$CFG_SM" = "no" ]         && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_SESSIONMANAGER"
 [ "$CFG_XCURSOR" = "no" ]    && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_XCURSOR"
 [ "$CFG_XFIXES" = "no" ]     && QCONFIG_FLAGS="$QCONFIG_FLAGS QT_NO_XFIXES"

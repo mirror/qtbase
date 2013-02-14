@@ -100,3 +100,4 @@ OTHER_FILES += \
     header.LGPL \
     header.LGPL-ONLY \
     sync.profile
+

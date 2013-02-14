@@ -182,7 +182,7 @@ void QTextEditPrivate::init(const QString &html)
     q->setFocusPolicy(Qt::WheelFocus);
     q->setAttribute(Qt::WA_KeyCompression);
     q->setAttribute(Qt::WA_InputMethodEnabled);
-
+    q->setInputMethodHints(Qt::ImhMultiLine);
 #ifndef QT_NO_CURSOR
     viewport->setCursor(Qt::IBeamCursor);
 #endif
@@ -1678,6 +1678,7 @@ QVariant QTextEdit::inputMethodQuery(Qt::InputMethodQuery property) const
     QVariant v;
     switch (property) {
     case Qt::ImHints:
+    case Qt::ImWidgetScreenGeometry:
         v = QWidget::inputMethodQuery(property);
         break;
     default:

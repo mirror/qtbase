@@ -121,7 +121,6 @@ defineTest(qtAddModule) {
 
        contains(MODULE_CONFIG, staticlib): \
            PRE_TARGETDEPS *= $$MODULE_LIBS/$${QMAKE_PREFIX_STATICLIB}$${lib}.$${QMAKE_EXTENSION_STATICLIB}
-
        # Make sure we can link to uninstalled libraries
        !isEmpty(MODULE_LIBS) {
             for(rpl, QT.$${1}.rpath_link): \

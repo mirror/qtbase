@@ -1,5 +1,7 @@
 TEMPLATE = subdirs
 
+android : SUBDIRS += android
+
 SUBDIRS += minimal offscreen
 
 contains(QT_CONFIG, xcb) {
@@ -28,3 +30,5 @@ contains(QT_CONFIG, kms) {
 }
 
 contains(QT_CONFIG, linuxfb): SUBDIRS += linuxfb
+
+

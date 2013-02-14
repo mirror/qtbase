@@ -46,12 +46,13 @@
 
 #if defined(QT_MOC) || defined(QT_BUILD_QMAKE) || defined(QT_RCC) || defined(QT_UIC) || defined(QT_BOOTSTRAPPED)
 #  include <QtCore/qatomic_bootstrap.h>
-
 // Compiler dependent implementation
 #elif defined(Q_CC_MSVC)
 #  include <QtCore/qatomic_msvc.h>
 
 // Operating system dependent implementation
+#elif defined(Q_OS_ANDROID)
+#  include "QtCore/qatomic_android.h"
 #elif defined(Q_OS_INTEGRITY)
 #  include "QtCore/qatomic_integrity.h"
 #elif defined(Q_OS_VXWORKS)

@@ -876,7 +876,10 @@ QList<QSslCertificate> QSslCertificate::fromPath(const QString &path,
         // Check if the path is a file.
         if (QFileInfo(sourcePath).isFile()) {
             QFile file(sourcePath);
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+            QIODevice::OpenMode openMode=QIODevice::ReadOnly;
+            if (format == QSsl::Pem)
+                openMode |= QIODevice::Text;
+            if (file.open(openMode))
                 return QSslCertificate::fromData(file.readAll(),format);
             return QList<QSslCertificate>();
         }
@@ -899,7 +902,10 @@ QList<QSslCertificate> QSslCertificate::fromPath(const QString &path,
             continue;
 
         QFile file(filePath);
-        if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+        QIODevice::OpenMode openMode=QIODevice::ReadOnly;
+        if (format == QSsl::Pem)
+            openMode |= QIODevice::Text;
+        if (file.open(openMode))
             certs += QSslCertificate::fromData(file.readAll(),format);
     }
     return certs;

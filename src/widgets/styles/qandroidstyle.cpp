@@ -3,7 +3,7 @@
 ** Copyright (C) 2012 BogDan Vatra <bogdan@kde.org>
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the QtWidgets module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage

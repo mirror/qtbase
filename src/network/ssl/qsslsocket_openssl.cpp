@@ -668,7 +668,7 @@ QList<QSslCertificate> QSslSocketPrivate::systemCaCertificates()
     QSet<QString> certFiles;
 # ifdef Q_OS_ANDROID
     QList<QByteArray> directories;
-    directories<<qgetenv("MINISTRO_SSL_CERTS_PATH"); // Set by Ministro
+    directories << qgetenv("MINISTRO_SSL_CERTS_PATH"); // Set by Ministro
 # else
     QList<QByteArray> directories = unixRootCertDirectories();
 # endif

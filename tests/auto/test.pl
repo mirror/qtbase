@@ -87,8 +87,8 @@ if($EXEC_MODE =~ /^U$/)
 } elsif($EXEC_MODE =~ /^M$/)
 {
     print "Using OSX execution mode\n";
-    $EXE_PREFIX="/Content/MacOS/";
-    $EXE_SUFFIX="";
+    $EXE_PREFIX="/Contents/MacOS/";
+    $EXE_SUFFIX=".app";
 } elsif($EXEC_MODE =~ /^E$/)
 {
     print "Using embedded execution mode\n";
@@ -152,13 +152,9 @@ sub handleDir {
     @components = split(/\//, $dir);
     my $component = $components[$#components];
 
-    if ($EXEC_MODE =~ /^M$/)
-    {
-        $command = "tst_".$component.".app";
-    } else {
-        $command = "tst_".$component;
-    }
-    if ( -e $command)
+    $command = "tst_".$component;
+
+    if ( -e $command.$EXE_SUFFIX )
     {
         executeTestCurrentDir($command);
     } else {
@@ -191,11 +187,12 @@ sub executeTestCurrentDir {
                 my $realCommand;
                 if($EXEC_MODE =~/^M$/)
                 {
-                    $realCommand = "./".$command.".app".$EXE_PREFIX.$command;
+                    $realCommand = "./".$command.$EXE_SUFFIX.$EXE_PREFIX.$command;
                 } else {
                     $realCommand = $EXE_PREFIX.$command.$EXE_SUFFIX;
                 }
-                my $outputRedirection = $REPORTDIR."/".$command.".xml";
+                my $outputRedirection = $REPORTDIR."/".$command.$EXE_SUFFIX.".xml";
+
                 if($EXEC_MODE =~ /^E$/)
                 {
                     exec($realCommand, "-qws", "-xml", "-o", $outputRedirection);

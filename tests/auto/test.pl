@@ -109,11 +109,11 @@ $REPORTDIR = $ARGV[2];
 if(!$REPORTDIR)
 {
     $REPORTDIR = $testRoot."/reports";
+    mkdir $REPORTDIR;
 } else {
+    mkdir $REPORTDIR;
     $REPORTDIR = Cwd::abs_path($REPORTDIR);
 }
-# Let's create the directory
-mkdir $REPORTDIR;
 
 # If given we use it, otherwise we default to 300 seconds.
 $TIMEOUT = $ARGV[3];

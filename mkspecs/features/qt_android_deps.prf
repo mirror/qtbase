@@ -19,7 +19,10 @@ DEPENDENCY_FILE = $$ANDROID_DEPENDS_DIR$$TARGET-android-dependencies.xml
 !build_pass {
     !isEmpty(ANDROID_JAR_DEPENDENCIES) {
         for(JAR_FILE, ANDROID_JAR_DEPENDENCIES) {
-            FILE_CONTENT += "<jar file=\"$$JAR_FILE\" />"
+            INIT_CLASS = $$section(JAR_FILE, ":", 1, 1)
+            !isEmpty(INIT_CLASS): INIT_CLASS = "initClass=\"$$INIT_CLASS\""
+            JAR_FILE = $$section(JAR_FILE, ":", 0, 0)
+            FILE_CONTENT += "<jar file=\"$$JAR_FILE\" $$INIT_CLASS />"
         }
     }
 

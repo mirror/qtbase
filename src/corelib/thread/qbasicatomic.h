@@ -51,8 +51,6 @@
 #  include <QtCore/qatomic_msvc.h>
 
 // Operating system dependent implementation
-#elif defined(Q_OS_ANDROID)
-#  include "QtCore/qatomic_android.h"
 #elif defined(Q_OS_INTEGRITY)
 #  include "QtCore/qatomic_integrity.h"
 #elif defined(Q_OS_VXWORKS)

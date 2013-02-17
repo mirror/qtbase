@@ -73,10 +73,6 @@
 
 #endif
 
-#if defined(Q_OS_ANDROID)
-#include <tools/android/cpu-features.h>
-#endif
-
 QT_BEGIN_NAMESPACE
 
 #if defined (Q_OS_NACL)
@@ -111,11 +107,7 @@ static inline uint detectProcessorFeatures()
 {
     uint features = 0;
 
-#if defined(Q_OS_ANDROID)
-    if((android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_ARMv7)
-     &&(android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON))
-        features = NEON;
-#elif defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX)
     int auxv = qt_safe_open("/proc/self/auxv", O_RDONLY);
     if (auxv != -1) {
         unsigned long vector[64];

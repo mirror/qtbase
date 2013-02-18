@@ -42,9 +42,7 @@
 #include <qimage.h>
 #include <private/qimage_p.h>
 #include <private/qsimd_p.h>
-#ifdef Q_OS_ANDROID
-#include <arm_neon.h>
-#endif
+
 #ifdef QT_COMPILER_SUPPORTS_NEON
 
 QT_BEGIN_NAMESPACE

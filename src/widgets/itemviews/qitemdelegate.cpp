@@ -823,11 +823,7 @@ void QItemDelegate::drawBackground(QPainter *painter,
         if (cg == QPalette::Normal && !(option.state & QStyle::State_Active))
             cg = QPalette::Inactive;
 
-#ifdef Q_OS_ANDROID
-        painter->fillRect(option.rect.adjusted(1,1,-1,-1), option.palette.brush(cg, QPalette::Highlight));
-#else
         painter->fillRect(option.rect, option.palette.brush(cg, QPalette::Highlight));
-#endif
     } else {
         QVariant value = index.data(Qt::BackgroundRole);
         if (value.canConvert<QBrush>()) {
@@ -836,19 +832,6 @@ void QItemDelegate::drawBackground(QPainter *painter,
             painter->fillRect(option.rect, qvariant_cast<QBrush>(value));
             painter->setBrushOrigin(oldBO);
         }
-#ifdef Q_OS_ANDROID
-        else
-        {
-            QPalette::ColorGroup cg = option.state & QStyle::State_Enabled
-                                      ? QPalette::Normal : QPalette::Disabled;
-            if (cg == QPalette::Normal && !(option.state & QStyle::State_Active))
-                cg = QPalette::Inactive;
-            QPen oldPen=painter->pen();
-            painter->setPen(QApplication::palette("simple_list_item").color(cg, QPalette::Foreground));
-            painter->drawLine(option.rect.topLeft(), option.rect.topRight());
-            painter->setPen(oldPen);
-        }
-#endif
     }
 }
 
@@ -882,11 +865,6 @@ void QItemDelegate::doLayout(const QStyleOptionViewItem &option,
         //if there is no text, we still want to have a decent height for the item sizeHint and the editor size
         textRect->setHeight(option.fontMetrics.height());
     }
-
-#ifdef Q_OS_ANDROID
-    if (textRect->height()<option.fontMetrics.height())
-        textRect->setHeight(option.fontMetrics.height());
-#endif
 
     QSize pm(0, 0);
     if (hasPixmap) {
@@ -1310,10 +1288,6 @@ QStyleOptionViewItem QItemDelegate::setOptions(const QModelIndex &index,
         opt.font = qvariant_cast<QFont>(value).resolve(opt.font);
         opt.fontMetrics = QFontMetrics(opt.font);
     }
-#ifdef Q_OS_ANDROID
-    else
-        opt.font = QApplication::font("simple_list_item");
-#endif
 
     // set text alignment
     value = index.data(Qt::TextAlignmentRole);

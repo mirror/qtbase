@@ -3,10 +3,6 @@ QT = core-private gui-private widgets-private
 
 DEFINES   += QT_NO_USING_NAMESPACE
 
-android {
-    DEFINES += QT_NO_PRINTDIALOG
-}
-
 QMAKE_DOCS = $$PWD/doc/qtprintsupport.qdocconf
 
 load(qt_module)

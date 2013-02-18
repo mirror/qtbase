@@ -97,7 +97,7 @@ public:
     Qt::HANDLE semaphore;
     Qt::HANDLE semaphoreLock;
 #elif defined(Q_OS_ANDROID)
-    sem_t* android_key;
+    sem_t *android_key;
 #else
     int semaphore;
     bool createdFile;

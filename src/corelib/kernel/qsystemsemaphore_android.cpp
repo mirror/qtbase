@@ -100,7 +100,7 @@ void QSystemSemaphorePrivate::setErrorString(const QString &function)
 void QSystemSemaphorePrivate::handle(QSystemSemaphore::AccessMode mode)
 {
 
-    android_key=sem_open(makeKeyFileName().toLatin1(), mode==QSystemSemaphore::Open?O_CREAT:O_CREAT|O_EXCL);
+    android_key=sem_open(makeKeyFileName().toLatin1(), (mode == QSystemSemaphore::Open) ? O_CREAT : O_CREAT | O_EXCL);
     if (SEM_FAILED == android_key)
         setErrorString(QLatin1String("QSystemSemaphore::handle"));
 }

@@ -50,6 +50,9 @@ enum {
 
 int main()
 {
+#ifdef ANDROID
+#error linux input is not supported on Android
+#endif
     ::input_event buf[32];
     (void) buf;
     return 0;

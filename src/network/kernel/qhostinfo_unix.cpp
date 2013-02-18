@@ -63,6 +63,10 @@
 #  include <resolv.h>
 #endif
 
+#ifdef Q_OS_ANDROID
+# undef QT_NO_GETADDRINFO
+#endif
+
 #if defined (QT_NO_GETADDRINFO)
 static QBasicMutex getHostByNameMutex;
 #endif
@@ -323,7 +327,7 @@ QString QHostInfo::localHostName()
 
 QString QHostInfo::localDomainName()
 {
-#if !defined(Q_OS_VXWORKS) && !defined(Q_OS_LINUX_ANDROID)
+#if !defined(Q_OS_VXWORKS) && !defined(Q_OS_ANDROID)
     resolveLibrary();
     if (local_res_ninit) {
         // using thread-safe version

@@ -5,8 +5,9 @@ SUBDIRS       = classwizard \
                 tabdialog \
                 trivialwizard
 
-!wince*: SUBDIRS += licensewizard \
-                    extension \
+!wince*:!android: SUBDIRS += licensewizard
+
+!wince*: SUBDIRS += extension \
                     findfiles
 
 contains(DEFINES, QT_NO_WIZARD): SUBDIRS -= trivialwizard licensewizard classwizard

@@ -1129,7 +1129,11 @@ void QWidgetPrivate::init(QWidget *parentWidget, Qt::WindowFlags f)
     data.widget_attributes = 0;
     data.window_flags = f;
     data.window_state = 0;
+#ifdef Q_OS_ANDROID
+    data.focus_policy = Qt::ClickFocus;
+#else
     data.focus_policy = 0;
+#endif
     data.context_menu_policy = Qt::DefaultContextMenu;
     data.window_modality = Qt::NonModal;
 
@@ -7928,6 +7932,7 @@ bool QWidget::event(QEvent *event)
                     query->setValue(q, v);
                 }
             }
+            query->setValue(Qt::ImWidgetScreenGeometry, QRect(mapToGlobal(QPoint(0,0)), size()));
             query->accept();
         }
         break;
@@ -8807,6 +8812,8 @@ QVariant QWidget::inputMethodQuery(Qt::InputMethodQuery query) const
         return inputMethodQuery(Qt::ImCursorPosition);
     case Qt::ImHints:
         return (int)inputMethodHints();
+    case Qt::ImWidgetScreenGeometry:
+        return QRect(mapToGlobal(QPoint(0,0)), size());
     default:
         return QVariant();
     }

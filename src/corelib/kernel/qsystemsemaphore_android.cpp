@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Collabora Ltd, author <robin.burchell@collabora.co.uk>
+** Copyright (C) 2012 BogDan Vatra <bogdan@kde.org>
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -43,39 +43,63 @@
 #include "qsystemsemaphore_p.h"
 
 #include <qdebug.h>
+#include <qfile.h>
+#include <qcoreapplication.h>
 
 #ifndef QT_NO_SYSTEMSEMAPHORE
+
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <fcntl.h>
+#include <errno.h>
+
 
 QT_BEGIN_NAMESPACE
 
 QSystemSemaphorePrivate::QSystemSemaphorePrivate() :
-        semaphore(-1), createdFile(false),
-        createdSemaphore(false), unix_key(-1), error(QSystemSemaphore::NoError)
+        android_key(NULL), error(QSystemSemaphore::NoError)
 {
 }
 
-void QSystemSemaphorePrivate::setErrorString(const QString &function)
+/*!
+    \internal
+
+    Setup android_key
+ */
+void QSystemSemaphorePrivate::handle(QSystemSemaphore::AccessMode mode)
 {
-    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+
+    android_key=sem_open(makeKeyFileName().toLatin1(), (mode == QSystemSemaphore::Open) ? O_CREAT : O_CREAT | O_EXCL);
+    if (SEM_FAILED == android_key)
+        setErrorString(QLatin1String("QSystemSemaphore::handle"));
 }
 
-key_t QSystemSemaphorePrivate::handle(QSystemSemaphore::AccessMode mode)
-{
-    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
-    return -1;
-}
+/*!
+    \internal
 
+    Cleanup the android_key
+ */
 void QSystemSemaphorePrivate::cleanHandle()
 {
-    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    if (android_key && SEM_FAILED != android_key)
+        sem_close(android_key);
 }
 
+/*!
+    \internal
+ */
 bool QSystemSemaphorePrivate::modifySemaphore(int count)
 {
-    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
-    return false;
-}
+    if (!android_key || SEM_FAILED == android_key)
+        return false;
 
+    if (count > 0)
+        while(count--)
+            sem_post(android_key);
+    else
+        sem_wait(android_key);
+    return true;
+}
 
 QT_END_NAMESPACE
 

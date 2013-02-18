@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
 QEglFSContext::QEglFSContext(const QSurfaceFormat &format, QPlatformOpenGLContext *share,
                              EGLDisplay display, EGLenum eglApi)
-    : QEGLPlatformContext(format, share, display, QEglFSIntegration::chooseConfig(display, format), eglApi)
+    : QEGLPlatformContext(hooks->surfaceFormatFor(format), share, display, QEglFSIntegration::chooseConfig(display, hooks->surfaceFormatFor(format)), eglApi)
 {
 }
 

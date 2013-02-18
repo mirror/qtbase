@@ -70,37 +70,6 @@ QSystemSemaphorePrivate::QSystemSemaphorePrivate() :
 {
 }
 
-void QSystemSemaphorePrivate::setErrorString(const QString &function)
-{
-    // EINVAL is handled in functions so they can give better error strings
-    switch (errno) {
-    case EPERM:
-    case EACCES:
-        errorString = QCoreApplication::translate("QSystemSemaphore", "%1: permission denied").arg(function);
-        error = QSystemSemaphore::PermissionDenied;
-        break;
-    case EEXIST:
-        errorString = QCoreApplication::translate("QSystemSemaphore", "%1: already exists").arg(function);
-        error = QSystemSemaphore::AlreadyExists;
-        break;
-    case ENOENT:
-        errorString = QCoreApplication::translate("QSystemSemaphore", "%1: does not exist").arg(function);
-        error = QSystemSemaphore::NotFound;
-        break;
-    case ERANGE:
-    case ENOSPC:
-        errorString = QCoreApplication::translate("QSystemSemaphore", "%1: out of resources").arg(function);
-        error = QSystemSemaphore::OutOfResources;
-        break;
-    default:
-        errorString = QCoreApplication::translate("QSystemSemaphore", "%1: unknown error %2").arg(function).arg(errno);
-        error = QSystemSemaphore::UnknownError;
-#if defined QSYSTEMSEMAPHORE_DEBUG
-        qDebug() << errorString << "key" << key << "errno" << errno << EINVAL;
-#endif
-    }
-}
-
 /*!
     \internal
 

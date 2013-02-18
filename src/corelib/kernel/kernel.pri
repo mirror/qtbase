@@ -129,6 +129,7 @@ unix|integrity {
 
    contains(QT_CONFIG, clock-gettime):include($$QT_SOURCE_TREE/config.tests/unix/clock-gettime/clock-gettime.pri)
 
+    SOURCES += kernel/qsystemsemaphore_posix.cpp
     !android {
         SOURCES += kernel/qsharedmemory_unix.cpp \
                    kernel/qsystemsemaphore_unix.cpp

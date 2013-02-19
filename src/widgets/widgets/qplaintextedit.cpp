@@ -2146,7 +2146,6 @@ QVariant QPlainTextEdit::inputMethodQuery(Qt::InputMethodQuery property) const
     QVariant v;
     switch (property) {
     case Qt::ImHints:
-    case Qt::ImWidgetScreenGeometry:
         v = QWidget::inputMethodQuery(property);
         break;
     default:

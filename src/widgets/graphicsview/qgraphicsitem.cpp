@@ -7297,16 +7297,7 @@ void QGraphicsItem::inputMethodEvent(QInputMethodEvent *event)
 */
 QVariant QGraphicsItem::inputMethodQuery(Qt::InputMethodQuery query) const
 {
-    if (query == Qt::ImWidgetScreenGeometry)
-    {
-        QRectF rect = mapToScene(boundingRect()).boundingRect();
-        foreach(QGraphicsView * gw, scene()->views())
-            if (gw->isVisible() && gw->hasFocus())
-            {
-                rect.setTopLeft(gw->mapToGlobal(rect.topLeft().toPoint()));
-                return rect;
-            }
-    }
+    Q_UNUSED(query);
     return QVariant();
 }
 
@@ -10321,8 +10312,6 @@ void QGraphicsTextItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 QVariant QGraphicsTextItem::inputMethodQuery(Qt::InputMethodQuery query) const
 {
     QVariant v;
-    if (query == Qt::ImWidgetScreenGeometry)
-        return QGraphicsItem::inputMethodQuery(query);
     if (dd->control)
         v = dd->control->inputMethodQuery(query);
     if (v.type() == QVariant::RectF)

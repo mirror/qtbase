@@ -354,6 +354,7 @@ void QWidgetPrivate::updateWidgetTransform()
         QPoint p = q->mapTo(q->topLevelWidget(), QPoint(0,0));
         t.translate(p.x(), p.y());
         qApp->inputMethod()->setInputItemTransform(t);
+        qApp->inputMethod()->setInputItemRectangle(q->rect());
     }
 }
 
@@ -7936,7 +7937,6 @@ bool QWidget::event(QEvent *event)
                     query->setValue(q, v);
                 }
             }
-            query->setValue(Qt::ImWidgetScreenGeometry, QRect(mapToGlobal(QPoint(0,0)), size()));
             query->accept();
         }
         break;
@@ -8816,8 +8816,6 @@ QVariant QWidget::inputMethodQuery(Qt::InputMethodQuery query) const
         return inputMethodQuery(Qt::ImCursorPosition);
     case Qt::ImHints:
         return (int)inputMethodHints();
-    case Qt::ImWidgetScreenGeometry:
-        return QRect(mapToGlobal(QPoint(0,0)), size());
     default:
         return QVariant();
     }

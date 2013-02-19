@@ -49,6 +49,8 @@
 #include <qguiapplication.h>
 #include <qsharedpointer.h>
 #include <qthread.h>
+#include <qinputmethod.h>
+#include <qwindow.h>
 
 #include <QTextCharFormat>
 
@@ -376,8 +378,12 @@ void QAndroidInputContext::showInputPanel()
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return;
+    QRectF itemRect = qGuiApp->inputMethod()->inputItemRectangle();
+    QRect rect = qGuiApp->inputMethod()->inputItemTransform().mapRect(itemRect).toRect();
+    QWindow *window = qGuiApp->focusWindow();
+    if (window)
+        rect = QRect(window->mapToGlobal(rect.topLeft()), rect.size());
 
-    QRect rect = query->value(Qt::ImWidgetScreenGeometry).toRect();
     QtAndroidInput::showSoftwareKeyboard(rect.left(),
                                          rect.top(),
                                          rect.width(),

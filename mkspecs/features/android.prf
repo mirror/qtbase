@@ -1,0 +1,17 @@
+contains(TEMPLATE, ".*app") {
+    !CONFIG(android_app) {
+        !contains(TARGET, ".so"): TARGET = lib$${TARGET}.so
+        QMAKE_LFLAGS += -Wl,-soname,$$TARGET
+    }
+}
+!CONFIG(QTDIR_build):CONFIG(android_install) {
+    isEmpty(QT_BUILD_TREE) {
+        contains(ANDROID_TARGET_ARCH, armeabi-v7a) : target.path=/libs/armeabi-v7a/
+        contains(ANDROID_TARGET_ARCH, armeabi)     : target.path=/libs/armeabi/
+        contains(ANDROID_TARGET_ARCH, x86)         : target.path=/libs/x86/
+        contains(ANDROID_TARGET_ARCH, mips)        : target.path=/libs/mips/
+    } else {
+        target.path=/
+    }
+    INSTALLS *= target
+}

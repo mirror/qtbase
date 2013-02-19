@@ -70,7 +70,7 @@ public:
 
     virtual void reset();
     virtual void commit();
-    virtual void update(Qt::InputMethodQueries);
+    virtual void update(Qt::InputMethodQueries queries);
     virtual void invokeAction(QInputMethod::Action, int cursorPosition);
     virtual bool filterEvent(const QEvent *event);
     virtual QRectF keyboardRect() const;

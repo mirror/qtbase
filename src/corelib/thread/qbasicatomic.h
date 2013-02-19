@@ -46,7 +46,6 @@
 
 #if defined(QT_MOC) || defined(QT_BUILD_QMAKE) || defined(QT_RCC) || defined(QT_UIC) || defined(QT_BOOTSTRAPPED)
 #  include <QtCore/qatomic_bootstrap.h>
-
 // Compiler dependent implementation
 #elif defined(Q_CC_MSVC)
 #  include <QtCore/qatomic_msvc.h>

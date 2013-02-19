@@ -1274,6 +1274,7 @@ public:
         ImAnchorPosition = 0x80,
         ImHints = 0x100,
         ImPreferredLanguage = 0x200,
+        ImWidgetScreenGeometry = 0x400,
 
         ImPlatformData = 0x80000000,
         ImQueryInput = ImCursorRectangle | ImCursorPosition | ImSurroundingText |
@@ -1297,6 +1298,8 @@ public:
         ImhTime = 0x100,
 
         ImhPreferLatin = 0x200,
+
+        ImhMultiLine = 0x400,
 
         ImhDigitsOnly = 0x10000,
         ImhFormattedNumbersOnly = 0x20000,

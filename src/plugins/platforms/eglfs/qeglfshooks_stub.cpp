@@ -250,6 +250,11 @@ QEglFSCursor *QEglFSHooks::createCursor(QEglFSScreen *screen) const
     return 0;
 }
 
+bool QEglFSHooks::isSuspended() const
+{
+    return false;
+}
+
 #ifndef EGLFS_PLATFORM_HOOKS
 QEglFSHooks stubHooks;
 #endif

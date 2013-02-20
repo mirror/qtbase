@@ -364,14 +364,6 @@ UNAME_MACHINE=`(uname -m) 2>/dev/null` || UNAME_MACHINE=unknown
 UNAME_RELEASE=`(uname -r) 2>/dev/null` || UNAME_RELEASE=unknown
 UNAME_SYSTEM=`(uname -s) 2>/dev/null`  || UNAME_SYSTEM=unknown
 UNAME_VERSION=`(uname -v) 2>/dev/null` || UNAME_VERSION=unknown
-# early detection of Android, needed for linuxfb and linuxtp.
-XPLATFORM_ANDROID=no
-for ARG in $@
-do
-    if [ "$ARG" = "android-g++" ]; then
-        XPLATFORM_ANDROID=yes
-    fi
-done
 
 # detect the "echo without newline" style. usage: echo $ECHO_N "<string>$ECHO_C"
 if echo '\c' | grep '\c' >/dev/null; then
@@ -2155,46 +2147,22 @@ while [ "$#" -gt 0 ]; do
         fi
         ;;
     android-sdk)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_SDK_ROOT="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_SDK_ROOT="$VAL"
         ;;
     android-ndk)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_NDK_ROOT="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_NDK_ROOT="$VAL"
         ;;
     android-ndk-platform)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_PLATFORM="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_PLATFORM="$VAL"
         ;;
     android-ndk-host)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_NDK_HOST="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_NDK_HOST="$VAL"
         ;;
     android-arch)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_TARGET_ARCH="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_TARGET_ARCH="$VAL"
         ;;
     android-toolchain-version)
-        if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-            CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION="$VAL"
-        else
-            UNKNOWN_OPT=yes
-        fi
+        CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION="$VAL"
         ;;
     *)
         UNKNOWN_OPT=yes
@@ -2286,18 +2254,6 @@ fi
 
 if [ "$CFG_SILENT" = "yes" ]; then
     QMAKE_CONFIG="$QMAKE_CONFIG silent"
-fi
-
-# Without this hack, OpenGLES2 test fails for Android:
-# (undefined reference to `android::egl_get_image_for_current_context(void*))')
-# See http://blog.vlad1.com/2010/03/19/things-i-learned-today-android-opengl-edition-2/
-# Hack is to add -Wl,-allow-shlib-undefined. Should do this for Android only though, but
-# at the minute I'm not sure if we're QPA,desktop or all of the above, so I've applied
-# it globally to all of the OpenGLES2 compile-tests. Very unlikely that it'd trip up
-# other platforms too.
-
-if [ "$XPLATFORM_ANDROID" = "yes" ]; then
-    ANDROID_GLES2_LFLAGS=-Wl,-allow-shlib-undefined
 fi
 
 # if the source tree is different from the build tree,

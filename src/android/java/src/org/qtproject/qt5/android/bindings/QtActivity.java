@@ -79,7 +79,7 @@ public class QtActivity extends Activity
     private static final int MINISTRO_API_LEVEL=2; // Ministro api level (check IMinistro.aidl file)
     private static final int NECESSITAS_API_LEVEL=2; // Necessitas api level used by platform plugin
     private static final String QT_PROVIDER="necessitas";
-    private static final int QT_VERSION=0x040801; // Qt version 4.8.00 check http://qt-project.org/doc/qt-4.8/qtglobal.html#QT_VERSION
+    private static final int QT_VERSION=0x050100; // This app requires at least Qt version 5.1.0
 
     private static final String ERROR_CODE_KEY="error.code";
     private static final String ERROR_MESSAGE_KEY="error.message";

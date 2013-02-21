@@ -11,6 +11,16 @@ CONFIG += dll
 
 EGLFS_PLATFORM_HOOKS_SOURCES = $$QT_SOURCE_TREE/src/plugins/platforms/android/src/opengl/qeglfshooks_android.cpp
 
+INCLUDEPATH += $$PWD/../src/opengl/
+HEADERS += \
+    $$PWD/../src/opengl/qandroidopenglcontext.h \
+    $$PWD/../src/opengl/qandroidopenglplatformwindow.h
+
+SOURCES += \
+    $$PWD/../src/opengl/qandroidopenglcontext.cpp \
+    $$PWD/../src/opengl/qandroidopenglplatformwindow.cpp
+
+
 include($$QT_SOURCE_TREE/src/plugins/platforms/eglfs/eglfs.pri)
 include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/src.pri)
 
@@ -18,3 +28,4 @@ include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/src.pri)
 TARGET = qtforandroidGL
 target.path = $$[QT_INSTALL_PLUGINS]/platforms/android
 INSTALLS += target
+

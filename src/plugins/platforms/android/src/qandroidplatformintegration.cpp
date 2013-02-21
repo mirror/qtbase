@@ -57,7 +57,11 @@
 #  include <QtPlatformSupport/private/qfbbackingstore_p.h>
 #else
 #  include "qeglfswindow.h"
-# include "androidjnimenu.h"
+#  include "androidjnimenu.h"
+#  include "qandroidopenglcontext.h"
+#  include "qandroidopenglplatformwindow.h"
+#  include "qeglfshooks.h"
+#  include <QtGui/qopenglcontext.h>
 #endif
 
 #include "qandroidplatformtheme.h"
@@ -144,7 +148,7 @@ QPlatformWindow *QAndroidPlatformIntegration::createPlatformWindow(QWindow *wind
                  "one top-level window created.");
     }
 
-    m_primaryWindow = new QEglFSWindow(window);
+    m_primaryWindow = new QAndroidOpenGLPlatformWindow(window);
     m_primaryWindow->requestActivateWindow();
     QtAndroidMenu::setActiveTopLevelWindow(window);
 
@@ -163,6 +167,14 @@ void QAndroidPlatformIntegration::surfaceChanged()
     qDebug() << Q_FUNC_INFO << "Surface changed, m_primaryWindow=" << m_primaryWindow;
     if (m_primaryWindow != 0)
         m_primaryWindow->resetSurface();
+}
+
+QPlatformOpenGLContext *QAndroidPlatformIntegration::createPlatformOpenGLContext(QOpenGLContext *context) const
+{
+    return new QAndroidOpenGLContext(this,
+                                     hooks->surfaceFormatFor(context->format()),
+                                     context->shareHandle(),
+                                     display());
 }
 #endif // ANDROID_PLUGIN_OPENGL
 

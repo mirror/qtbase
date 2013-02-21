@@ -39,53 +39,30 @@
 **
 ****************************************************************************/
 
-#ifndef QEGLFSINTEGRATION_H
-#define QEGLFSINTEGRATION_H
+#ifndef QANDROIDOPENGLPLATFORMWINDOW_H
+#define QANDROIDOPENGLPLATFORMWINDOW_H
 
-#include "qeglfsscreen.h"
-
-#include <qpa/qplatformintegration.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformscreen.h>
+#include "qeglfswindow.h"
+#include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
-class QEglFSIntegration : public QPlatformIntegration, public QPlatformNativeInterface
+class QAndroidOpenGLPlatformWindow : public QEglFSWindow
 {
 public:
-    QEglFSIntegration();
-    ~QEglFSIntegration();
+    QAndroidOpenGLPlatformWindow(QWindow *window);
 
-    bool hasCapability(QPlatformIntegration::Capability cap) const;
+    QSize scheduledResize() const { return m_scheduledResize; }
+    void scheduleResize(const QSize &size) { m_scheduledResize = size; }
 
-    QPlatformWindow *createPlatformWindow(QWindow *window) const;
-    QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
-    QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
-    QPlatformOffscreenSurface *createPlatformOffscreenSurface(QOffscreenSurface *surface) const;
-    QPlatformNativeInterface *nativeInterface() const;
-
-    QPlatformFontDatabase *fontDatabase() const;
-
-    QAbstractEventDispatcher *guiThreadEventDispatcher() const;
-
-    QVariant styleHint(QPlatformIntegration::StyleHint hint) const;
-
-    // QPlatformNativeInterface
-    void *nativeResourceForIntegration(const QByteArray &resource);
-    void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
-
-    QPlatformScreen *screen() const { return mScreen; }
-    static EGLConfig chooseConfig(EGLDisplay display, const QSurfaceFormat &format);
-
-    EGLDisplay display() const { return mDisplay; }
+    void lock() { m_lock.lock(); }
+    void unlock() { m_lock.unlock(); }
 
 private:
-    EGLDisplay mDisplay;
-    QAbstractEventDispatcher *mEventDispatcher;
-    QPlatformFontDatabase *mFontDb;
-    QPlatformScreen *mScreen;
+    QSize m_scheduledResize;
+    QMutex m_lock;
 };
 
 QT_END_NAMESPACE
 
-#endif // QEGLFSINTEGRATION_H
+#endif // QANDROIDOPENGLPLATFORMWINDOW_H

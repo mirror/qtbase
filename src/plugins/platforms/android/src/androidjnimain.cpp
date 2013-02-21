@@ -71,7 +71,7 @@
 #include <qpa/qwindowsysteminterface.h>
 
 #ifdef ANDROID_PLUGIN_OPENGL
-#  include "qeglfswindow.h"
+#  include "qandroidopenglplatformwindow.h"
 #endif
 
 #if __ANDROID_API__ > 8
@@ -601,19 +601,23 @@ static void setSurface(JNIEnv *env, jobject /*thiz*/, jobject jSurface)
         m_surfaceMutex.unlock();
         m_androidPlatformIntegration->surfaceChanged();
     } else if (m_androidPlatformIntegration && sameNativeWindow) {
-        QSize size = QtAndroid::nativeWindowSize();
-        QRect geometry = QRect(QPoint(0, 0), size);
+        QAndroidOpenGLPlatformWindow *window = m_androidPlatformIntegration->primaryWindow();
         QPlatformScreen *screen = m_androidPlatformIntegration->screen();
-        QPlatformWindow *window = m_androidPlatformIntegration->primaryWindow();
+        QSize size = QtAndroid::nativeWindowSize();
 
-        QWindowSystemInterface::handleScreenAvailableGeometryChange(screen->screen(),
-                                                                    geometry);
-        QWindowSystemInterface::handleScreenGeometryChange(screen->screen(),
-                                                           geometry);
+        QRect geometry(QPoint(0, 0), size);
+        QWindowSystemInterface::handleScreenAvailableGeometryChange(screen->screen(), geometry);
+        QWindowSystemInterface::handleScreenGeometryChange(screen->screen(), geometry);
+
         if (window != 0) {
-            window->setGeometry(geometry);
-            QWindowSystemInterface::handleExposeEvent(window->window(), QRegion(geometry));
+            window->lock();
+            window->scheduleResize(size);
+
+            QWindowSystemInterface::handleExposeEvent(window->window(),
+                                                      QRegion(window->window()->geometry()));
+            window->unlock();
         }
+
         m_surfaceMutex.unlock();
     } else {
         m_surfaceMutex.unlock();

@@ -39,53 +39,30 @@
 **
 ****************************************************************************/
 
-#ifndef QEGLFSINTEGRATION_H
-#define QEGLFSINTEGRATION_H
+#ifndef QANDROIDOPENGLCONTEXT_H
+#define QANDROIDOPENGLCONTEXT_H
 
-#include "qeglfsscreen.h"
-
-#include <qpa/qplatformintegration.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformscreen.h>
+#include <QtCore/qreadwritelock.h>
+#include "qeglfscontext.h"
 
 QT_BEGIN_NAMESPACE
 
-class QEglFSIntegration : public QPlatformIntegration, public QPlatformNativeInterface
+class QAndroidPlatformIntegration;
+class QAndroidOpenGLContext : public QEglFSContext
 {
 public:
-    QEglFSIntegration();
-    ~QEglFSIntegration();
+    QAndroidOpenGLContext(const QAndroidPlatformIntegration *integration,
+                          const QSurfaceFormat &format,
+                          QPlatformOpenGLContext *share,
+                          EGLDisplay display,
+                          EGLenum eglApi = EGL_OPENGL_ES_API);
 
-    bool hasCapability(QPlatformIntegration::Capability cap) const;
-
-    QPlatformWindow *createPlatformWindow(QWindow *window) const;
-    QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
-    QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
-    QPlatformOffscreenSurface *createPlatformOffscreenSurface(QOffscreenSurface *surface) const;
-    QPlatformNativeInterface *nativeInterface() const;
-
-    QPlatformFontDatabase *fontDatabase() const;
-
-    QAbstractEventDispatcher *guiThreadEventDispatcher() const;
-
-    QVariant styleHint(QPlatformIntegration::StyleHint hint) const;
-
-    // QPlatformNativeInterface
-    void *nativeResourceForIntegration(const QByteArray &resource);
-    void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
-
-    QPlatformScreen *screen() const { return mScreen; }
-    static EGLConfig chooseConfig(EGLDisplay display, const QSurfaceFormat &format);
-
-    EGLDisplay display() const { return mDisplay; }
+    void swapBuffers(QPlatformSurface *surface);
 
 private:
-    EGLDisplay mDisplay;
-    QAbstractEventDispatcher *mEventDispatcher;
-    QPlatformFontDatabase *mFontDb;
-    QPlatformScreen *mScreen;
+    const QAndroidPlatformIntegration *m_platformIntegration;
 };
 
 QT_END_NAMESPACE
 
-#endif // QEGLFSINTEGRATION_H
+#endif // QANDROIDOPENGLCONTEXT_H

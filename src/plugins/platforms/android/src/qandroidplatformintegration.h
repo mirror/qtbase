@@ -62,7 +62,7 @@ class QDesktopWidget;
 class QAndroidPlatformServices;
 
 #ifdef ANDROID_PLUGIN_OPENGL
-class QEglFSWindow;
+class QAndroidOpenGLPlatformWindow;
 #endif
 
 class QAndroidPlatformNativeInterface: public QPlatformNativeInterface
@@ -95,7 +95,8 @@ public:
     QPlatformWindow *createPlatformWindow(QWindow *window) const;
     void invalidateNativeSurface();
     void surfaceChanged();
-    QEglFSWindow *primaryWindow() const { return m_primaryWindow; }
+    QAndroidOpenGLPlatformWindow *primaryWindow() const { return m_primaryWindow; }
+    QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
 #endif
 
     virtual void setDesktopSize(int width, int height);
@@ -132,7 +133,7 @@ private:
     QAbstractEventDispatcher *m_eventDispatcher;
     QAndroidPlatformScreen *m_primaryScreen;
 #else
-    mutable QEglFSWindow *m_primaryWindow;
+    mutable QAndroidOpenGLPlatformWindow *m_primaryWindow;
 #endif
 
     QThread *m_mainThread;

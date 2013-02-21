@@ -39,53 +39,13 @@
 **
 ****************************************************************************/
 
-#ifndef QEGLFSINTEGRATION_H
-#define QEGLFSINTEGRATION_H
-
-#include "qeglfsscreen.h"
-
-#include <qpa/qplatformintegration.h>
-#include <qpa/qplatformnativeinterface.h>
-#include <qpa/qplatformscreen.h>
+#include "qandroidopenglplatformwindow.h"
 
 QT_BEGIN_NAMESPACE
 
-class QEglFSIntegration : public QPlatformIntegration, public QPlatformNativeInterface
+QAndroidOpenGLPlatformWindow::QAndroidOpenGLPlatformWindow(QWindow *window)
+    : QEglFSWindow(window)
 {
-public:
-    QEglFSIntegration();
-    ~QEglFSIntegration();
-
-    bool hasCapability(QPlatformIntegration::Capability cap) const;
-
-    QPlatformWindow *createPlatformWindow(QWindow *window) const;
-    QPlatformBackingStore *createPlatformBackingStore(QWindow *window) const;
-    QPlatformOpenGLContext *createPlatformOpenGLContext(QOpenGLContext *context) const;
-    QPlatformOffscreenSurface *createPlatformOffscreenSurface(QOffscreenSurface *surface) const;
-    QPlatformNativeInterface *nativeInterface() const;
-
-    QPlatformFontDatabase *fontDatabase() const;
-
-    QAbstractEventDispatcher *guiThreadEventDispatcher() const;
-
-    QVariant styleHint(QPlatformIntegration::StyleHint hint) const;
-
-    // QPlatformNativeInterface
-    void *nativeResourceForIntegration(const QByteArray &resource);
-    void *nativeResourceForContext(const QByteArray &resource, QOpenGLContext *context);
-
-    QPlatformScreen *screen() const { return mScreen; }
-    static EGLConfig chooseConfig(EGLDisplay display, const QSurfaceFormat &format);
-
-    EGLDisplay display() const { return mDisplay; }
-
-private:
-    EGLDisplay mDisplay;
-    QAbstractEventDispatcher *mEventDispatcher;
-    QPlatformFontDatabase *mFontDb;
-    QPlatformScreen *mScreen;
-};
+}
 
 QT_END_NAMESPACE
-
-#endif // QEGLFSINTEGRATION_H

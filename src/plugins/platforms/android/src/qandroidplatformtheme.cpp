@@ -66,8 +66,7 @@ QVariant QAndroidPlatformTheme::themeHint(ThemeHint hint) const
     switch (hint) {
     case StyleNames:
         if (qgetenv("QT_USE_ANDROID_NATIVE_STYLE").toInt()
-                && (!qgetenv("MINISTRO_ANDROID_STYLE_PATH").isEmpty()
-                    || QFileInfo("/data/data/org.kde.necessitas.ministro/files/qt/style/style.json").exists())) {
+                && !qgetenv("QT_ANDROID_NATIVE_STYLE_PATH").isEmpty()) {
             return QStringList("android");
         }
         return QStringList("fusion");

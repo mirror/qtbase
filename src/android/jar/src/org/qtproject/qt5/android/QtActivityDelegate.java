@@ -348,6 +348,10 @@ public class QtActivityDelegate
 
         additionalEnvironmentVariables += getAppIconSize(activity);
 
+        String androidStylePath = System.getenv("MINISTRO_ANDROID_STYLE_PATH");
+        if (!androidStylePath.isEmpty())
+            additionalEnvironmentVariables += "\tQT_ANDROID_NATIVE_STYLE_PATH="+androidStylePath;
+
         if (m_environmentVariables != null && m_environmentVariables.length()>0)
             m_environmentVariables=additionalEnvironmentVariables+"\t"+m_environmentVariables;
         else

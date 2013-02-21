@@ -134,9 +134,8 @@ void QEglFSWindow::setGeometry(const QRect &)
 {
     // We only support full-screen windows
     QRect rect(screen()->availableGeometry());
-    QWindowSystemInterface::handleGeometryChange(window(), rect);
-
     QPlatformWindow::setGeometry(rect);
+    QWindowSystemInterface::handleGeometryChange(window(), rect);
 }
 
 void QEglFSWindow::setWindowState(Qt::WindowState)

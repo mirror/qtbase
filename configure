@@ -2538,7 +2538,7 @@ fi
 case `basename "$XPLATFORM"` in win32-g++*) XPLATFORM_MINGW=yes;; esac
 case "$XPLATFORM" in *-maemo*) XPLATFORM_MAEMO=yes;; esac
 case "$XPLATFORM" in *qnx-*|*blackberry-*) XPLATFORM_QNX=yes;; esac
-case "$XPLATFORM" in *android*) XPLATFORM_ANDROID=yes;; esac
+case "$XPLATFORM" in *android-g++*) XPLATFORM_ANDROID=yes;; esac
 
 if [ "$XPLATFORM_ANDROID" = "yes" ]; then
     if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then

@@ -50,8 +50,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QT_MODULE(Gui)
-
 #if !defined(QT_NO_STYLE_ANDROID)
 
 class Q_GUI_EXPORT QAndroidStyle : public QCommonStyle

@@ -234,7 +234,7 @@ namespace QtAndroidMenu
 
         const QAndroidPlatformMenuBar::PlatformMenusType &menus = visibleMenuBar->menus();
         int order = 0;
-        QMutexLocker lockMenuBarMutex(visibleMenuBar->menusListMutext());
+        QMutexLocker lockMenuBarMutex(visibleMenuBar->menusListMutex());
         if (menus.size() == 1) { // Expand the menu
             order = addAllMenuItemsToMenu(env, menu, static_cast<QAndroidPlatformMenu *>(menus.front()));
         } else {

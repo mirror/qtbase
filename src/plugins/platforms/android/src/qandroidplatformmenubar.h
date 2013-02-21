@@ -61,14 +61,14 @@ public:
     virtual void handleReparent(QWindow *newParentWindow);
     virtual QPlatformMenu *menuForTag(quintptr tag) const;
 
-    QWindow *parentWindow();
+    QWindow *parentWindow() const;
     const PlatformMenusType &menus();
-    QMutex *menusListMutext();
+    QMutex *menusListMutex();
 
 private:
     PlatformMenusType m_menus;
     QWindow *m_parentWindow;
-    QMutex m_menusListMutext;
+    QMutex m_menusListMutex;
 };
 
 #endif // QANDROIDPLATFORMMENUBAR_H

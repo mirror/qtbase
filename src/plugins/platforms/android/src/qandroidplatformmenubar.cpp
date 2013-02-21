@@ -57,7 +57,7 @@ QAndroidPlatformMenuBar::~QAndroidPlatformMenuBar()
 
 void QAndroidPlatformMenuBar::insertMenu(QPlatformMenu *menu, QPlatformMenu *before)
 {
-    QMutexLocker lock(&m_menusListMutext);
+    QMutexLocker lock(&m_menusListMutex);
     m_menus.insert(qFind(m_menus.begin(),
                          m_menus.end(),
                          static_cast<QAndroidPlatformMenu *>(before)),
@@ -66,7 +66,7 @@ void QAndroidPlatformMenuBar::insertMenu(QPlatformMenu *menu, QPlatformMenu *bef
 
 void QAndroidPlatformMenuBar::removeMenu(QPlatformMenu *menu)
 {
-    QMutexLocker lock(&m_menusListMutext);
+    QMutexLocker lock(&m_menusListMutex);
     m_menus.erase(qFind(m_menus.begin(),
                         m_menus.end(),
                         static_cast<QAndroidPlatformMenu *>(menu)));
@@ -81,7 +81,6 @@ void QAndroidPlatformMenuBar::handleReparent(QWindow *newParentWindow)
 {
     m_parentWindow = newParentWindow;
     QtAndroidMenu::setMenuBar(this, newParentWindow);
-    Q_UNUSED(newParentWindow)
 }
 
 QPlatformMenu *QAndroidPlatformMenuBar::menuForTag(quintptr tag) const
@@ -94,7 +93,7 @@ QPlatformMenu *QAndroidPlatformMenuBar::menuForTag(quintptr tag) const
     return 0;
 }
 
-QWindow *QAndroidPlatformMenuBar::parentWindow()
+QWindow *QAndroidPlatformMenuBar::parentWindow() const
 {
     return m_parentWindow;
 }
@@ -104,7 +103,7 @@ const QAndroidPlatformMenuBar::PlatformMenusType &QAndroidPlatformMenuBar::menus
     return m_menus;
 }
 
-QMutex *QAndroidPlatformMenuBar::menusListMutext()
+QMutex *QAndroidPlatformMenuBar::menusListMutex()
 {
-    return &m_menusListMutext;
+    return &m_menusListMutex;
 }

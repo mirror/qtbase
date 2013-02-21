@@ -9,7 +9,7 @@ CONFIG += dll
     LIBS += -L$$NDK_ROOT/platforms/android-9/arch-$$ANDROID_ARCHITECTURE/usr/lib -ljnigraphics -landroid
 } else : LIBS += -ljnigraphics -landroid
 
-EGLFS_PLATFORM_HOOKS_SOURCES = $$QT_SOURCE_TREE/src/plugins/platforms/android/src/opengl/qeglfshooks_android.cpp
+EGLFS_PLATFORM_HOOKS_SOURCES = $$PWD/../src/opengl/qeglfshooks_android.cpp
 
 INCLUDEPATH += $$PWD/../src/opengl/
 HEADERS += \
@@ -21,8 +21,8 @@ SOURCES += \
     $$PWD/../src/opengl/qandroidopenglplatformwindow.cpp
 
 
-include($$QT_SOURCE_TREE/src/plugins/platforms/eglfs/eglfs.pri)
-include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/src.pri)
+include($$PWD/../../eglfs/eglfs.pri)
+include($$PWD/../src/src.pri)
 
 
 TARGET = qtforandroidGL

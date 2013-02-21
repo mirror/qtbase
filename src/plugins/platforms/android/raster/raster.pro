@@ -12,7 +12,7 @@ CONFIG += dll
     LIBS += -L$$NDK_ROOT/platforms/android-9/arch-$$ANDROID_ARCHITECTURE/usr/lib -ljnigraphics -landroid
 } else : LIBS += -ljnigraphics -landroid
 
-include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/src.pri)
-include($$QT_SOURCE_TREE/src/plugins/platforms/android/src/raster/raster.pri)
+include($$PWD/../src/src.pri)
+include($$PWD/../src/raster/raster.pri)
 
 INSTALLS += target

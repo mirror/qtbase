@@ -55,14 +55,14 @@ public:
     QAndroidPlatformMenuBar();
     ~QAndroidPlatformMenuBar();
 
-    virtual void insertMenu(QPlatformMenu *menu, QPlatformMenu *before);
-    virtual void removeMenu(QPlatformMenu *menu);
-    virtual void syncMenu(QPlatformMenu *menu);
-    virtual void handleReparent(QWindow *newParentWindow);
-    virtual QPlatformMenu *menuForTag(quintptr tag) const;
+    void insertMenu(QPlatformMenu *menu, QPlatformMenu *before);
+    void removeMenu(QPlatformMenu *menu);
+    void syncMenu(QPlatformMenu *menu);
+    void handleReparent(QWindow *newParentWindow);
+    QPlatformMenu *menuForTag(quintptr tag) const;
 
     QWindow *parentWindow() const;
-    const PlatformMenusType &menus();
+    PlatformMenusType menus() const;
     QMutex *menusListMutex();
 
 private:

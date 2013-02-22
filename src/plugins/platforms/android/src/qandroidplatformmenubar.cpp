@@ -98,7 +98,7 @@ QWindow *QAndroidPlatformMenuBar::parentWindow() const
     return m_parentWindow;
 }
 
-const QAndroidPlatformMenuBar::PlatformMenusType &QAndroidPlatformMenuBar::menus()
+QAndroidPlatformMenuBar::PlatformMenusType QAndroidPlatformMenuBar::menus() const
 {
     return m_menus;
 }

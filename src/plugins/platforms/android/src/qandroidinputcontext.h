@@ -80,17 +80,17 @@ public:
 public:
     QAndroidInputContext();
     ~QAndroidInputContext();
-    virtual bool isValid() const { return true; }
+    bool isValid() const { return true; }
 
-    virtual void reset();
-    virtual void commit();
-    virtual void update(Qt::InputMethodQueries queries);
-    virtual void invokeAction(QInputMethod::Action action, int cursorPosition);
-    virtual QRectF keyboardRect() const;
-    virtual bool isAnimating() const;
-    virtual void showInputPanel();
-    virtual void hideInputPanel();
-    virtual bool isInputPanelVisible() const;
+    void reset();
+    void commit();
+    void update(Qt::InputMethodQueries queries);
+    void invokeAction(QInputMethod::Action action, int cursorPosition);
+    QRectF keyboardRect() const;
+    bool isAnimating() const;
+    void showInputPanel();
+    void hideInputPanel();
+    bool isInputPanelVisible() const;
 
     bool isComposing() const;
     void clear();

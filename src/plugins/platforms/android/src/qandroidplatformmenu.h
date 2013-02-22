@@ -56,26 +56,26 @@ public:
     QAndroidPlatformMenu();
     ~QAndroidPlatformMenu();
 
-    virtual void insertMenuItem(QPlatformMenuItem *menuItem, QPlatformMenuItem *before);
-    virtual void removeMenuItem(QPlatformMenuItem *menuItem);
-    virtual void syncMenuItem(QPlatformMenuItem *menuItem);
-    virtual void syncSeparatorsCollapsible(bool enable);
+    void insertMenuItem(QPlatformMenuItem *menuItem, QPlatformMenuItem *before);
+    void removeMenuItem(QPlatformMenuItem *menuItem);
+    void syncMenuItem(QPlatformMenuItem *menuItem);
+    void syncSeparatorsCollapsible(bool enable);
 
-    virtual void setTag(quintptr tag);
-    virtual quintptr tag() const;
-    virtual void setText(const QString &text);
-    const QString &text();
-    virtual void setIcon(const QIcon &icon);
-    const QIcon &icon();
-    virtual void setEnabled(bool enabled);
-    bool isEnabled();
-    virtual void setVisible(bool visible);
-    bool isVisible();
+    void setTag(quintptr tag);
+    quintptr tag() const;
+    void setText(const QString &text);
+    QString text() const;
+    void setIcon(const QIcon &icon);
+    QIcon icon() const;
+    void setEnabled(bool enabled);
+    bool isEnabled() const;
+    void setVisible(bool visible);
+    bool isVisible() const;
 
-    virtual QPlatformMenuItem *menuItemAt(int position) const;
-    virtual QPlatformMenuItem *menuItemForTag(quintptr tag) const;
+    QPlatformMenuItem *menuItemAt(int position) const;
+    QPlatformMenuItem *menuItemForTag(quintptr tag) const;
 
-    const PlatformMenuItemsType &menuItems();
+    PlatformMenuItemsType menuItems() const;
     QMutex *menuItemsMutex();
 
 private:

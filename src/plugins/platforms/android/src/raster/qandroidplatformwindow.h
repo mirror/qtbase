@@ -48,12 +48,12 @@ class QAndroidPlatformWindow: public QObject, public QFbWindow
 {
     Q_OBJECT
 public:
-    QAndroidPlatformWindow(QWindow *window);
+    explicit QAndroidPlatformWindow(QWindow *window);
 
-    virtual void propagateSizeHints();
+    void propagateSizeHints();
 
 public slots:
-    virtual void setGeometry(const QRect &rect);
+    void setGeometry(const QRect &rect);
 
 };
 

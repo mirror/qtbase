@@ -50,9 +50,9 @@ class QAndroidPlatformServices: public QPlatformServices
 {
 public:
     QAndroidPlatformServices();
-    virtual bool openUrl(const QUrl &url);
-    virtual bool openDocument(const QUrl &url);
-    virtual QByteArray desktopEnvironment() const;
+    bool openUrl(const QUrl &url);
+    bool openDocument(const QUrl &url);
+    QByteArray desktopEnvironment() const;
 private:
     jmethodID m_openURIMethodID;
 

@@ -49,39 +49,39 @@ class QAndroidPlatformMenuItem: public QPlatformMenuItem
 {
 public:
     QAndroidPlatformMenuItem();
-    virtual void setTag(quintptr tag);
-    virtual quintptr tag() const;
+    void setTag(quintptr tag);
+    quintptr tag() const;
 
-    virtual void setText(const QString &text);
-    const QString &text();
+    void setText(const QString &text);
+    QString text() const;
 
-    virtual void setIcon(const QIcon &icon);
-    const QIcon &icon();
+    void setIcon(const QIcon &icon);
+    QIcon icon() const;
 
-    virtual void setMenu(QPlatformMenu *menu);
-    QAndroidPlatformMenu *menu();
+    void setMenu(QPlatformMenu *menu);
+    QAndroidPlatformMenu *menu() const;
 
-    virtual void setVisible(bool isVisible);
-    bool isVisible();
+    void setVisible(bool isVisible);
+    bool isVisible() const;
 
-    virtual void setIsSeparator(bool isSeparator);
-    bool isSeparator();
+    void setIsSeparator(bool isSeparator);
+    bool isSeparator() const;
 
-    virtual void setFont(const QFont &font);
+    void setFont(const QFont &font);
 
-    virtual void setRole(MenuRole role);
-    MenuRole role();
+    void setRole(MenuRole role);
+    MenuRole role() const;
 
-    virtual void setCheckable(bool checkable);
-    bool isCheckable();
+    void setCheckable(bool checkable);
+    bool isCheckable() const;
 
-    virtual void setChecked(bool isChecked);
-    bool isChecked();
+    void setChecked(bool isChecked);
+    bool isChecked() const;
 
-    virtual void setShortcut(const QKeySequence &shortcut);
+    void setShortcut(const QKeySequence &shortcut);
 
-    virtual void setEnabled(bool enabled);
-    bool isEnabled();
+    void setEnabled(bool enabled);
+    bool isEnabled() const;
 
 private:
     quintptr m_tag;

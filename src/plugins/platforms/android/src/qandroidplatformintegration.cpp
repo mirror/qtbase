@@ -115,7 +115,7 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
 bool QAndroidPlatformIntegration::hasCapability(Capability cap) const
 {
     switch (cap) {
-        case ThreadedPixmaps: return true;        
+        case ThreadedPixmaps: return true;
         default:
 #ifndef ANDROID_PLUGIN_OPENGL
         return QPlatformIntegration::hasCapability(cap);

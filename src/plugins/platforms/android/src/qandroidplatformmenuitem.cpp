@@ -71,7 +71,7 @@ void QAndroidPlatformMenuItem::setText(const QString &text)
         m_menu->setText(m_text);
 }
 
-const QString &QAndroidPlatformMenuItem::text()
+QString QAndroidPlatformMenuItem::text() const
 {
     return m_text;
 }
@@ -83,7 +83,7 @@ void QAndroidPlatformMenuItem::setIcon(const QIcon &icon)
         m_menu->setIcon(m_icon);
 }
 
-const QIcon &QAndroidPlatformMenuItem::icon()
+QIcon QAndroidPlatformMenuItem::icon() const
 {
     return m_icon;
 }
@@ -100,7 +100,7 @@ void QAndroidPlatformMenuItem::setMenu(QPlatformMenu *menu)
     m_menu->setEnabled(m_isEnabled);
 }
 
-QAndroidPlatformMenu *QAndroidPlatformMenuItem::menu()
+QAndroidPlatformMenu *QAndroidPlatformMenuItem::menu() const
 {
     return m_menu;
 }
@@ -112,7 +112,7 @@ void QAndroidPlatformMenuItem::setVisible(bool isVisible)
         m_menu->setVisible(m_isVisible);
 }
 
-bool QAndroidPlatformMenuItem::isVisible()
+bool QAndroidPlatformMenuItem::isVisible() const
 {
     return m_isVisible;
 }
@@ -122,7 +122,7 @@ void QAndroidPlatformMenuItem::setIsSeparator(bool isSeparator)
     m_isSeparator = isSeparator;
 }
 
-bool QAndroidPlatformMenuItem::isSeparator()
+bool QAndroidPlatformMenuItem::isSeparator() const
 {
     return m_isSeparator;
 }
@@ -137,7 +137,7 @@ void QAndroidPlatformMenuItem::setRole(QPlatformMenuItem::MenuRole role)
     m_role = role;
 }
 
-QPlatformMenuItem::MenuRole QAndroidPlatformMenuItem::role()
+QPlatformMenuItem::MenuRole QAndroidPlatformMenuItem::role() const
 {
     return m_role;
 }
@@ -147,7 +147,7 @@ void QAndroidPlatformMenuItem::setCheckable(bool checkable)
     m_isCheckable = checkable;
 }
 
-bool QAndroidPlatformMenuItem::isCheckable()
+bool QAndroidPlatformMenuItem::isCheckable() const
 {
     return m_isCheckable;
 }
@@ -157,7 +157,7 @@ void QAndroidPlatformMenuItem::setChecked(bool isChecked)
     m_isChecked = isChecked;
 }
 
-bool QAndroidPlatformMenuItem::isChecked()
+bool QAndroidPlatformMenuItem::isChecked() const
 {
     return m_isChecked;
 }
@@ -174,7 +174,7 @@ void QAndroidPlatformMenuItem::setEnabled(bool enabled)
         m_menu->setEnabled(m_isEnabled);
 }
 
-bool QAndroidPlatformMenuItem::isEnabled()
+bool QAndroidPlatformMenuItem::isEnabled() const
 {
     return m_isEnabled;
 }

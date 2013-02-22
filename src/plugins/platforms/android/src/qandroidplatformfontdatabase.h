@@ -47,9 +47,9 @@
 class QAndroidPlatformFontDatabase: public QBasicFontDatabase
 {
 public:
-    virtual QString fontDir() const;
-    virtual void populateFontDatabase();
-    virtual QStringList fallbacksForFamily(const QString &family,
+    QString fontDir() const;
+    void populateFontDatabase();
+    QStringList fallbacksForFamily(const QString &family,
                                            QFont::Style style,
                                            QFont::StyleHint styleHint,
                                            QChar::Script script) const;

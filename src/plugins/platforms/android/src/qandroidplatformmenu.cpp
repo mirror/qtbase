@@ -104,7 +104,7 @@ void QAndroidPlatformMenu::setText(const QString &text)
     m_text = text;
 }
 
-const QString &QAndroidPlatformMenu::text()
+QString QAndroidPlatformMenu::text() const
 {
     return m_text;
 }
@@ -114,7 +114,7 @@ void QAndroidPlatformMenu::setIcon(const QIcon &icon)
     m_icon = icon;
 }
 
-const QIcon &QAndroidPlatformMenu::icon()
+QIcon QAndroidPlatformMenu::icon() const
 {
     return m_icon;
 }
@@ -124,7 +124,7 @@ void QAndroidPlatformMenu::setEnabled(bool enabled)
     m_enabled = enabled;
 }
 
-bool QAndroidPlatformMenu::isEnabled()
+bool QAndroidPlatformMenu::isEnabled() const
 {
     return m_enabled;
 }
@@ -134,7 +134,7 @@ void QAndroidPlatformMenu::setVisible(bool visible)
     m_isVisible = visible;
 }
 
-bool QAndroidPlatformMenu::isVisible()
+bool QAndroidPlatformMenu::isVisible() const
 {
     return m_isVisible;
 }
@@ -156,7 +156,7 @@ QPlatformMenuItem *QAndroidPlatformMenu::menuItemForTag(quintptr tag) const
     return 0;
 }
 
-const QAndroidPlatformMenu::PlatformMenuItemsType &QAndroidPlatformMenu::menuItems()
+QAndroidPlatformMenu::PlatformMenuItemsType QAndroidPlatformMenu::menuItems() const
 {
     return m_menuItems;
 }

@@ -68,7 +68,7 @@ class QAndroidOpenGLPlatformWindow;
 class QAndroidPlatformNativeInterface: public QPlatformNativeInterface
 {
 public:
-    virtual void *nativeResourceForIntegration(const QByteArray &resource);
+    void *nativeResourceForIntegration(const QByteArray &resource);
 };
 
 class QAndroidPlatformIntegration
@@ -106,15 +106,15 @@ public:
     QPlatformFontDatabase *fontDatabase() const;
 
 #ifndef QT_NO_CLIPBOARD
-    virtual QPlatformClipboard *clipboard() const;
+    QPlatformClipboard *clipboard() const;
 #endif
 
-    virtual QPlatformInputContext *inputContext() const;
-    virtual QPlatformNativeInterface *nativeInterface() const;
-    virtual QPlatformServices *services() const;
+    QPlatformInputContext *inputContext() const;
+    QPlatformNativeInterface *nativeInterface() const;
+    QPlatformServices *services() const;
 
-    virtual QStringList themeNames() const;
-    virtual QPlatformTheme *createPlatformTheme(const QString &name) const;
+    QStringList themeNames() const;
+    QPlatformTheme *createPlatformTheme(const QString &name) const;
 
     void pauseApp();
     void resumeApp();

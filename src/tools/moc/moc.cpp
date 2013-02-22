@@ -561,10 +561,11 @@ void Moc::parse()
                     } else if (!test(SEMIC)) {
                         NamespaceDef def;
                         def.name = lexem();
-                        while(next()!=LBRACE);
+                        next(LBRACE);
                         def.begin = index - 1;
                         until(RBRACE);
                         def.end = index;
+                        index = def.begin + 1;
                         namespaceList += def;
                         index = rewind;
                     }

@@ -35,7 +35,7 @@ import android.app.Application;
 
 public class QtApplication extends Application
 {
-    public final static String QtTAG="Qt";
+    public final static String QtTAG = "Qt";
     public static Object m_delegateObject = null;
     public static HashMap<String, ArrayList<Method>> m_delegateMethods= new HashMap<String, ArrayList<Method>>();
     public static Method dispatchKeyEvent = null;
@@ -114,31 +114,29 @@ public class QtApplication extends Application
         QtApplication.m_delegateObject = listener;
 
         ArrayList<Method> delegateMethods = new ArrayList<Method>();
-        for (Method m: listener.getClass().getMethods())
+        for (Method m : listener.getClass().getMethods()) {
             if (m.getDeclaringClass().getName().startsWith("org.qtproject.qt5.android"))
                 delegateMethods.add(m);
+        }
 
         ArrayList<Field> applicationFields = new ArrayList<Field>();
-        for (Field f: QtApplication.class.getFields())
+        for (Field f : QtApplication.class.getFields()) {
             if (f.getDeclaringClass().getName().equals(QtApplication.class.getName()))
                 applicationFields.add(f);
+        }
 
-        for (Method delegateMethod:delegateMethods)
-        {
+        for (Method delegateMethod : delegateMethods) {
             try {
                 QtActivity.class.getDeclaredMethod(delegateMethod.getName(), delegateMethod.getParameterTypes());
-                if (QtApplication.m_delegateMethods.containsKey(delegateMethod.getName()))
+                if (QtApplication.m_delegateMethods.containsKey(delegateMethod.getName())) {
                     QtApplication.m_delegateMethods.get(delegateMethod.getName()).add(delegateMethod);
-                else
-                {
+                } else {
                     ArrayList<Method> delegateSet = new ArrayList<Method>();
                     delegateSet.add(delegateMethod);
                     QtApplication.m_delegateMethods.put(delegateMethod.getName(), delegateSet);
                 }
-                for(Field applicationField:applicationFields)
-                {
-                    if (applicationField.getName().equals(delegateMethod.getName()))
-                    {
+                for (Field applicationField:applicationFields) {
+                    if (applicationField.getName().equals(delegateMethod.getName())) {
                         try {
                             applicationField.set(null, delegateMethod);
                         } catch (Exception e) {
@@ -146,9 +144,7 @@ public class QtApplication extends Application
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
             }
         }
     }
@@ -170,16 +166,14 @@ public class QtApplication extends Application
     public static InvokeResult invokeDelegate(Object... args)
     {
         InvokeResult result = new InvokeResult();
-        if (m_delegateObject==null)
+        if (m_delegateObject == null)
             return result;
-        StackTraceElement[] elements=Thread.currentThread().getStackTrace();
-        if (-1 == stackDeep)
-        {
-            String activityClassName=QtActivity.class.getCanonicalName();
-            for(int it=0;it<elements.length;it++)
-                if (elements[it].getClassName().equals(activityClassName))
-                {
-                    stackDeep=it;
+        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+        if (-1 == stackDeep) {
+            String activityClassName = QtActivity.class.getCanonicalName();
+            for (int it=0;it<elements.length;it++)
+                if (elements[it].getClassName().equals(activityClassName)) {
+                    stackDeep = it;
                     break;
                 }
         }
@@ -187,13 +181,13 @@ public class QtApplication extends Application
         if (-1 == stackDeep || !m_delegateMethods.containsKey(methodName))
             return result;
 
-        for (Method m:m_delegateMethods.get(methodName))
-            if (m.getParameterTypes().length == args.length)
-            {
-                result.methodReturns=invokeDelegateMethod(m, args);
-                result.invoked=true;
+        for (Method m : m_delegateMethods.get(methodName)) {
+            if (m.getParameterTypes().length == args.length) {
+                result.methodReturns = invokeDelegateMethod(m, args);
+                result.invoked = true;
                 return result;
             }
+        }
         return result;
     }
 

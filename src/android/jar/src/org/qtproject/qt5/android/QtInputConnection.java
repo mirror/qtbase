@@ -90,6 +90,7 @@ public class QtInputConnection extends BaseInputConnection
     private static final int ID_COPY_URL = android.R.id.copyUrl;
     private static final int ID_SWITCH_INPUT_METHOD = android.R.id.switchInputMethod;
     private static final int ID_ADD_TO_DICTIONARY = android.R.id.addToDictionary;
+
     View m_view;
     boolean m_closing;
     public QtInputConnection(View targetView)
@@ -100,40 +101,45 @@ public class QtInputConnection extends BaseInputConnection
     }
 
     @Override
-    public boolean beginBatchEdit() {
+    public boolean beginBatchEdit()
+    {
         m_closing = false;
         return true;
     }
 
     @Override
-    public boolean endBatchEdit() {
+    public boolean endBatchEdit()
+    {
         m_closing = false;
         return true;
     }
 
     @Override
-    public boolean commitCompletion(CompletionInfo text) {
+    public boolean commitCompletion(CompletionInfo text)
+    {
         m_closing = false;
         return QtNativeInputConnection.commitCompletion(text.getText().toString(), text.getPosition());
     }
 
     @Override
-    public boolean commitText(CharSequence text, int newCursorPosition) {
+    public boolean commitText(CharSequence text, int newCursorPosition)
+    {
         m_closing = false;
         return QtNativeInputConnection.commitText(text.toString(), newCursorPosition);
     }
 
     @Override
-    public boolean deleteSurroundingText(int leftLength, int rightLength) {
+    public boolean deleteSurroundingText(int leftLength, int rightLength)
+    {
         m_closing = false;
         return QtNativeInputConnection.deleteSurroundingText(leftLength, rightLength);
     }
 
     @Override
-    public boolean finishComposingText() {
-        if (m_closing)
-        {
-            QtNative.activityDelegate().m_keyboardIsHiding=true;
+    public boolean finishComposingText()
+    {
+        if (m_closing) {
+            QtNative.activityDelegate().m_keyboardIsHiding = true;
             m_view.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -143,20 +149,24 @@ public class QtInputConnection extends BaseInputConnection
             }, 5000); // it seems finishComposingText comes musch faster than onKeyUp event,
                       // so we must delay hide notification
             m_closing = false;
-        }
-        else
+        } else {
             m_closing = true;
+        }
         return QtNativeInputConnection.finishComposingText();
     }
 
     @Override
-    public int getCursorCapsMode(int reqModes) {
+    public int getCursorCapsMode(int reqModes)
+    {
         return QtNativeInputConnection.getCursorCapsMode(reqModes);
     }
 
     @Override
-    public ExtractedText getExtractedText(ExtractedTextRequest request, int flags) {
-        QtExtractedText qExtractedText = QtNativeInputConnection.getExtractedText(request.hintMaxChars, request.hintMaxLines, flags);
+    public ExtractedText getExtractedText(ExtractedTextRequest request, int flags)
+    {
+        QtExtractedText qExtractedText = QtNativeInputConnection.getExtractedText(request.hintMaxChars,
+                                                                                  request.hintMaxLines,
+                                                                                  flags);
         ExtractedText extractedText = new ExtractedText();
         extractedText.partialEndOffset = qExtractedText.partialEndOffset;
         extractedText.partialStartOffset = qExtractedText.partialStartOffset;
@@ -167,25 +177,27 @@ public class QtInputConnection extends BaseInputConnection
         return extractedText;
     }
 
-    public CharSequence getSelectedText(int flags) {
+    public CharSequence getSelectedText(int flags)
+    {
         return QtNativeInputConnection.getSelectedText(flags);
     }
 
     @Override
-    public CharSequence getTextAfterCursor(int length, int flags) {
+    public CharSequence getTextAfterCursor(int length, int flags)
+    {
         return QtNativeInputConnection.getTextAfterCursor(length, flags);
     }
 
     @Override
-    public CharSequence getTextBeforeCursor(int length, int flags) {
+    public CharSequence getTextBeforeCursor(int length, int flags)
+    {
         return QtNativeInputConnection.getTextBeforeCursor(length, flags);
     }
 
     @Override
     public boolean performContextMenuAction(int id)
     {
-        switch(id)
-        {
+        switch (id) {
         case ID_SELECT_ALL:
             return QtNativeInputConnection.selectAll();
         case ID_COPY:
@@ -199,9 +211,9 @@ public class QtInputConnection extends BaseInputConnection
 
         case ID_SWITCH_INPUT_METHOD:
             InputMethodManager imm = (InputMethodManager)m_view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            if (imm != null) {
+            if (imm != null)
                 imm.showInputMethodPicker();
-            }
+
             return true;
 
         case ID_ADD_TO_DICTIONARY:
@@ -219,12 +231,14 @@ public class QtInputConnection extends BaseInputConnection
     }
 
     @Override
-    public boolean setComposingText(CharSequence text, int newCursorPosition) {
+    public boolean setComposingText(CharSequence text, int newCursorPosition)
+    {
         return QtNativeInputConnection.setComposingText(text.toString(), newCursorPosition);
     }
 
     @Override
-    public boolean setSelection(int start, int end) {
+    public boolean setSelection(int start, int end)
+    {
         return QtNativeInputConnection.setSelection(start, end);
     }
 }

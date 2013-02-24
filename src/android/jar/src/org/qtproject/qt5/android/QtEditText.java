@@ -55,20 +55,24 @@ public class QtEditText extends View
     int m_imeOptions = 0;
     int m_inputType = InputType.TYPE_CLASS_TEXT;
 
-    public void setImeOptions(int m_imeOptions) {
+    public void setImeOptions(int m_imeOptions)
+    {
         this.m_imeOptions = m_imeOptions;
     }
 
-    public void setInitialCapsMode(int m_initialCapsMode) {
+    public void setInitialCapsMode(int m_initialCapsMode)
+    {
         this.m_initialCapsMode = m_initialCapsMode;
     }
 
 
-    public void setInputType(int m_inputType) {
+    public void setInputType(int m_inputType)
+    {
         this.m_inputType = m_inputType;
     }
 
-    public QtEditText(Context context) {
+    public QtEditText(Context context)
+    {
         super(context);
         setFocusable(true);
         setFocusableInTouchMode(true);
@@ -76,7 +80,8 @@ public class QtEditText extends View
     }
 
     @Override
-    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs)
+    {
         outAttrs.inputType = m_inputType;
         outAttrs.imeOptions = m_imeOptions;
         outAttrs.initialCapsMode = m_initialCapsMode;

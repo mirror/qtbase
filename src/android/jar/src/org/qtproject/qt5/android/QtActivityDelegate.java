@@ -81,13 +81,13 @@ public class QtActivityDelegate
     private Method m_super_onKeyUp = null;
     private Method m_super_onConfigurationChanged = null;
 
-    private static final String NATIVE_LIBRARIES_KEY="native.libraries";
-    private static final String BUNDLED_LIBRARIES_KEY="bundled.libraries";
-    private static final String MAIN_LIBRARY_KEY="main.library";
-    private static final String ENVIRONMENT_VARIABLES_KEY="environment.variables";
-    private static final String APPLICATION_PARAMETERS_KEY="application.parameters";
-    private static final String STATIC_INIT_CLASSES_KEY="static.init.classes";
-    private static final String NECESSITAS_API_LEVEL_KEY="necessitas.api.level";
+    private static final String NATIVE_LIBRARIES_KEY = "native.libraries";
+    private static final String BUNDLED_LIBRARIES_KEY = "bundled.libraries";
+    private static final String MAIN_LIBRARY_KEY = "main.library";
+    private static final String ENVIRONMENT_VARIABLES_KEY = "environment.variables";
+    private static final String APPLICATION_PARAMETERS_KEY = "application.parameters";
+    private static final String STATIC_INIT_CLASSES_KEY = "static.init.classes";
+    private static final String NECESSITAS_API_LEVEL_KEY = "necessitas.api.level";
 
     private static String m_environmentVariables = null;
     private static String m_applicationParameters = null;
@@ -96,7 +96,7 @@ public class QtActivityDelegate
 
     private String m_mainLib;
     private long m_metaState;
-    private int m_lastChar=0;
+    private int m_lastChar = 0;
     private boolean m_fullScreen = false;
     private boolean m_started = false;
     private QtSurface m_surface = null;
@@ -104,10 +104,10 @@ public class QtActivityDelegate
     private QtEditText m_editText = null;
     private InputMethodManager m_imm = null;
     private boolean m_quitApp = true;
-    private Process m_debuggerProcess=null; // debugger process
+    private Process m_debuggerProcess = null; // debugger process
 
-    public boolean m_keyboardIsVisible=false;
-    public boolean m_keyboardIsHiding=false;
+    public boolean m_keyboardIsVisible = false;
+    public boolean m_keyboardIsHiding = false;
 
     public QtLayout getQtLayout()
     {
@@ -119,7 +119,8 @@ public class QtActivityDelegate
         return m_surface;
     }
 
-    public void redrawWindow(int left, int top, int right, int bottom) {
+    public void redrawWindow(int left, int top, int right, int bottom)
+    {
         m_surface.drawBitmap(new Rect(left, top, right, bottom));
     }
 
@@ -127,37 +128,36 @@ public class QtActivityDelegate
     {
         if (m_fullScreen == enterFullScreen)
             return;
-        if (m_fullScreen = enterFullScreen)
-        {
+
+        if (m_fullScreen = enterFullScreen) {
             m_activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
             m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        }
-        else
-        {
+        } else {
             m_activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
             m_activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         }
     }
+
     // case status
-    private final int ImhNoAutoUppercase=0x2;
-    private final int ImhPreferUppercase=0x8;
+    private final int ImhNoAutoUppercase = 0x2;
+    private final int ImhPreferUppercase = 0x8;
     @SuppressWarnings("unused")
-    private final int ImhPreferLowercase=0x10;
-    private final int ImhUppercaseOnly=0x40000;
-    private final int ImhLowercaseOnly=0x80000;
+    private final int ImhPreferLowercase = 0x10;
+    private final int ImhUppercaseOnly = 0x40000;
+    private final int ImhLowercaseOnly = 0x80000;
 
     // options
-    private final int ImhNoPredictiveText=0x20;
+    private final int ImhNoPredictiveText = 0x20;
 
     // layout
-    private final int ImhHiddenText=0x1;
-    private final int ImhPreferNumbers=0x4;
+    private final int ImhHiddenText = 0x1;
+    private final int ImhPreferNumbers = 0x4;
     private final int ImhMultiLine = 0x400;
-    private final int ImhDigitsOnly=0x10000;
-    private final int ImhFormattedNumbersOnly=0x20000;
-    private final int ImhDialableCharactersOnly=0x100000;
-    private final int ImhEmailCharactersOnly=0x200000;
-    private final int ImhUrlCharactersOnly=0x400000;
+    private final int ImhDigitsOnly = 0x10000;
+    private final int ImhFormattedNumbersOnly = 0x20000;
+    private final int ImhDialableCharactersOnly = 0x100000;
+    private final int ImhEmailCharactersOnly = 0x200000;
+    private final int ImhUrlCharactersOnly = 0x400000;
 
     public void resetSoftwareKeyboard()
     {
@@ -175,7 +175,7 @@ public class QtActivityDelegate
     {
         if (m_imm == null)
             return;
-        if (height>m_surface.getHeight()*2/3)
+        if (height > m_surface.getHeight()*2/3)
             m_activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         else
             m_activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
@@ -184,40 +184,46 @@ public class QtActivityDelegate
         int imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
         int inputType = android.text.InputType.TYPE_CLASS_TEXT;
 
-        if ( (inputHints & ImhMultiLine) != 0 ) {
+        if ((inputHints & ImhMultiLine) != 0) {
             inputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE;
             imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION;
         }
 
-        if ( ((inputHints & ImhNoAutoUppercase) !=0 || (inputHints & ImhPreferUppercase) !=0 )
-                && (inputHints & ImhLowercaseOnly) ==0 )
+        if (((inputHints & ImhNoAutoUppercase) != 0 || (inputHints & ImhPreferUppercase) != 0)
+                && (inputHints & ImhLowercaseOnly) == 0) {
             initialCapsMode = android.text.TextUtils.CAP_MODE_SENTENCES;
+        }
 
-        if ( (inputHints & ImhUppercaseOnly) != 0 )
+        if ((inputHints & ImhUppercaseOnly) != 0)
             initialCapsMode = android.text.TextUtils.CAP_MODE_CHARACTERS;
 
-        if ( (inputHints & ImhHiddenText) != 0 )
+        if ((inputHints & ImhHiddenText) != 0)
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD;
-        if ( (inputHints & ImhPreferNumbers) != 0 )
+
+        if ((inputHints & ImhPreferNumbers) != 0)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER;
-        if ( (inputHints & ImhDigitsOnly) != 0 )
+
+        if ((inputHints & ImhDigitsOnly) != 0)
             inputType = android.text.InputType.TYPE_CLASS_NUMBER;
-        if ( (inputHints & ImhFormattedNumbersOnly) != 0 )
+
+        if ((inputHints & ImhFormattedNumbersOnly) != 0) {
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
-                        |android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
-                        |android.text.InputType.TYPE_NUMBER_FLAG_SIGNED;
-        if ( (inputHints & ImhDialableCharactersOnly) != 0 )
+                        | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+                        | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED;
+        }
+
+        if ((inputHints & ImhDialableCharactersOnly) != 0)
             inputType = android.text.InputType.TYPE_CLASS_PHONE;
-        if ( (inputHints & ImhEmailCharactersOnly) != 0 )
+
+        if ((inputHints & ImhEmailCharactersOnly) != 0)
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
-        if ( (inputHints & ImhUrlCharactersOnly) != 0 )
-        {
+
+        if ((inputHints & ImhUrlCharactersOnly) != 0) {
             inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI;
             imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_GO;
         }
 
-        if ( (inputHints & ImhNoPredictiveText) != 0 )
-        {
+        if ((inputHints & ImhNoPredictiveText) != 0) {
             //android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | android.text.InputType.TYPE_CLASS_TEXT;
             inputType = android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
         }
@@ -234,8 +240,8 @@ public class QtActivityDelegate
             @Override
             public void run() {
                 m_imm.showSoftInput(m_editText, 0);
-                m_keyboardIsVisible=true;
-                m_keyboardIsHiding=false;
+                m_keyboardIsVisible = true;
+                m_keyboardIsHiding = false;
                 m_editText.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -251,8 +257,8 @@ public class QtActivityDelegate
         if (m_imm == null)
             return;
         m_imm.hideSoftInputFromWindow(m_editText.getWindowToken(), 0);
-        m_keyboardIsVisible=false;
-        m_keyboardIsHiding=false;
+        m_keyboardIsVisible = false;
+        m_keyboardIsHiding = false;
     }
 
     public boolean isSoftwareKeyboardVisible()
@@ -263,18 +269,17 @@ public class QtActivityDelegate
     String getAppIconSize(Activity a)
     {
         int size = a.getResources().getDimensionPixelSize(android.R.dimen.app_icon_size);
-        if (size < 36 || size > 512) // check size sanity
-        {
+        if (size < 36 || size > 512) { // check size sanity
             DisplayMetrics metrics = new DisplayMetrics();
             a.getWindowManager().getDefaultDisplay().getMetrics(metrics);
             size = metrics.densityDpi/10*3;
-            if (size<36)
+            if (size < 36)
                 size = 36;
 
-            if (size>512)
+            if (size > 512)
                 size = 512;
         }
-        return "\tQT_ANDROID_APP_ICON_SIZE="+size;
+        return "\tQT_ANDROID_APP_ICON_SIZE=" + size;
     }
 
     public void updateSelection(int selStart, int selEnd, int candidatesStart, int candidatesEnd)
@@ -291,22 +296,22 @@ public class QtActivityDelegate
         if (!loaderParams.containsKey(NATIVE_LIBRARIES_KEY)
                 || !loaderParams.containsKey(BUNDLED_LIBRARIES_KEY)
                 || !loaderParams.containsKey(ENVIRONMENT_VARIABLES_KEY)
-                || !loaderParams.containsKey(APPLICATION_PARAMETERS_KEY))
+                || !loaderParams.containsKey(APPLICATION_PARAMETERS_KEY)) {
             return false;
+        }
 
         m_activity = activity;
         QtNative.setActivity(m_activity, this);
         QtNative.setClassLoader(classLoader);
-        if (loaderParams.containsKey(STATIC_INIT_CLASSES_KEY))
-        {
-            for(String className: loaderParams.getStringArray(STATIC_INIT_CLASSES_KEY))
-            {
-                if (className.length()==0)
+        if (loaderParams.containsKey(STATIC_INIT_CLASSES_KEY)) {
+            for (String className: loaderParams.getStringArray(STATIC_INIT_CLASSES_KEY)) {
+                if (className.length() == 0)
                     continue;
+
                 try {
                     @SuppressWarnings("rawtypes")
                     Class initClass = classLoader.loadClass(className);
-                    Object staticInitDataObject=initClass.newInstance(); // create an instance
+                    Object staticInitDataObject = initClass.newInstance(); // create an instance
                     Method m = initClass.getMethod("setActivity", Activity.class, Object.class);
                     m.invoke(staticInitDataObject, m_activity, this);
                 } catch (Exception e) {
@@ -319,8 +324,8 @@ public class QtActivityDelegate
         QtNative.loadBundledLibraries(libraries, QtNativeLibrariesDir.nativeLibrariesDir(m_activity));
         m_mainLib = loaderParams.getString(MAIN_LIBRARY_KEY);
         // older apps provide the main library as the last bundled library; look for this if the main library isn't provided
-        if (null == m_mainLib && libraries.size()>0)
-            m_mainLib = libraries.get(libraries.size()-1);
+        if (null == m_mainLib && libraries.size() > 0)
+            m_mainLib = libraries.get(libraries.size() - 1);
 
         try {
             m_super_dispatchKeyEvent = m_activity.getClass().getMethod("super_dispatchKeyEvent", KeyEvent.class);
@@ -335,65 +340,75 @@ public class QtActivityDelegate
             return false;
         }
 
-        int necessitasApiLevel=1;
+        int necessitasApiLevel = 1;
         if (loaderParams.containsKey(NECESSITAS_API_LEVEL_KEY))
-            necessitasApiLevel=loaderParams.getInt(NECESSITAS_API_LEVEL_KEY);
+            necessitasApiLevel = loaderParams.getInt(NECESSITAS_API_LEVEL_KEY);
 
-        m_environmentVariables=loaderParams.getString(ENVIRONMENT_VARIABLES_KEY);
-        String additionalEnvironmentVariables="QT_ANDROID_FONTS_MONOSPACE=Droid Sans Mono;Droid Sans;Droid Sans Fallback\tNECESSITAS_API_LEVEL="+necessitasApiLevel+"\tHOME="+m_activity.getFilesDir().getAbsolutePath()+"\tTMPDIR="+m_activity.getFilesDir().getAbsolutePath();
-        if (android.os.Build.VERSION.SDK_INT<14)
+        m_environmentVariables = loaderParams.getString(ENVIRONMENT_VARIABLES_KEY);
+        String additionalEnvironmentVariables = "QT_ANDROID_FONTS_MONOSPACE=Droid Sans Mono;Droid Sans;Droid Sans Fallback"
+                                              + "\tNECESSITAS_API_LEVEL=" + necessitasApiLevel
+                                              + "\tHOME=" + m_activity.getFilesDir().getAbsolutePath()
+                                              + "\tTMPDIR=" + m_activity.getFilesDir().getAbsolutePath();
+        if (android.os.Build.VERSION.SDK_INT < 14)
             additionalEnvironmentVariables += "\tQT_ANDROID_FONTS=Droid Sans;Droid Sans Fallback";
         else
             additionalEnvironmentVariables += "\tQT_ANDROID_FONTS=Roboto;Droid Sans;Droid Sans Fallback";
 
         additionalEnvironmentVariables += getAppIconSize(activity);
 
-        if (m_environmentVariables != null && m_environmentVariables.length()>0)
-            m_environmentVariables=additionalEnvironmentVariables+"\t"+m_environmentVariables;
+        if (m_environmentVariables != null && m_environmentVariables.length() > 0)
+            m_environmentVariables = additionalEnvironmentVariables + "\t" + m_environmentVariables;
         else
-            m_environmentVariables=additionalEnvironmentVariables;
+            m_environmentVariables = additionalEnvironmentVariables;
 
-        m_applicationParameters=loaderParams.getString(APPLICATION_PARAMETERS_KEY);
+        m_applicationParameters = loaderParams.getString(APPLICATION_PARAMETERS_KEY);
         return true;
     }
 
     public boolean startApplication()
     {
         // start application
-        try
-        {
+        try {
             // FIXME turn on debuggable check
             // if the applications is debuggable and it has a native debug request
             if ( /*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
                     &&*/ m_activity.getIntent().getExtras() != null
                     && m_activity.getIntent().getExtras().containsKey("native_debug")
-                    && m_activity.getIntent().getExtras().getString("native_debug").equals("true"))
-            {
-                try
-                {
-                    String packagePath=m_activity.getPackageManager().getApplicationInfo(m_activity.getPackageName(), PackageManager.GET_CONFIGURATIONS).dataDir+"/";
-                    String gdbserverPath=m_activity.getIntent().getExtras().containsKey("gdbserver_path")?m_activity.getIntent().getExtras().getString("gdbserver_path"):packagePath+"lib/gdbserver ";
-                    String socket=m_activity.getIntent().getExtras().containsKey("gdbserver_socket")?m_activity.getIntent().getExtras().getString("gdbserver_socket"):"+debug-socket";
+                    && m_activity.getIntent().getExtras().getString("native_debug").equals("true")) {
+                try {
+                    String packagePath =
+                        m_activity.getPackageManager().getApplicationInfo(m_activity.getPackageName(),
+                                                                          PackageManager.GET_CONFIGURATIONS).dataDir + "/";
+                    String gdbserverPath =
+                        m_activity.getIntent().getExtras().containsKey("gdbserver_path")
+                        ? m_activity.getIntent().getExtras().getString("gdbserver_path")
+                        : packagePath+"lib/gdbserver ";
+
+                    String socket =
+                        m_activity.getIntent().getExtras().containsKey("gdbserver_socket")
+                        ? m_activity.getIntent().getExtras().getString("gdbserver_socket")
+                        : "+debug-socket";
+
                     // start debugger
-                    m_debuggerProcess =Runtime.getRuntime().exec(gdbserverPath+socket+" --attach "+android.os.Process.myPid(),null, new File(packagePath));
-                }
-                catch (IOException ioe)
-                {
-                    Log.e(QtNative.QtTAG,"Can't start debugger"+ioe.getMessage());
-                }
-                catch (SecurityException se)
-                {
-                    Log.e(QtNative.QtTAG,"Can't start debugger"+se.getMessage());
+                    m_debuggerProcess = Runtime.getRuntime().exec(gdbserverPath
+                                                                    + socket
+                                                                    + " --attach "
+                                                                    + android.os.Process.myPid(),
+                                                                  null,
+                                                                  new File(packagePath));
+                } catch (IOException ioe) {
+                    Log.e(QtNative.QtTAG,"Can't start debugger" + ioe.getMessage());
+                } catch (SecurityException se) {
+                    Log.e(QtNative.QtTAG,"Can't start debugger" + se.getMessage());
                 } catch (NameNotFoundException e) {
-                    Log.e(QtNative.QtTAG,"Can't start debugger"+e.getMessage());
+                    Log.e(QtNative.QtTAG,"Can't start debugger" + e.getMessage());
                 }
             }
 
             if (/*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
                     &&*/ m_activity.getIntent().getExtras() != null
                     && m_activity.getIntent().getExtras().containsKey("qml_debug")
-                    && m_activity.getIntent().getExtras().getString("qml_debug").equals("true"))
-            {
+                    && m_activity.getIntent().getExtras().getString("qml_debug").equals("true")) {
                 String qmljsdebugger;
                 if (m_activity.getIntent().getExtras().containsKey("qmljsdebugger")) {
                     qmljsdebugger = m_activity.getIntent().getExtras().getString("qmljsdebugger");
@@ -401,16 +416,16 @@ public class QtActivityDelegate
                 } else {
                     qmljsdebugger = "port:3768";
                 }
-                m_applicationParameters += "\t-qmljsdebugger="+qmljsdebugger;
+                m_applicationParameters += "\t-qmljsdebugger=" + qmljsdebugger;
             }
 
             if (null == m_surface)
                 onCreate(null);
             String nativeLibraryDir = QtNativeLibrariesDir.nativeLibrariesDir(m_activity);
-            m_surface.applicationStarted( QtNative.startApplication(m_applicationParameters
-                                                                , m_environmentVariables
-                                                                , m_mainLib
-                                                                , nativeLibraryDir));
+            m_surface.applicationStarted( QtNative.startApplication(m_applicationParameters,
+                                                                    m_environmentVariables,
+                                                                    m_mainLib,
+                                                                    nativeLibraryDir));
             m_started = true;
             return true;
         } catch (Exception e) {
@@ -427,22 +442,21 @@ public class QtActivityDelegate
     public void onCreate(Bundle savedInstanceState)
     {
         m_quitApp = true;
-        if (null == savedInstanceState)
-        {
+        if (null == savedInstanceState) {
             DisplayMetrics metrics = new DisplayMetrics();
             m_activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
             QtNative.setApplicationDisplayMetrics(metrics.widthPixels, metrics.heightPixels,
-                            metrics.widthPixels, metrics.heightPixels,
-                            metrics.xdpi, metrics.ydpi);
+                                                  metrics.widthPixels, metrics.heightPixels,
+                                                  metrics.xdpi, metrics.ydpi);
         }
-        m_layout=new QtLayout(m_activity);
+        m_layout = new QtLayout(m_activity);
         m_surface = new QtSurface(m_activity, 0);
         m_editText = new QtEditText(m_activity);
         m_imm = (InputMethodManager)m_activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         m_layout.addView(m_surface,0);
-        m_activity.setContentView(m_layout
-                , new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
-                        ViewGroup.LayoutParams.FILL_PARENT));
+        m_activity.setContentView(m_layout,
+                                  new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
+                                                             ViewGroup.LayoutParams.FILL_PARENT));
         m_layout.bringChildToFront(m_surface);
         m_activity.registerForContextMenu(m_layout);
 
@@ -468,8 +482,7 @@ public class QtActivityDelegate
 
     public void onDestroy()
     {
-        if (m_quitApp)
-        {
+        if (m_quitApp) {
             Log.i(QtNative.QtTAG, "onDestroy");
             if (m_debuggerProcess != null)
                 m_debuggerProcess.destroy();
@@ -487,7 +500,7 @@ public class QtActivityDelegate
 //        setFullScreen(savedInstanceState.getBoolean("FullScreen"));
         m_started = savedInstanceState.getBoolean("Started");
         if (m_started)
-            m_surface.applicationStarted( true );
+            m_surface.applicationStarted(true);
     }
 
     public void onResume()
@@ -495,11 +508,11 @@ public class QtActivityDelegate
         // fire all lostActions
         synchronized (QtNative.m_mainActivityMutex)
         {
-            Iterator<Runnable> itr=QtNative.getLostActions().iterator();
-            while(itr.hasNext())
+            Iterator<Runnable> itr = QtNative.getLostActions().iterator();
+            while (itr.hasNext())
                 m_activity.runOnUiThread(itr.next());
-            if (m_started)
-            {
+
+            if (m_started) {
                 QtNative.clearLostActions();
                 QtNative.updateWindow();
             }
@@ -523,7 +536,7 @@ public class QtActivityDelegate
         } catch (Exception e) {
             e.printStackTrace();
         }
-        outState.putBoolean("FullScreen",m_fullScreen);
+        outState.putBoolean("FullScreen", m_fullScreen);
         outState.putBoolean("Started", m_started);
     }
 
@@ -532,8 +545,7 @@ public class QtActivityDelegate
         if (!m_started)
             return false;
 
-        if (keyCode == KeyEvent.KEYCODE_MENU)
-        {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             try {
                 return (Boolean)m_super_onKeyDown.invoke(m_activity, keyCode, event);
             } catch (Exception e) {
@@ -544,18 +556,19 @@ public class QtActivityDelegate
 
         m_metaState = MetaKeyKeyListener.handleKeyDown(m_metaState, keyCode, event);
         int c = event.getUnicodeChar(MetaKeyKeyListener.getMetaState(m_metaState));
-        int lc=c;
+        int lc = c;
         m_metaState = MetaKeyKeyListener.adjustMetaAfterKeypress(m_metaState);
 
-        if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0)
-        {
+        if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0) {
             c = c & KeyCharacterMap.COMBINING_ACCENT_MASK;
             int composed = KeyEvent.getDeadChar(m_lastChar, c);
             c = composed;
         }
+
         m_lastChar = lc;
         if (keyCode != KeyEvent.KEYCODE_BACK)
-                QtNative.keyDown(keyCode, c, event.getMetaState());
+            QtNative.keyDown(keyCode, c, event.getMetaState());
+
         return true;
     }
 
@@ -564,8 +577,7 @@ public class QtActivityDelegate
         if (!m_started)
             return false;
 
-        if (keyCode == KeyEvent.KEYCODE_MENU)
-        {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             try {
                 return (Boolean)m_super_onKeyUp.invoke(m_activity, keyCode, event);
             } catch (Exception e) {
@@ -588,11 +600,11 @@ public class QtActivityDelegate
 
     public boolean dispatchKeyEvent(KeyEvent event)
     {
-        if (m_started && event.getAction() == KeyEvent.ACTION_MULTIPLE &&
-            event.getCharacters() != null &&
-            event.getCharacters().length() == 1 &&
-            event.getKeyCode() == 0)
-        {
+        if (m_started
+                && event.getAction() == KeyEvent.ACTION_MULTIPLE
+                && event.getCharacters() != null
+                && event.getCharacters().length() == 1
+                && event.getKeyCode() == 0) {
             QtNative.keyDown(0, event.getCharacters().charAt(0), event.getMetaState());
             QtNative.keyUp(0, event.getCharacters().charAt(0), event.getMetaState());
         }
@@ -639,8 +651,9 @@ public class QtActivityDelegate
             m_activity.closeOptionsMenu();
     }
     private boolean m_contextMenuVisible = false;
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                ContextMenuInfo menuInfo)
+    public void onCreateContextMenu(ContextMenu menu,
+                                    View v,
+                                    ContextMenuInfo menuInfo)
     {
         menu.clearHeader();
         Log.i(QtNative.QtTAG, "onCreateContextMenu");
@@ -650,10 +663,9 @@ public class QtActivityDelegate
 
     public void onContextMenuClosed(Menu menu)
     {
-        if (!m_contextMenuVisible)
-        {
+        if (!m_contextMenuVisible) {
             Log.e(QtNative.QtTAG, "invalid onContextMenuClosed call");
-                return;
+            return;
         }
         m_contextMenuVisible = false;
         Log.i(QtNative.QtTAG, "onContextMenuClosed");

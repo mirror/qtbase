@@ -57,10 +57,11 @@ import android.view.SurfaceView;
 
 public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
 {
-    private Bitmap m_bitmap=null;
+    private Bitmap m_bitmap = null;
     private boolean m_started = false;
     private boolean m_usesGL = false;
     private GestureDetector m_gestureDetector;
+
     public QtSurface(Context context, int id)
     {
         super(context);
@@ -68,13 +69,14 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
         getHolder().addCallback(this);
         getHolder().setType(SurfaceHolder.SURFACE_TYPE_GPU);
         setId(id);
-        m_gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-                        public void onLongPress(MotionEvent event) {
-                            if (!m_started)
-                                return;
-                            QtNative.longPress(getId(), (int) event.getX(), (int) event.getY());
-                        }
-                });
+        m_gestureDetector =
+            new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                public void onLongPress(MotionEvent event) {
+                    if (!m_started)
+                        return;
+                    QtNative.longPress(getId(), (int) event.getX(), (int) event.getY());
+                }
+            });
         m_gestureDetector.setIsLongpressEnabled(true);
     }
 
@@ -84,13 +86,12 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
         m_usesGL = usesGL;
         if (getWidth() < 1 ||  getHeight() < 1)
             return;
-        if (m_usesGL)
+        if (m_usesGL) {
             QtNative.setSurface(getHolder().getSurface());
-        else
-        {
+        } else {
             QtNative.lockSurface();
             QtNative.setSurface(null);
-            m_bitmap=Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565);
+            m_bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.RGB_565);
             QtNative.setSurface(m_bitmap);
             QtNative.unlockSurface();
         }
@@ -104,7 +105,7 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
         QtNative.setApplicationDisplayMetrics(metrics.widthPixels,
             metrics.heightPixels, getWidth(), getHeight(), metrics.xdpi, metrics.ydpi);
 
-        if(m_usesGL)
+        if (m_usesGL)
             holder.setFormat(PixelFormat.RGBA_8888);
 
 //        if (!m_started)
@@ -127,23 +128,26 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
     {
         Log.i(QtNative.QtTAG,"surfaceChanged: "+width+","+height+","+getWidth()+","+getHeight());
         if (width<1 || height<1)
-                return;
+            return;
 
         DisplayMetrics metrics = new DisplayMetrics();
         ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(metrics);
         QtNative.setApplicationDisplayMetrics(metrics.widthPixels,
-            metrics.heightPixels, width, height, metrics.xdpi, metrics.ydpi);
+                                              metrics.heightPixels,
+                                              width,
+                                              height,
+                                              metrics.xdpi,
+                                              metrics.ydpi);
 
         if (!m_started)
             return;
 
-        if (m_usesGL)
+        if (m_usesGL) {
             QtNative.setSurface(holder.getSurface());
-        else
-        {
+        } else {
             QtNative.lockSurface();
             QtNative.setSurface(null);
-            m_bitmap=Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+            m_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
             QtNative.setSurface(m_bitmap);
             QtNative.unlockSurface();
             QtNative.updateWindow();
@@ -154,10 +158,9 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
     public void surfaceDestroyed(SurfaceHolder holder)
     {
         Log.i(QtNative.QtTAG,"surfaceDestroyed ");
-        if (m_usesGL)
+        if (m_usesGL) {
             QtNative.destroySurface();
-        else
-        {
+        } else {
             if (!m_started)
                 return;
 
@@ -172,16 +175,12 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
         if (!m_started)
             return;
         QtNative.lockSurface();
-        if (null!=m_bitmap)
-        {
-            try
-            {
-                Canvas cv=getHolder().lockCanvas(rect);
+        if (null != m_bitmap) {
+            try {
+                Canvas cv = getHolder().lockCanvas(rect);
                 cv.drawBitmap(m_bitmap, rect, rect, null);
                 getHolder().unlockCanvasAndPost(cv);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Log.e(QtNative.QtTAG, "Can't create main activity", e);
             }
         }

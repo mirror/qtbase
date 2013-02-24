@@ -47,22 +47,26 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class QtLayout extends ViewGroup{
-    public QtLayout(Context context) {
+public class QtLayout extends ViewGroup
+{
+    public QtLayout(Context context)
+    {
         super(context);
     }
 
-    public QtLayout(Context context, AttributeSet attrs) {
+    public QtLayout(Context context, AttributeSet attrs)
+    {
         super(context, attrs);
     }
 
-    public QtLayout(Context context, AttributeSet attrs,
-            int defStyle) {
+    public QtLayout(Context context, AttributeSet attrs, int defStyle)
+    {
         super(context, attrs, defStyle);
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+    {
         int count = getChildCount();
 
         int maxHeight = 0;
@@ -104,19 +108,22 @@ public class QtLayout extends ViewGroup{
     * and with the coordinates (0, 0).
     */
     @Override
-    protected ViewGroup.LayoutParams generateDefaultLayoutParams() {
-        return new LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 0, 0);
+    protected ViewGroup.LayoutParams generateDefaultLayoutParams()
+    {
+        return new LayoutParams(android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                                0,
+                                0);
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t,
-            int r, int b) {
+    protected void onLayout(boolean changed, int l, int t, int r, int b)
+    {
         int count = getChildCount();
 
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
             if (child.getVisibility() != GONE) {
-
                 QtLayout.LayoutParams lp =
                         (QtLayout.LayoutParams) child.getLayoutParams();
 
@@ -132,12 +139,14 @@ public class QtLayout extends ViewGroup{
 
     // Override to allow type-checking of LayoutParams.
     @Override
-    protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
+    protected boolean checkLayoutParams(ViewGroup.LayoutParams p)
+    {
         return p instanceof QtLayout.LayoutParams;
     }
 
     @Override
-    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
+    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p)
+    {
         return new LayoutParams(p);
     }
 
@@ -147,7 +156,8 @@ public class QtLayout extends ViewGroup{
     * {@link android.R.styleable#AbsoluteLayout_Layout Absolute Layout Attributes}
     * for a list of all child view attributes that this class supports.
     */
-    public static class LayoutParams extends ViewGroup.LayoutParams {
+    public static class LayoutParams extends ViewGroup.LayoutParams
+    {
         /**
         * The horizontal, or X, location of the child within the view group.
         */
@@ -168,7 +178,8 @@ public class QtLayout extends ViewGroup{
         * @param x the X location of the child
         * @param y the Y location of the child
         */
-        public LayoutParams(int width, int height, int x, int y) {
+        public LayoutParams(int width, int height, int x, int y)
+        {
             super(width, height);
             this.x = x;
             this.y = y;
@@ -177,7 +188,8 @@ public class QtLayout extends ViewGroup{
         /**
         * {@inheritDoc}
         */
-        public LayoutParams(ViewGroup.LayoutParams source) {
+        public LayoutParams(ViewGroup.LayoutParams source)
+        {
             super(source);
         }
     }

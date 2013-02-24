@@ -51,7 +51,7 @@ public class QtNativeLibrariesDir {
     {
         String m_nativeLibraryDir = null;
         try {
-            ApplicationInfo ai=activity.getPackageManager().getApplicationInfo(activity.getPackageName(), 0);
+            ApplicationInfo ai = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), 0);
             m_nativeLibraryDir = ai.nativeLibraryDir+"/";
         } catch (NameNotFoundException e) {
             e.printStackTrace();

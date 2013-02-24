@@ -126,7 +126,6 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
     {
-        Log.i(QtNative.QtTAG,"surfaceChanged: "+width+","+height+","+getWidth()+","+getHeight());
         if (width<1 || height<1)
             return;
 
@@ -157,7 +156,6 @@ public class QtSurface extends SurfaceView implements SurfaceHolder.Callback
     @Override
     public void surfaceDestroyed(SurfaceHolder holder)
     {
-        Log.i(QtNative.QtTAG,"surfaceDestroyed ");
         if (m_usesGL) {
             QtNative.destroySurface();
         } else {

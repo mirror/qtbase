@@ -281,7 +281,6 @@ namespace QtAndroid
             }
         }
 
-        qDebug() << "setFullScreen" << fullScreen;
         env.jniEnv->CallStaticVoidMethod(m_applicationClass, m_setFullScreenMethodID, fullScreen);
     }
 
@@ -427,7 +426,6 @@ static void *startMainMethod(void */*data*/)
 
     int ret = m_main(m_applicationParams.length(), const_cast<char **>(params));
 
-    qDebug() << "MainMethod finished, it's time to cleanup";
     free(params);
     Q_UNUSED(ret);
 
@@ -589,10 +587,6 @@ static void setSurface(JNIEnv *env, jobject /*thiz*/, jobject jSurface)
     m_surfaceMutex.lock();
     EGLNativeWindowType nativeWindow = ANativeWindow_fromSurface(env, jSurface);
     bool sameNativeWindow = (nativeWindow != 0 && nativeWindow == m_nativeWindow);
-
-    qDebug() << "setSurface"
-             << ANativeWindow_fromSurface(env, jSurface)
-             << (EGLNativeWindowType)env->GetIntField(jSurface, m_surfaceFieldID);
 
     m_nativeWindow = nativeWindow;
     if (m_waitForWindow)

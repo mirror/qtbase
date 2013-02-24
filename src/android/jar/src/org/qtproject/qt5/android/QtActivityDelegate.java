@@ -471,7 +471,6 @@ public class QtActivityDelegate
             e.printStackTrace();
         }
 
-        Log.i(QtNative.QtTAG, "onConfigurationChanged");
         if (configuration.orientation != m_currentOrientation
             && m_currentOrientation != Configuration.ORIENTATION_UNDEFINED) {
             QtNative.handleOrientationChanged(configuration.orientation);
@@ -483,7 +482,6 @@ public class QtActivityDelegate
     public void onDestroy()
     {
         if (m_quitApp) {
-            Log.i(QtNative.QtTAG, "onDestroy");
             if (m_debuggerProcess != null)
                 m_debuggerProcess.destroy();
             System.exit(0);// FIXME remove it or find a better way
@@ -620,33 +618,28 @@ public class QtActivityDelegate
     private boolean m_opionsMenuIsVisible = false;
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        Log.i(QtNative.QtTAG, "onCreateOptionsMenu");
         menu.clear();
         return true;
     }
     public boolean onPrepareOptionsMenu(Menu menu)
     {
-        Log.i(QtNative.QtTAG, "onPrepareOptionsMenu");
         m_opionsMenuIsVisible = true;
         return QtNative.onPrepareOptionsMenu(menu);
     }
 
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        Log.i(QtNative.QtTAG, "onOptionsItemSelected");
         return QtNative.onOptionsItemSelected(item.getItemId(), item.isChecked());
     }
 
     public void onOptionsMenuClosed(Menu menu)
     {
-        Log.i(QtNative.QtTAG, "onOptionsMenuClosed");
         m_opionsMenuIsVisible = false;
         QtNative.onOptionsMenuClosed(menu);
     }
 
     public void resetOptionsMenu()
     {
-        Log.i(QtNative.QtTAG, "resetOptionsMenu");
         if (m_opionsMenuIsVisible)
             m_activity.closeOptionsMenu();
     }
@@ -656,7 +649,6 @@ public class QtActivityDelegate
                                     ContextMenuInfo menuInfo)
     {
         menu.clearHeader();
-        Log.i(QtNative.QtTAG, "onCreateContextMenu");
         QtNative.onCreateContextMenu(menu);
         m_contextMenuVisible = true;
     }
@@ -668,19 +660,16 @@ public class QtActivityDelegate
             return;
         }
         m_contextMenuVisible = false;
-        Log.i(QtNative.QtTAG, "onContextMenuClosed");
         QtNative.onContextMenuClosed(menu);
     }
 
     public boolean onContextItemSelected(MenuItem item)
     {
-        Log.i(QtNative.QtTAG, "onContextItemSelected");
         return QtNative.onContextItemSelected(item.getItemId(), item.isChecked());
     }
 
     public void openContextMenu()
     {
-        Log.i(QtNative.QtTAG, "openContextMenu");
         m_layout.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -691,7 +680,6 @@ public class QtActivityDelegate
 
     public void closeContextMenu()
     {
-        Log.i(QtNative.QtTAG, "closeContextMenu");
         m_activity.closeContextMenu();
     }
 }

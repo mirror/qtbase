@@ -43,7 +43,6 @@
 #include "androidjnimain.h"
 
 #include <qpa/qwindowsysteminterface.h>
-#include <QDebug>
 #include <QTouchEvent>
 #include <QPointer>
 
@@ -79,7 +78,6 @@ namespace QtAndroidInput
         if (!env.jniEnv)
             return;
 
-        qDebug() << "showSoftwareKeyboard";
         env.jniEnv->CallStaticVoidMethod(applicationClass(),
                                          m_showSoftwareKeyboardMethodID,
                                          left,
@@ -95,7 +93,6 @@ namespace QtAndroidInput
         if (!env.jniEnv)
             return;
 
-        qDebug() << "resetSoftwareKeyboard";
         env.jniEnv->CallStaticVoidMethod(applicationClass(), m_resetSoftwareKeyboardMethodID);
     }
 
@@ -105,7 +102,6 @@ namespace QtAndroidInput
         if (!env.jniEnv)
             return;
 
-        qDebug() << "hideSoftwareKeyboard";
         env.jniEnv->CallStaticVoidMethod(applicationClass(), m_hideSoftwareKeyboardMethodID);
     }
 
@@ -115,7 +111,6 @@ namespace QtAndroidInput
         if (!env.jniEnv)
             return false;
 
-        qDebug() << "isSoftwareKeyboardVisible";
         return env.jniEnv->CallStaticBooleanMethod(applicationClass(), m_isSoftwareKeyboardVisibleMethodID);
     }
 
@@ -408,8 +403,6 @@ namespace QtAndroidInput
 
     static void keyDown(JNIEnv */*env*/, jobject /*thiz*/, jint key, jint unicode, jint modifier)
     {
-        qDebug() << "keyDown";
-
         Qt::KeyboardModifiers modifiers;
         if (modifier & 1)
             modifiers |= Qt::ShiftModifier;
@@ -430,8 +423,6 @@ namespace QtAndroidInput
 
     static void keyUp(JNIEnv */*env*/, jobject /*thiz*/, jint key, jint unicode, jint modifier)
     {
-        qDebug() << "keyUp";
-
         Qt::KeyboardModifiers modifiers;
         if (modifier & 1)
             modifiers |= Qt::ShiftModifier;

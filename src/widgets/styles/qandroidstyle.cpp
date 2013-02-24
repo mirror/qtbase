@@ -75,9 +75,6 @@ namespace {
 QAndroidStyle::QAndroidStyle()
     : QCommonStyle()
 {
-    QTime t;
-    t.start();
-
     QString stylePath(QLatin1String(qgetenv("QT_ANDROID_NATIVE_STYLE_PATH")));
     if (stylePath.isEmpty())
         return;
@@ -93,8 +90,6 @@ QAndroidStyle::QAndroidStyle()
         qCritical() << error.errorString();
         return;
     }
-
-    qDebug() << "Reading json file took" << t.elapsed() << "ms";
 
     if (!document.isObject()) {
         qCritical() << "Style.json does not contain a valid style.";
@@ -209,7 +204,6 @@ QAndroidStyle::QAndroidStyle()
     QApplication::setFont(QApplication::font("simple_list_item"), "QListView");
     QApplication::setPalette(QApplication::palette("simple_list_item"), "QAbstractItemView");
     QApplication::setFont(QApplication::font("simple_list_item"), "QAbstractItemView");
-    qDebug() << "Parsing json file took" << t.elapsed() << "ms";
 }
 
 QAndroidStyle::~QAndroidStyle()

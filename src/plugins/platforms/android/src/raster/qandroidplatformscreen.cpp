@@ -44,8 +44,6 @@
 #include "androidjnimain.h"
 #include "androidjnimenu.h"
 
-#include <QDebug>
-
 QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
 {
     mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
@@ -54,7 +52,6 @@ QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
     mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
     mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
     initializeCompositor();
-    qDebug() << "QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
 }
 
 void QAndroidPlatformScreen::topWindowChanged(QWindow *w)

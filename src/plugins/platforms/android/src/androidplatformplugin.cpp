@@ -40,7 +40,6 @@
 ****************************************************************************/
 
 #include <qpa/qplatformintegrationplugin.h>
-#include <QDebug>
 #include "qandroidplatformintegration.h"
 
 QT_BEGIN_NAMESPACE
@@ -57,7 +56,6 @@ public:
 QPlatformIntegration *QAndroidPlatformIntegrationPlugin::create(const QString &key, const QStringList &paramList)
 {
     Q_UNUSED(paramList);
-    qDebug() << "QAndroidPlatformIntegrationPlugin::create" << key;
     if (key.toLower() == "android")
         return new QAndroidPlatformIntegration(paramList);
     return 0;

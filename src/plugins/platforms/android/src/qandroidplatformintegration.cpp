@@ -97,7 +97,6 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
     m_androidPlatformNativeInterface = new QAndroidPlatformNativeInterface();
 
 #ifndef ANDROID_PLUGIN_OPENGL
-    qDebug() << "QAndroidPlatformIntegration::QAndroidPlatformIntegration():  creating QAndroidPlatformScreen => Using Raster (Software) for painting";
     m_primaryScreen = new QAndroidPlatformScreen();
     screenAdded(m_primaryScreen);
     m_primaryScreen->setPhysicalSize(QSize(m_defaultPhysicalSizeWidth, m_defaultPhysicalSizeHeight));
@@ -157,14 +156,12 @@ QPlatformWindow *QAndroidPlatformIntegration::createPlatformWindow(QWindow *wind
 
 void QAndroidPlatformIntegration::invalidateNativeSurface()
 {
-    qDebug() << Q_FUNC_INFO << "Surface invalidated, m_primaryWindow=" << m_primaryWindow;
     if (m_primaryWindow != 0)
         m_primaryWindow->invalidateSurface();
 }
 
 void QAndroidPlatformIntegration::surfaceChanged()
 {
-    qDebug() << Q_FUNC_INFO << "Surface changed, m_primaryWindow=" << m_primaryWindow;
     if (m_primaryWindow != 0)
         m_primaryWindow->resetSurface();
 }
@@ -247,42 +244,26 @@ void QAndroidPlatformIntegration::setDefaultDesktopSize(int gw, int gh)
 #ifndef ANDROID_PLUGIN_OPENGL
 void QAndroidPlatformIntegration::setDesktopSize(int width, int height)
 {
-    qDebug() << "setDesktopSize";
-
     if (m_primaryScreen)
         QMetaObject::invokeMethod(m_primaryScreen, "setGeometry", Qt::AutoConnection, Q_ARG(QRect, QRect(0,0,width, height)));
-
-    qDebug() << "setDesktopSize done";
 }
 
 void QAndroidPlatformIntegration::setDisplayMetrics(int width, int height)
 {
-    qDebug() << "setDisplayMetrics";
-
     if (m_primaryScreen)
         QMetaObject::invokeMethod(m_primaryScreen, "setPhysicalSize", Qt::AutoConnection, Q_ARG(QSize, QSize(width, height)));
-
-    qDebug() << "setDisplayMetrics done";
 }
 #else
 void QAndroidPlatformIntegration::setDesktopSize(int width, int height)
 {
-    qDebug() << "setDesktopSize OpenGL" << width << height;
-
     m_defaultGeometryWidth = width;
     m_defaultGeometryHeight = height;
-
-    qDebug() << "setDesktopSize done";
 }
 
 void QAndroidPlatformIntegration::setDisplayMetrics(int width, int height)
 {
-    qDebug() << "setDisplayMetrics OpenGL" << width << height;
-
     m_defaultPhysicalSizeWidth = width;
     m_defaultPhysicalSizeHeight = height;
-
-    qDebug() << "setDisplayMetrics done";
 }
 
 #endif

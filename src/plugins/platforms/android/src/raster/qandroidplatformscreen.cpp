@@ -65,8 +65,7 @@ QRegion QAndroidPlatformScreen::doRedraw()
     touched = QFbScreen::doRedraw();
     if (touched.isEmpty())
         return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
+
     QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
     return touched;
 }

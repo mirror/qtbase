@@ -1882,8 +1882,8 @@ while [ "$#" -gt 0 ]; do
     dbus)
         if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ] || [ "$VAL" = "linked" ]; then
             CFG_DBUS="$VAL"
-        elif [ "$VAL" = "runtime" ]; then
-            CFG_DBUS="yes"
+	elif [ "$VAL" = "runtime" ]; then
+	    CFG_DBUS="yes"
         else
             UNKNOWN_OPT=yes
         fi
@@ -3409,7 +3409,6 @@ Additional options:
 
  $GBN  -no-glib ........... Do not compile Glib support.
  $GBY  -glib .............. Compile Glib support.
-
 EOF
 
 if [ "$XPLATFORM_MAEMO" = "yes" ]; then
@@ -3475,7 +3474,6 @@ Android options:
 
     -android-toolchain-version ..... Sets the android toolchain version
                                      (default $CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION)
-
 EOF
 
 fi
@@ -4315,12 +4313,12 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
         case $_SQLDR in
         mysql)
             if [ "$CFG_SQL_mysql" != "no" ]; then
-                [ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
+		[ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
                 if [ -x "$CFG_MYSQL_CONFIG" ]; then
                     QT_CFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --include 2>/dev/null | filterIncludeOptions`
                     QT_LFLAGS_MYSQL_R=`$CFG_MYSQL_CONFIG --libs_r 2>/dev/null | filterLibraryOptions`
                     QT_LFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --libs 2>/dev/null | filterLibraryOptions`
-                    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
+		    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
                     QT_MYSQL_VERSION_MAJOR=`echo $QT_MYSQL_VERSION | cut -d . -f 1`
                 fi
                 if [ -n "$QT_MYSQL_VERSION" ] && [ "$QT_MYSQL_VERSION_MAJOR" -lt 4 ]; then
@@ -4332,9 +4330,9 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
                         exit 101
                     else
                         CFG_SQL_mysql="no"
-                        QT_LFLAGS_MYSQL=""
-                        QT_LFLAGS_MYSQL_R=""
-                        QT_CFLAGS_MYSQL=""
+			QT_LFLAGS_MYSQL=""
+			QT_LFLAGS_MYSQL_R=""
+			QT_CFLAGS_MYSQL=""
                     fi
                 else
                     if compileTest unix/mysql_r "MySQL (thread-safe)" $QT_LFLAGS_MYSQL_R $QT_CFLAGS_MYSQL; then
@@ -5781,7 +5779,7 @@ case "$XPLATFORM" in
 	# the assembly it generates cannot be compiled
 
 	# Check gcc's version
-        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*)
 		;;
 	    3.4*)
@@ -5802,7 +5800,7 @@ case "$XPLATFORM" in
 	;;
     *-g++*)
 	# Check gcc's version
-        case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
 	    4*|3.4*)
 		;;
             3.3*)

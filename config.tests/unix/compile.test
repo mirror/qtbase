@@ -37,8 +37,8 @@ while [ "$#" -gt 0 ]; do
         CXXFLAGS="$CXXFLAGS $PARAM"
         ;;
     -L*|-l*|-pthread)
-        LFLAGS="$LFLAGS $PARAM"
-        ;;
+	LFLAGS="$LFLAGS $PARAM"
+	;;
     -Wl*)
         LFLAGS="$LFLAGS $PARAM"
         ;;

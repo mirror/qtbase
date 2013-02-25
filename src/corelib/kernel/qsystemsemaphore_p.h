@@ -52,6 +52,7 @@
 //
 // We mean it.
 //
+
 #ifdef Q_OS_ANDROID
 #include <semaphore.h>
 #endif

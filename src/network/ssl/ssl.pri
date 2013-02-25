@@ -34,6 +34,7 @@ contains(QT_CONFIG, openssl) | contains(QT_CONFIG, openssl-linked) {
     #   - also needs -lUser32 -lAdvapi32 -lGdi32 -lCrypt32
     #   - libs in <OPENSSL_DIR>\lib\VC\static
     #   - configure: -openssl -openssl-linked -I <OPENSSL_DIR>\include -L <OPENSSL_DIR>\lib\VC\static OPENSSL_LIBS="-lUser32 -lAdvapi32 -lGdi32" OPENSSL_LIBS_DEBUG="-lssleay32MDd -llibeay32MDd" OPENSSL_LIBS_RELEASE="-lssleay32MD -llibeay32MD"
+
     CONFIG(debug, debug|release) {
         LIBS_PRIVATE += $$OPENSSL_LIBS_DEBUG
     } else {

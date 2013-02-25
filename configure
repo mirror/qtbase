@@ -4202,6 +4202,7 @@ elif [ "$CFG_ARCH" != "mips" ]; then
 fi
 
 [ "$XPLATFORM_MINGW" = "yes" ] && QMakeVar add styles "windowsxp windowsvista"
+[ "$XPLATFORM_ANDROID" = "yes" ] && QMakeVar add styles "android"
 
 # detect zlib
 if [ "$CFG_ZLIB" = "no" ]; then
@@ -4236,11 +4237,6 @@ if [ "$CFG_ZLIB" = "auto" ]; then
        CFG_ZLIB=yes
     fi
 fi
-
-case "$XPLATFORM" in *android*)
-    QMakeVar add styles "android"
-esac
-
 
 if [ "$CFG_LARGEFILE" = "auto" ]; then
     #Large files should be enabled for all Linux systems

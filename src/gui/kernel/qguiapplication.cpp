@@ -1500,15 +1500,15 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     QWindow *window = e->window.data();
     modifier_buttons = e->modifiers;
     if (e->nullWindow
-       #ifdef Q_OS_ANDROID
+#ifdef Q_OS_ANDROID
            || (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back) || e->key == Qt::Key_Menu
-       #endif
+#endif
             )
         window = QGuiApplication::focusWindow();
     if (!window
-       #ifdef Q_OS_ANDROID
+#ifdef Q_OS_ANDROID
            && e->keyType != QEvent::KeyRelease && e->key != Qt::Key_Back
-       #endif
+#endif
             )
         return;
     if (window->d_func()->blockedByModalWindow) {
@@ -1535,7 +1535,7 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     }
     else
 #endif
-    QGuiApplication::sendSpontaneousEvent(window, &ev);
+        QGuiApplication::sendSpontaneousEvent(window, &ev);
 }
 
 void QGuiApplicationPrivate::processEnterEvent(QWindowSystemInterfacePrivate::EnterEvent *e)

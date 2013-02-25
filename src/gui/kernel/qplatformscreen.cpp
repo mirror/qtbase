@@ -304,8 +304,9 @@ void QPlatformScreen::resizeMaximizedWindows()
     const QRect newAvailableGeometry = availableGeometry();
 
     // make sure maximized and fullscreen windows are updated
-    foreach (QWindow *w, windows)
-    {
+    for (int i = 0; i < windows.size(); ++i) {
+        QWindow *w = windows.at(i);
+
         if (platformScreenForWindow(w) != this)
             continue;
 

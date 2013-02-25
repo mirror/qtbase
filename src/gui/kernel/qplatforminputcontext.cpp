@@ -114,7 +114,7 @@ void QPlatformInputContext::commit()
 /*!
     Notification on editor updates. Called by QInputMethod::update().
  */
-void QPlatformInputContext::update(Qt::InputMethodQueries queries)
+void QPlatformInputContext::update(Qt::InputMethodQueries)
 {
 }
 

@@ -985,11 +985,9 @@ QNetworkReply *QNetworkAccessManager::createRequest(QNetworkAccessManager::Opera
     // The QNetworkAccessFileBackend will right now only be used for PUT
     if ((op == QNetworkAccessManager::GetOperation || op == QNetworkAccessManager::HeadOperation)
         && (isLocalFile || scheme == QLatin1String("qrc")
-
 #if defined(Q_OS_ANDROID)
             || scheme == QLatin1String("assets")
 #endif
-
             )) {
         return new QNetworkReplyFileImpl(this, req, op);
     }

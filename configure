@@ -2566,11 +2566,6 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
             fi
             ;;
         esac
-        if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ] || [ ! -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
-            echo
-            echo "Can not detect the android host, please use -android-ndk-host option to specify one"
-            exit 1
-        fi
     fi
 
     if [ "$OPT_HELP" != "yes" ]; then
@@ -2582,6 +2577,16 @@ if [ "$XPLATFORM_ANDROID" = "yes" ]; then
         if [ -z "$CFG_DEFAULT_ANDROID_SDK_ROOT" ]; then
             echo
             echo "Can not find Android SDK. Please use -android-sdk option to specify one"
+            exit 1
+        fi
+        if [ -z "CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION" ] || [ ! -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt" ]; then
+            echo
+            echo "Can not detect Android NDK toolchain. Please use -android-toolchain-version to specify"
+            exit 1
+        fi
+        if [ -z "$CFG_DEFAULT_ANDROID_NDK_HOST" ] || [ ! -d "$CFG_DEFAULT_ANDROID_NDK_ROOT/toolchains/arm-linux-androideabi-$CFG_DEFAULT_ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$CFG_DEFAULT_ANDROID_NDK_HOST" ]; then
+            echo
+            echo "Can not detect the android host. Please use -android-ndk-host option to specify one"
             exit 1
         fi
 

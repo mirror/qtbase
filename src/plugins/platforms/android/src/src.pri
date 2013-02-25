@@ -1,7 +1,7 @@
 load(qt_plugin)
 
 QT += core-private gui-private widgets-private platformsupport-private
-DESTDIR = $$QT.gui.plugins/platforms/android
+
 CONFIG += qpa/genericunixfontdatabase
 
 OTHER_FILES += $$PWD/android.json
@@ -42,5 +42,6 @@ HEADERS += $$PWD/qandroidplatformintegration.h \
            $$PWD/qandroidplatformmenuitem.h
 
 
-target.path += $$[QT_INSTALL_PLUGINS]/platforms/android
-INSTALLS += target
+#Non-standard install directory, QTBUG-29859
+DESTDIR = $$DESTDIR/android
+target.path = $${target.path}/android

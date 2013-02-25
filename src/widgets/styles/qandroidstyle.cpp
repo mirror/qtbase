@@ -134,15 +134,15 @@ QAndroidStyle::QAndroidStyle()
             if (attributeIterator != item.constEnd()) {
                 QFont::StyleHint styleHint = QFont::AnyStyle;
                 switch (int(attributeIterator.value().toDouble())) {
-                    case typeface_sans:
-                        styleHint = QFont::SansSerif;
-                        break;
-                    case typeface_serif:
-                        styleHint = QFont::Serif;
-                        break;
-                    case typeface_monospace:
-                        styleHint = QFont::Monospace;
-                        break;
+                case typeface_sans:
+                    styleHint = QFont::SansSerif;
+                    break;
+                case typeface_serif:
+                    styleHint = QFont::Serif;
+                    break;
+                case typeface_monospace:
+                    styleHint = QFont::Monospace;
+                    break;
                 }
                 font.setStyleHint(styleHint, QFont::PreferMatch);
             }
@@ -208,8 +208,7 @@ QAndroidStyle::QAndroidStyle()
 
 QAndroidStyle::~QAndroidStyle()
 {
-    foreach (AndroidControl *control, m_androidControlsHash)
-        delete control;
+    qDeleteAll(m_androidControlsHash);
 }
 
 
@@ -314,115 +313,115 @@ QAndroidStyle::ItemType QAndroidStyle::qtControl(const QString &android)
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ComplexControl control)
 {
     switch (control) {
-        case CC_ComboBox:
-            return QC_Combobox;
-        case CC_Slider:
-            return QC_Slider;
-        case CC_GroupBox:
-            return QC_View;
-        default:
-            return QC_UnknownType;
+    case CC_ComboBox:
+        return QC_Combobox;
+    case CC_Slider:
+        return QC_Slider;
+    case CC_GroupBox:
+        return QC_View;
+    default:
+        return QC_UnknownType;
     }
 }
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ContentsType contentsType)
 {
     switch (contentsType) {
-        case CT_PushButton:
-            return QC_Button;
-        case CT_CheckBox:
-            return QC_Checkbox;
-        case CT_RadioButton:
-            return QC_RadioButton;
-        case CT_ComboBox:
-            return QC_Combobox;
-        case CT_ProgressBar:
-            return QC_ProgressBar;
-        case CT_Slider:
-            return QC_Slider;
-        case CT_TabWidget:
-            return QC_Tab;
-        case CT_TabBarTab:
-            return QC_TabButton;
-        case CT_LineEdit:
-            return QC_EditText;
-        case CT_GroupBox:
-            return QC_GroupBox;
-        default:
-            return QC_UnknownType;
+    case CT_PushButton:
+        return QC_Button;
+    case CT_CheckBox:
+        return QC_Checkbox;
+    case CT_RadioButton:
+        return QC_RadioButton;
+    case CT_ComboBox:
+        return QC_Combobox;
+    case CT_ProgressBar:
+        return QC_ProgressBar;
+    case CT_Slider:
+        return QC_Slider;
+    case CT_TabWidget:
+        return QC_Tab;
+    case CT_TabBarTab:
+        return QC_TabButton;
+    case CT_LineEdit:
+        return QC_EditText;
+    case CT_GroupBox:
+        return QC_GroupBox;
+    default:
+        return QC_UnknownType;
     }
 }
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::ControlElement controlElement)
 {
     switch (controlElement) {
-        case CE_PushButton:
-        case CE_PushButtonBevel:
-        case CE_PushButtonLabel:
-            return QC_Button;
+    case CE_PushButton:
+    case CE_PushButtonBevel:
+    case CE_PushButtonLabel:
+        return QC_Button;
 
-        case CE_CheckBox:
-        case CE_CheckBoxLabel:
-            return QC_Checkbox;
+    case CE_CheckBox:
+    case CE_CheckBoxLabel:
+        return QC_Checkbox;
 
-        case CE_RadioButton:
-        case CE_RadioButtonLabel:
-            return QC_RadioButton;
+    case CE_RadioButton:
+    case CE_RadioButtonLabel:
+        return QC_RadioButton;
 
-        case CE_TabBarTab:
-        case CE_TabBarTabShape:
-        case CE_TabBarTabLabel:
-            return QC_Tab;
+    case CE_TabBarTab:
+    case CE_TabBarTabShape:
+    case CE_TabBarTabLabel:
+        return QC_Tab;
 
-        case CE_ProgressBar:
-        case CE_ProgressBarGroove:
-        case CE_ProgressBarContents:
-        case CE_ProgressBarLabel:
-            return QC_ProgressBar;
+    case CE_ProgressBar:
+    case CE_ProgressBarGroove:
+    case CE_ProgressBarContents:
+    case CE_ProgressBarLabel:
+        return QC_ProgressBar;
 
-        case CE_ComboBoxLabel:
-            return QC_Combobox;
+    case CE_ComboBoxLabel:
+        return QC_Combobox;
 
-        default:
-            return QC_UnknownType;
+    default:
+        return QC_UnknownType;
     }
 }
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::PrimitiveElement primitiveElement)
 {
     switch (primitiveElement) {
-        case QStyle::PE_PanelLineEdit:
-        case QStyle::PE_FrameLineEdit:
-            return QC_EditText;
+    case QStyle::PE_PanelLineEdit:
+    case QStyle::PE_FrameLineEdit:
+        return QC_EditText;
 
-        case QStyle::PE_FrameWindow:
-        case QStyle::PE_Widget:
-        case QStyle::PE_Frame:
-        case QStyle::PE_FrameFocusRect:
-            return QC_View;
-        default:
-            return QC_UnknownType;
+    case QStyle::PE_FrameWindow:
+    case QStyle::PE_Widget:
+    case QStyle::PE_Frame:
+    case QStyle::PE_FrameFocusRect:
+        return QC_View;
+    default:
+        return QC_UnknownType;
     }
 }
 
 QAndroidStyle::ItemType QAndroidStyle::qtControl(QStyle::SubElement subElement)
 {
     switch (subElement) {
-        case QStyle::SE_LineEditContents:
-            return QC_EditText;
+    case QStyle::SE_LineEditContents:
+        return QC_EditText;
 
-        case QStyle::SE_PushButtonContents:
-        case QStyle::SE_PushButtonFocusRect:
-            return QC_Button;
+    case QStyle::SE_PushButtonContents:
+    case QStyle::SE_PushButtonFocusRect:
+        return QC_Button;
 
-        case SE_RadioButtonContents:
-            return QC_RadioButton;
+    case SE_RadioButtonContents:
+        return QC_RadioButton;
 
-        case SE_CheckBoxContents:
-            return QC_Checkbox;
+    case SE_CheckBoxContents:
+        return QC_Checkbox;
 
-        default:
-            return QC_UnknownType;
+    default:
+        return QC_UnknownType;
     }
 }
 
@@ -455,29 +454,29 @@ void QAndroidStyle::drawControl(QStyle::ControlElement element,
         it.value()->drawControl(opt, p, w);
 
         switch (itemType) {
-            case QC_Button:
-                if (const QStyleOptionButton *buttonOption =
-                        qstyleoption_cast<const QStyleOptionButton *>(opt)) {
-                    QMargins padding = it.value()->padding();
-                    QStyleOptionButton copy (*buttonOption);
-                    copy.rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
-                    QCommonStyle::drawControl(CE_PushButtonLabel, &copy, p, w);
-                }
-                break;
-            case QC_Checkbox:
-            case QC_RadioButton:
-                if (const QStyleOptionButton *btn =
-                        qstyleoption_cast<const QStyleOptionButton *>(opt)) {
-                    const bool isRadio = (element == CE_RadioButton);
-                    QStyleOptionButton subopt(*btn);
-                    subopt.rect = subElementRect(isRadio ? SE_RadioButtonContents
-                                                         : SE_CheckBoxContents, btn, w);
-                    QCommonStyle::drawControl(isRadio ? CE_RadioButtonLabel : CE_CheckBoxLabel, &subopt, p, w);
-                }
-                break;
+        case QC_Button:
+            if (const QStyleOptionButton *buttonOption =
+                qstyleoption_cast<const QStyleOptionButton *>(opt)) {
+                QMargins padding = it.value()->padding();
+                QStyleOptionButton copy (*buttonOption);
+                copy.rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
+                QCommonStyle::drawControl(CE_PushButtonLabel, &copy, p, w);
+            }
+            break;
+        case QC_Checkbox:
+        case QC_RadioButton:
+            if (const QStyleOptionButton *btn =
+                qstyleoption_cast<const QStyleOptionButton *>(opt)) {
+                const bool isRadio = (element == CE_RadioButton);
+                QStyleOptionButton subopt(*btn);
+                subopt.rect = subElementRect(isRadio ? SE_RadioButtonContents
+                                             : SE_CheckBoxContents, btn, w);
+                QCommonStyle::drawControl(isRadio ? CE_RadioButtonLabel : CE_CheckBoxLabel, &subopt, p, w);
+            }
+            break;
         case QC_Combobox:
             if (const QStyleOptionComboBox *comboboxOption =
-                    qstyleoption_cast<const QStyleOptionComboBox *>(opt)) {
+                qstyleoption_cast<const QStyleOptionComboBox *>(opt)) {
                 QMargins padding = it.value()->padding();
                 QStyleOptionComboBox copy (*comboboxOption);
                 copy.rect.adjust(padding.left(), padding.top(), -padding.right(), -padding.bottom());
@@ -533,7 +532,7 @@ QStyle::SubControl QAndroidStyle::hitTestComplexControl(ComplexControl cc,
                                              : m_androidControlsHash.end();
     if (it != m_androidControlsHash.end()) {
         switch (cc) {
-            case CC_Slider:
+        case CC_Slider:
             if (const QStyleOptionSlider *slider = qstyleoption_cast<const QStyleOptionSlider *>(opt)) {
                 QRect r = it.value()->subControlRect(slider, SC_SliderHandle, widget);
                 if (r.isValid() && r.contains(pt)) {
@@ -651,23 +650,21 @@ QAndroidStyle::AndroidDrawable * QAndroidStyle::AndroidDrawable::fromMap(const Q
                                                                          ItemType itemType)
 {
     const QString type = drawable.value(QLatin1String("type")).toString();
-    if (type == QLatin1String("image")) {
+    if (type == QLatin1String("image"))
         return new QAndroidStyle::AndroidImageDrawable(drawable, itemType);
-    } else if (type == QLatin1String("9patch")) {
+    if (type == QLatin1String("9patch"))
         return new QAndroidStyle::Android9PatchDrawable(drawable, itemType);
-    } else if (type == QLatin1String("stateslist")) {
+    if (type == QLatin1String("stateslist"))
         return new QAndroidStyle::AndroidStateDrawable(drawable, itemType);
-    } else if (type == QLatin1String("layer")) {
+    if (type == QLatin1String("layer"))
         return new QAndroidStyle::AndroidLayerDrawable(drawable, itemType);
-    } else if (type == QLatin1String("gradient")) {
+    if (type == QLatin1String("gradient"))
         return new QAndroidStyle::AndroidGradientDrawable(drawable, itemType);
-    } else if (type == QLatin1String("clipDrawable")) {
+    if (type == QLatin1String("clipDrawable"))
         return new QAndroidStyle::AndroidClipDrawable(drawable, itemType);
-    } if (type == QLatin1String("color")) {
+    if (type == QLatin1String("color"))
         return new QAndroidStyle::AndroidColorDrawable(drawable, itemType);
-    } else {
-        return 0;
-    }
+    return 0;
 }
 
 QMargins QAndroidStyle::AndroidDrawable::extractMargins(const QVariantMap &value)
@@ -922,34 +919,37 @@ nextDiv:
 
 QAndroidStyle::AndroidGradientDrawable::AndroidGradientDrawable(const QVariantMap &drawable,
                                                                 QAndroidStyle::ItemType itemType)
-    : AndroidDrawable(drawable, itemType)
+    : AndroidDrawable(drawable, itemType), m_orientation(TOP_BOTTOM)
 {
     m_radius = drawable.value(QLatin1String("radius")).toInt();
     if (m_radius < 0)
         m_radius = 0;
-    QVariantList colors=drawable.value(QLatin1String("colors")).toList();
-    QVariantList positions=drawable.value(QLatin1String("positions")).toList();
-    int min=colors.size()<positions.size()?colors.size():positions.size();
-    for (int i=0;i<min;i++)
+
+    QVariantList colors = drawable.value(QLatin1String("colors")).toList();
+    QVariantList positions = drawable.value(QLatin1String("positions")).toList();
+    int min=colors.size() < positions.size() ? colors.size() : positions.size();
+    for (int i = 0; i < min; i++)
         m_gradient.setColorAt(positions.at(i).toDouble(), (QRgb)colors.at(i).toInt());
+
     QByteArray orientation=drawable.value(QLatin1String("orientation")).toByteArray();
-    if (orientation == "TOP_BOTTOM") { // draw the gradient from the top to the bottom
+    if (orientation == "TOP_BOTTOM") // draw the gradient from the top to the bottom
         m_orientation = TOP_BOTTOM;
-    } else if (orientation == "TR_BL") { // draw the gradient from the top-right to the bottom-left
+    else if (orientation == "TR_BL") // draw the gradient from the top-right to the bottom-left
         m_orientation = TR_BL;
-    } else if (orientation == "RIGHT_LEFT") { // draw the gradient from the right to the left
+    else if (orientation == "RIGHT_LEFT") // draw the gradient from the right to the left
         m_orientation = RIGHT_LEFT;
-    } else if (orientation == "BR_TL") { // draw the gradient from the bottom-right to the top-left
+    else if (orientation == "BR_TL") // draw the gradient from the bottom-right to the top-left
         m_orientation = BR_TL;
-    } else if (orientation == "BOTTOM_TOP") { // draw the gradient from the bottom to the top
+    else if (orientation == "BOTTOM_TOP") // draw the gradient from the bottom to the top
         m_orientation = BOTTOM_TOP;
-    } else if (orientation == "BL_TR") { // draw the gradient from the bottom-left to the top-right
+    else if (orientation == "BL_TR") // draw the gradient from the bottom-left to the top-right
         m_orientation = BL_TR;
-    } else if (orientation == "LEFT_RIGHT") { // draw the gradient from the left to the right
+    else if (orientation == "LEFT_RIGHT") // draw the gradient from the left to the right
         m_orientation = LEFT_RIGHT;
-    } else if (orientation == "TL_BR") { // draw the gradient from the top-left to the bottom-right
+    else if (orientation == "TL_BR") // draw the gradient from the top-left to the bottom-right
         m_orientation = TL_BR;
-    }
+    else
+        qWarning("AndroidGradientDrawable: unknown orientation");
 }
 
 QAndroidStyle::AndroidDrawableType QAndroidStyle::AndroidGradientDrawable::type() const
@@ -962,39 +962,46 @@ void QAndroidStyle::AndroidGradientDrawable::draw(QPainter *painter, const QStyl
     const int width = opt->rect.width();
     const int height = opt->rect.height();
     switch (m_orientation) {
-        case TOP_BOTTOM:
-            // draw the gradient from the top to the bottom
-            m_gradient.setStart(width/2,0);
-            m_gradient.setFinalStop(width/2,height);
-            break;
-        case TR_BL:
-            // draw the gradient from the top-right to the bottom-left
-            m_gradient.setStart(width,0);
-            m_gradient.setFinalStop(0,height);
-        case RIGHT_LEFT:
-            // draw the gradient from the right to the left
-            m_gradient.setStart(width,height/2);
-            m_gradient.setFinalStop(0,height/2);
-        case BR_TL:
-            // draw the gradient from the bottom-right to the top-left
-            m_gradient.setStart(width,height);
-            m_gradient.setFinalStop(0,0);
-        case BOTTOM_TOP:
-            // draw the gradient from the bottom to the top
-            m_gradient.setStart(width/2,height);
-            m_gradient.setFinalStop(width/2,0);
-        case BL_TR:
-            // draw the gradient from the bottom-left to the top-right
-            m_gradient.setStart(0,height);
-            m_gradient.setFinalStop(width,0);
-        case LEFT_RIGHT:
-            // draw the gradient from the left to the right
-            m_gradient.setStart(0,height/2);
-            m_gradient.setFinalStop(width,height/2);
-        case TL_BR:
-            // draw the gradient from the top-left to the bottom-right
-            m_gradient.setStart(0,0);
-            m_gradient.setFinalStop(width,height);
+    case TOP_BOTTOM:
+        // draw the gradient from the top to the bottom
+        m_gradient.setStart(width/2,0);
+        m_gradient.setFinalStop(width/2,height);
+        break;
+    case TR_BL:
+        // draw the gradient from the top-right to the bottom-left
+        m_gradient.setStart(width,0);
+        m_gradient.setFinalStop(0,height);
+        break;
+    case RIGHT_LEFT:
+        // draw the gradient from the right to the left
+        m_gradient.setStart(width,height/2);
+        m_gradient.setFinalStop(0,height/2);
+        break;
+    case BR_TL:
+        // draw the gradient from the bottom-right to the top-left
+        m_gradient.setStart(width,height);
+        m_gradient.setFinalStop(0,0);
+        break;
+    case BOTTOM_TOP:
+        // draw the gradient from the bottom to the top
+        m_gradient.setStart(width/2,height);
+        m_gradient.setFinalStop(width/2,0);
+        break;
+    case BL_TR:
+        // draw the gradient from the bottom-left to the top-right
+        m_gradient.setStart(0,height);
+        m_gradient.setFinalStop(width,0);
+        break;
+    case LEFT_RIGHT:
+        // draw the gradient from the left to the right
+        m_gradient.setStart(0,height/2);
+        m_gradient.setFinalStop(width,height/2);
+        break;
+    case TL_BR:
+        // draw the gradient from the top-left to the bottom-right
+        m_gradient.setStart(0,0);
+        m_gradient.setFinalStop(width,height);
+        break;
     }
 
     const QBrush &oldBrush = painter->brush();
@@ -1557,19 +1564,19 @@ QRect QAndroidStyle::AndroidSeekBarControl::subControlRect(const QStyleOptionCom
                                                            const QWidget */*widget*/) const
 {
     const QStyleOptionSlider *styleOption =
-                   qstyleoption_cast<const QStyleOptionSlider *>(option);
+        qstyleoption_cast<const QStyleOptionSlider *>(option);
 
     if (m_seekBarThumb && sc == SC_SliderHandle && styleOption) {
-            const AndroidDrawable *drawable = m_seekBarThumb;
-            if (drawable->type() == State)
-                drawable = static_cast<const QAndroidStyle::AndroidStateDrawable *>(m_seekBarThumb)->bestAndroidStateMatch(option);
+        const AndroidDrawable *drawable = m_seekBarThumb;
+        if (drawable->type() == State)
+            drawable = static_cast<const QAndroidStyle::AndroidStateDrawable *>(m_seekBarThumb)->bestAndroidStateMatch(option);
 
-            QRect r(option->rect);
-            double factor = double(styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum));
-            int pos=(double(option->rect.width()*factor - drawable->size().width()) / 2);
-            r.setX(r.x()+pos);
-            r.setSize(drawable->size());
-            return r;
+        QRect r(option->rect);
+        double factor = double(styleOption->sliderPosition/(styleOption->maximum-styleOption->minimum));
+        int pos=(double(option->rect.width()*factor - drawable->size().width()) / 2);
+        r.setX(r.x()+pos);
+        r.setSize(drawable->size());
+        return r;
     }
     return option->rect;
 }
@@ -1585,8 +1592,7 @@ QRect QAndroidStyle::AndroidSpinnerControl::subControlRect(const QStyleOptionCom
 {
     if (sc == QStyle::SC_ComboBoxListBoxPopup)
         return option->rect;
-    else
-        return AndroidControl::subControlRect(option, sc, widget);
+    return AndroidControl::subControlRect(option, sc, widget);
 }
 
 QT_END_NAMESPACE

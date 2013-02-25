@@ -5807,10 +5807,8 @@ case "$XPLATFORM" in
                 canBuildWebKit="no"
                 ;;
 	    *)
-        if [ "$XPLATFORM_ANDROID" != "yes" ]; then
-            canBuildWebKit="no"
-            canBuildQtXmlPatterns="no"
-        fi
+		canBuildWebKit="no"
+		canBuildQtXmlPatterns="no"
 		;;
 	esac
 	;;

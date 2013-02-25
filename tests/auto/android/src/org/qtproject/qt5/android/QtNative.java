@@ -83,20 +83,14 @@ public class QtNative extends Application
         if (libraries == null)
             return;
 
-        for (int i = 0; i < libraries.length; i++)
-        {
-            try
-            {
+        for (int i = 0; i < libraries.length; i++) {
+            try {
                 File f = new File(libraries[i]);
                 if (f.exists())
                     System.load(libraries[i]);
-            }
-            catch (SecurityException e)
-            {
+            } catch (SecurityException e) {
                 Log.i(QtTAG, "Can't load '" + libraries[i] + "'", e);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Log.i(QtTAG, "Can't load '" + libraries[i] + "'", e);
             }
         }
@@ -105,22 +99,14 @@ public class QtNative extends Application
         // this method loads bundled libs by name.
     public static void loadBundledLibraries(String[] libraries)
     {
-        for (int i = 0; i < libraries.length; i++)
-        {
-            try
-            {
+        for (int i = 0; i < libraries.length; i++) {
+            try {
                 System.loadLibrary(libraries[i]);
-            }
-            catch (UnsatisfiedLinkError e)
-            {
+            } catch (UnsatisfiedLinkError e) {
                 Log.i(QtTAG, "Can't load '" + libraries[i] + "'", e);
-            }
-            catch (SecurityException e)
-            {
+            } catch (SecurityException e) {
                 Log.i(QtTAG, "Can't load '" + libraries[i] + "'", e);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Log.i(QtTAG, "Can't load '" + libraries[i] + "'", e);
             }
         }
@@ -128,15 +114,13 @@ public class QtNative extends Application
 
     public static void setMainActivity(QtActivity qtMainActivity)
     {
-        synchronized (m_mainActivityMutex)
-        {
+        synchronized (m_mainActivityMutex) {
             m_mainActivity = qtMainActivity;
         }
     }
     public static void setMainView(QtSurface qtSurface)
     {
-        synchronized (m_mainActivityMutex)
-        {
+        synchronized (m_mainActivityMutex) {
             m_mainView = qtSurface;
         }
     }
@@ -153,8 +137,7 @@ public class QtNative extends Application
 
     private static boolean runAction(Runnable action)
     {
-        synchronized (m_mainActivityMutex)
-        {
+        synchronized (m_mainActivityMutex) {
             if (m_mainActivity == null)
                 m_lostActions.add(action);
             else
@@ -172,18 +155,17 @@ public class QtNative extends Application
         if (params == null)
             params = "-platform\tandroid";
 
-        boolean res=false;
-        synchronized (m_mainActivityMutex)
-        {
-            res=startQtAndroidPlugin();
+        boolean res = false;
+        synchronized (m_mainActivityMutex) {
+            res = startQtAndroidPlugin();
             setDisplayMetrics(m_displayMetricsScreenWidthPixels,
-                            m_displayMetricsScreenHeightPixels,
-                            m_displayMetricsDesktopWidthPixels,
-                            m_displayMetricsDesktopHeightPixels,
-                            m_displayMetricsXDpi,
-                            m_displayMetricsYDpi);
+                              m_displayMetricsScreenHeightPixels,
+                              m_displayMetricsDesktopWidthPixels,
+                              m_displayMetricsDesktopHeightPixels,
+                              m_displayMetricsXDpi,
+                              m_displayMetricsYDpi);
             startQtApplication(f.getAbsolutePath()+"\t"+params, environment);
-            m_started=true;
+            m_started = true;
         }
         return res;
     }
@@ -193,17 +175,15 @@ public class QtNative extends Application
             int desktopHeightPixels, double XDpi, double YDpi)
     {
         /* Fix buggy dpi report */
-        if (XDpi<android.util.DisplayMetrics.DENSITY_LOW)
-            XDpi=android.util.DisplayMetrics.DENSITY_LOW;
-        if (YDpi<android.util.DisplayMetrics.DENSITY_LOW)
-            YDpi=android.util.DisplayMetrics.DENSITY_LOW;
+        if (XDpi < android.util.DisplayMetrics.DENSITY_LOW)
+            XDpi = android.util.DisplayMetrics.DENSITY_LOW;
+        if (YDpi < android.util.DisplayMetrics.DENSITY_LOW)
+            YDpi = android.util.DisplayMetrics.DENSITY_LOW;
 
-        synchronized (m_mainActivityMutex)
-        {
-            if (m_started)
+        synchronized (m_mainActivityMutex) {
+            if (m_started) {
                 setDisplayMetrics(screenWidthPixels, screenHeightPixels, desktopWidthPixels, desktopHeightPixels, XDpi, YDpi);
-            else
-            {
+            } else {
                 m_displayMetricsScreenWidthPixels = screenWidthPixels;
                 m_displayMetricsScreenHeightPixels = screenHeightPixels;
                 m_displayMetricsDesktopWidthPixels = desktopWidthPixels;
@@ -216,8 +196,7 @@ public class QtNative extends Application
 
     public static void pauseApplication()
     {
-        synchronized (m_mainActivityMutex)
-        {
+        synchronized (m_mainActivityMutex) {
             if (m_started)
                 pauseQtApp();
         }
@@ -225,10 +204,8 @@ public class QtNative extends Application
 
     public static void resumeApplication()
     {
-        synchronized (m_mainActivityMutex)
-        {
-            if (m_started)
-            {
+        synchronized (m_mainActivityMutex) {
+            if (m_started) {
                 resumeQtApp();
                 updateWindow();
             }
@@ -259,7 +236,8 @@ public class QtNative extends Application
     }
 
     @Override
-    public void onTerminate() {
+    public void onTerminate()
+    {
         if (m_started)
             terminateQt();
         super.onTerminate();
@@ -268,8 +246,7 @@ public class QtNative extends Application
 
     static public void sendTouchEvent(MotionEvent event, int id)
     {
-        switch (event.getAction())
-        {
+        switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 mouseUp(id,(int) event.getX(), (int) event.getY());
                 break;
@@ -283,8 +260,7 @@ public class QtNative extends Application
             case MotionEvent.ACTION_MOVE:
                 int dx = (int) (event.getX() - m_oldx);
                 int dy = (int) (event.getY() - m_oldy);
-                if (Math.abs(dx) > m_moveThreshold || Math.abs(dy) > m_moveThreshold)
-                {
+                if (Math.abs(dx) > m_moveThreshold || Math.abs(dy) > m_moveThreshold) {
                     mouseMove(id,(int) event.getX(), (int) event.getY());
                     m_oldx = (int) event.getX();
                     m_oldy = (int) event.getY();
@@ -295,8 +271,7 @@ public class QtNative extends Application
 
     static public void sendTrackballEvent(MotionEvent event, int id)
     {
-        switch (event.getAction())
-        {
+        switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 mouseUp(id, (int) event.getX(), (int) event.getY());
                 break;
@@ -310,8 +285,7 @@ public class QtNative extends Application
             case MotionEvent.ACTION_MOVE:
                 int dx = (int) (event.getX() - m_oldx);
                 int dy = (int) (event.getY() - m_oldy);
-                if (Math.abs(dx) > 5 || Math.abs(dy) > 5)
-                {
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
                         mouseMove(id, (int) event.getX(), (int) event.getY());
                         m_oldx = (int) event.getX();
                         m_oldy = (int) event.getY();

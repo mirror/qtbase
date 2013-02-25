@@ -89,42 +89,50 @@ public class QtInputConnection extends BaseInputConnection
     }
 
     @Override
-    public boolean beginBatchEdit() {
+    public boolean beginBatchEdit()
+    {
         return true;
     }
 
     @Override
-    public boolean endBatchEdit() {
+    public boolean endBatchEdit()
+    {
         return true;
     }
 
     @Override
-    public boolean commitCompletion(CompletionInfo text) {
+    public boolean commitCompletion(CompletionInfo text)
+    {
         return QtNativeInputConnection.commitCompletion(text.getText().toString(), text.getPosition());
     }
 
     @Override
-    public boolean commitText(CharSequence text, int newCursorPosition) {
+    public boolean commitText(CharSequence text, int newCursorPosition)
+    {
         return QtNativeInputConnection.commitText(text.toString(), newCursorPosition);
     }
 
     @Override
-    public boolean deleteSurroundingText(int leftLength, int rightLength) {
+    public boolean deleteSurroundingText(int leftLength, int rightLength)
+    {
         return QtNativeInputConnection.deleteSurroundingText(leftLength, rightLength);
     }
 
     @Override
-    public boolean finishComposingText() {
+    public boolean finishComposingText()
+    {
         return QtNativeInputConnection.finishComposingText();
     }
 
     @Override
-    public int getCursorCapsMode(int reqModes) {
+    public int getCursorCapsMode(int reqModes)
+    {
         return QtNativeInputConnection.getCursorCapsMode(reqModes);
     }
 
     @Override
-    public ExtractedText getExtractedText(ExtractedTextRequest request, int flags) {
+    public ExtractedText getExtractedText(ExtractedTextRequest request, int flags)
+    {
         QtExtractedText qExtractedText = QtNativeInputConnection.getExtractedText(request.hintMaxChars, request.hintMaxLines, flags);
         ExtractedText extractedText = new ExtractedText();
         extractedText.partialEndOffset = qExtractedText.partialEndOffset;
@@ -136,25 +144,27 @@ public class QtInputConnection extends BaseInputConnection
         return extractedText;
     }
 
-    public CharSequence getSelectedText(int flags) {
+    public CharSequence getSelectedText(int flags)
+    {
         return QtNativeInputConnection.getSelectedText(flags);
     }
 
     @Override
-    public CharSequence getTextAfterCursor(int length, int flags) {
+    public CharSequence getTextAfterCursor(int length, int flags)
+    {
         return QtNativeInputConnection.getTextAfterCursor(length, flags);
     }
 
     @Override
-    public CharSequence getTextBeforeCursor(int length, int flags) {
+    public CharSequence getTextBeforeCursor(int length, int flags)
+    {
         return QtNativeInputConnection.getTextBeforeCursor(length, flags);
     }
 
     @Override
     public boolean performContextMenuAction(int id)
     {
-        switch(id)
-        {
+        switch (id) {
         case ID_SELECT_ALL:
             return QtNativeInputConnection.selectAll();
         case ID_COPY:

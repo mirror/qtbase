@@ -49,26 +49,26 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 public class QtActivity extends Activity {
-    private int m_id=-1;
-    private boolean softwareKeyboardIsVisible=false;
+    private int m_id =- 1;
+    private boolean softwareKeyboardIsVisible = false;
     private long m_metaState;
-    private int m_lastChar=0;
-    private boolean m_fullScreen=false;
+    private int m_lastChar = 0;
+    private boolean m_fullScreen = false;
     private boolean m_started = false;
-    private QtSurface m_surface=null;
+    private QtSurface m_surface = null;
     private boolean m_usesGL = false;
-    private void loadQtLibs(String [] libs, String environment, String params, String mainLib, String nativeLibDir) throws Exception
+    private void loadQtLibs(String[] libs, String environment, String params, String mainLib, String nativeLibDir) throws Exception
     {
         QtNative.loadQtLibraries(libs);
         // start application
 
-        final String envPaths="NECESSITAS_API_LEVEL=2\tHOME="+getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath()+
-                            "\tTMPDIR="+getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath()+
-                            "\tCACHE_PATH="+getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath();
-        if (environment != null && environment.length()>0)
-            environment=envPaths+"\t"+environment;
+        final String envPaths = "NECESSITAS_API_LEVEL=2\tHOME=" + getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath() +
+                              "\tTMPDIR=" + getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath() +
+                              "\tCACHE_PATH=" + getDir("files", MODE_WORLD_WRITEABLE).getAbsolutePath();
+        if (environment != null && environment.length() > 0)
+            environment = envPaths + "\t" + environment;
         else
-            environment=envPaths;
+            environment = envPaths;
 
         try {
             Thread.sleep(5000);
@@ -77,48 +77,43 @@ public class QtActivity extends Activity {
             e.printStackTrace();
         }
         QtNative.startApplication(params, environment, mainLib, nativeLibDir);
-        m_surface.applicationStarted( m_usesGL );
+        m_surface.applicationStarted(m_usesGL);
         m_started = true;
     }
 
     private boolean m_quitApp = true;
-    private Process m_debuggerProcess=null; // debugger process
+    private Process m_debuggerProcess = null; // debugger process
 
     private void startApp(final boolean firstStart)
     {
-        try
-        {
-            String qtLibs[]=getResources().getStringArray(R.array.qt_libs);
-            ArrayList<String> libraryList= new ArrayList<String>();
-            for(int i=0;i<qtLibs.length;i++)
-                libraryList.add("/data/local/qt/lib/lib"+qtLibs[i]+".so");
+        try {
+            String qtLibs[] = getResources().getStringArray(R.array.qt_libs);
+            ArrayList<String> libraryList = new ArrayList<String>();
+            for (int i = 0; i < qtLibs.length; i++)
+                libraryList.add("/data/local/qt/lib/lib" + qtLibs[i] + ".so");
 
-            String mainLib=null;
-            String nativeLibDir=null;
-            if (getIntent().getExtras() != null)
-            {
-                if (getIntent().getExtras().containsKey("extra_libs"))
-                {
-                    String extra_libs=getIntent().getExtras().getString("extra_libs");
+            String mainLib = null;
+            String nativeLibDir = null;
+            if (getIntent().getExtras() != null) {
+                if (getIntent().getExtras().containsKey("extra_libs")) {
+                    String extra_libs = getIntent().getExtras().getString("extra_libs");
                     for (String lib : extra_libs.split(":"))
                         libraryList.add(lib);
                 }
-                if (getIntent().getExtras().containsKey("lib_name"))
-                {
-                    mainLib=getIntent().getExtras().getString("lib_name");
-                    int slash=mainLib.lastIndexOf("/");
+                if (getIntent().getExtras().containsKey("lib_name")) {
+                    mainLib = getIntent().getExtras().getString("lib_name");
+                    int slash = mainLib.lastIndexOf("/");
                     if (slash >= 0) {
-                        nativeLibDir=mainLib.substring(0, slash+1);
-                        mainLib=mainLib.substring(slash+1+3, mainLib.length()-3); //remove lib and .so
-                    } else
+                        nativeLibDir = mainLib.substring(0, slash+1);
+                        mainLib = mainLib.substring(slash+1+3, mainLib.length()-3); //remove lib and .so
+                    } else {
                         nativeLibDir = "";
+                    }
                 }
 
                 if (getIntent().getExtras().containsKey("needsOpenGl"))
-                    m_usesGL=getIntent().getExtras().getBoolean("needsOpenGl");
-            }
-            else
-            {
+                    m_usesGL = getIntent().getExtras().getBoolean("needsOpenGl");
+            } else {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
@@ -127,12 +122,11 @@ public class QtActivity extends Activity {
                 }
                 System.exit(0);
             }
-            String[] libs=new String[libraryList.size()];
-            libs=libraryList.toArray(libs);
-            loadQtLibs(libs,"QML_IMPORT_PATH=/data/local/qt/imports\tQT_PLUGIN_PATH=/data/local/qt/plugins", "-xml\t-silent\t-o\toutput.xml",mainLib,nativeLibDir);
-        }
-        catch (Exception e)
-        {
+            String[] libs = new String[libraryList.size()];
+            libs = libraryList.toArray(libs);
+            loadQtLibs(libs, "QML_IMPORT_PATH=/data/local/qt/imports\tQT_PLUGIN_PATH=/data/local/qt/plugins",
+                       "-xml\t-silent\t-o\toutput.xml", mainLib, nativeLibDir);
+        } catch (Exception e) {
             Log.e(QtNative.QtTAG, "Can't create main activity", e);
         }
     }
@@ -145,8 +139,7 @@ public class QtActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         m_quitApp = true;
         QtNative.setMainActivity(this);
-        if (null == getLastNonConfigurationInstance())
-        {
+        if (null == getLastNonConfigurationInstance()) {
             DisplayMetrics metrics = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(metrics);
             QtNative.setApplicationDisplayMetrics(metrics.widthPixels, metrics.heightPixels,
@@ -177,8 +170,7 @@ public class QtActivity extends Activity {
     {
         QtNative.setMainActivity(null);
         super.onDestroy();
-        if (m_quitApp)
-        {
+        if (m_quitApp) {
             Log.i(QtNative.QtTAG, "onDestroy");
             if (m_debuggerProcess != null)
                 m_debuggerProcess.destroy();
@@ -191,13 +183,11 @@ public class QtActivity extends Activity {
     protected void onResume()
     {
         // fire all lostActions
-        synchronized (QtNative.m_mainActivityMutex)
-        {
-            Iterator<Runnable> itr=QtNative.getLostActions().iterator();
-            while(itr.hasNext())
+        synchronized (QtNative.m_mainActivityMutex) {
+            Iterator<Runnable> itr = QtNative.getLostActions().iterator();
+            while (itr.hasNext())
                 runOnUiThread(itr.next());
-            if (m_started)
-            {
+            if (m_started) {
                 QtNative.clearLostActions();
                 QtNative.updateWindow();
             }
@@ -205,7 +195,8 @@ public class QtActivity extends Activity {
         super.onResume();
     }
 
-    public void redrawWindow(int left, int top, int right, int bottom) {
+    public void redrawWindow(int left, int top, int right, int bottom)
+    {
         m_surface.drawBitmap(new Rect(left, top, right, bottom));
     }
 
@@ -220,26 +211,28 @@ public class QtActivity extends Activity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(Bundle outState)
+    {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("FullScreen",m_fullScreen);
+        outState.putBoolean("FullScreen", m_fullScreen);
         outState.putBoolean("Started", m_started);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
         super.onRestoreInstanceState(savedInstanceState);
         setFullScreen(savedInstanceState.getBoolean("FullScreen"));
         m_started = savedInstanceState.getBoolean("Started");
         if (m_started)
-            m_surface.applicationStarted( true );
+            m_surface.applicationStarted(true);
     }
 
     public void showSoftwareKeyboard()
     {
         softwareKeyboardIsVisible = true;
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY );
+        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
     }
 
     public void resetSoftwareKeyboard()
@@ -248,8 +241,7 @@ public class QtActivity extends Activity {
 
     public void hideSoftwareKeyboard()
     {
-        if (softwareKeyboardIsVisible)
-        {
+        if (softwareKeyboardIsVisible) {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.toggleSoftInput(0, 0);
         }
@@ -257,12 +249,13 @@ public class QtActivity extends Activity {
     }
 
     @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
+    public boolean dispatchKeyEvent(KeyEvent event)
+    {
         if (m_started && event.getAction() == KeyEvent.ACTION_MULTIPLE &&
             event.getCharacters() != null &&
             event.getCharacters().length() == 1 &&
             event.getKeyCode() == 0) {
-            Log.i(QtNative.QtTAG, "dispatchKeyEvent at MULTIPLE with one character: "+event.getCharacters());
+            Log.i(QtNative.QtTAG, "dispatchKeyEvent at MULTIPLE with one character: " + event.getCharacters());
             QtNative.keyDown(0, event.getCharacters().charAt(0), event.getMetaState());
             QtNative.keyUp(0, event.getCharacters().charAt(0), event.getMetaState());
         }
@@ -277,11 +270,10 @@ public class QtActivity extends Activity {
             return false;
         m_metaState = MetaKeyKeyListener.handleKeyDown(m_metaState, keyCode, event);
         int c = event.getUnicodeChar(MetaKeyKeyListener.getMetaState(m_metaState));
-        int lc=c;
+        int lc = c;
         m_metaState = MetaKeyKeyListener.adjustMetaAfterKeypress(m_metaState);
 
-        if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0)
-        {
+        if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0) {
             c = c & KeyCharacterMap.COMBINING_ACCENT_MASK;
             int composed = KeyEvent.getDeadChar(m_lastChar, c);
             c = composed;

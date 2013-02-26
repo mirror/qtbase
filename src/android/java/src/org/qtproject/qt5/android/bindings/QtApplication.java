@@ -54,60 +54,6 @@ public class QtApplication extends Application
     public static Method onKeyShortcut = null;
     public static Method dispatchGenericMotionEvent = null;
     public static Method onGenericMotionEvent = null;
-/*
-    public static Method onTerminate = null;
-    public static Method onApplyThemeResource = null;
-    public static Method onChildTitleChanged = null;
-    public static Method onConfigurationChanged = null;
-    public static Method onContentChanged  = null;
-    public static Method onContextItemSelected  = null;
-    public static Method onContextMenuClosed = null;
-    public static Method onCreateContextMenu = null;
-    public static Method onCreateDescription = null;
-    public static Method onCreateDialog = null;
-    public static Method onCreateOptionsMenu = null;
-    public static Method onCreatePanelMenu = null;
-    public static Method onCreatePanelView = null;
-    public static Method onCreateThumbnail = null;
-    public static Method onCreateView = null;
-    public static Method onDestroy = null;
-    public static Method onLowMemory = null;
-    public static Method onMenuItemSelected = null;
-    public static Method onMenuOpened = null;
-    public static Method onNewIntent = null;
-    public static Method onOptionsItemSelected = null;
-    public static Method onOptionsMenuClosed = null;
-    public static Method onPanelClosed = null;
-    public static Method onPause = null;
-    public static Method onPostCreate = null;
-    public static Method onPostResume = null;
-    public static Method onPrepareDialog = null;
-    public static Method onPrepareOptionsMenu = null;
-    public static Method onPreparePanel = null;
-    public static Method onRestart = null;
-    public static Method onRestoreInstanceState = null;
-    public static Method onResume = null;
-    public static Method onRetainNonConfigurationInstance = null;
-    public static Method onSaveInstanceState = null;
-    public static Method onSearchRequested = null;
-    public static Method onStart = null;
-    public static Method onStop = null;
-    public static Method onTitleChanged = null;
-    public static Method onUserInteraction = null;
-    public static Method onUserLeaveHint = null;
-    public static Method onWindowAttributesChanged = null;
-    public static Method onWindowFocusChanged = null;
-    public static Method onAttachedToWindow = null;
-    public static Method onBackPressed = null;
-    public static Method onDetachedFromWindow = null;
-    public static Method onCreateDialog8 = null;
-    public static Method onPrepareDialog8 = null;
-    public static Method onActionModeFinished = null;
-    public static Method onActionModeStarted = null;
-    public static Method onAttachFragment = null;
-    public static Method onCreateView11 = null;
-    public static Method onWindowStartingActionMode = null;
-*/
 
     public static void setQtActivityDelegate(Object listener)
     {

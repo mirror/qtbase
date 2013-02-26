@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 
-android : SUBDIRS += android
+android:!android-no-sdk: SUBDIRS += android
 
 SUBDIRS += minimal offscreen
 

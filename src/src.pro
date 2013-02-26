@@ -97,4 +97,4 @@ SUBDIRS += src_plugins
 
 nacl: SUBDIRS -= src_network src_testlib
 
-android: SUBDIRS += src_android
+android:!android-no-sdk: SUBDIRS += src_android

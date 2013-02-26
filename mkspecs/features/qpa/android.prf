@@ -1,7 +1,0 @@
-android_java.path  = $$[QT_INSTALL_PREFIX]/src/android/java
-android_java.files = $$QT_SOURCE_TREE/src/android/java/*
-android_cpp.path   = $$[QT_INSTALL_PREFIX]/src/android/cpp
-android_cpp.files  = $$QT_SOURCE_TREE/src/android/cpp/*.cpp
-android_jar.path   = $$[QT_INSTALL_PREFIX]/jar
-android_jar.files  = $$QT_BUILD_TREE/jar/*
-INSTALLS += android_cpp android_java android_jar

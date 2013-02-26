@@ -120,14 +120,6 @@ defineTest(qtAddModule) {
 
        contains(MODULE_CONFIG, staticlib): \
            PRE_TARGETDEPS *= $$MODULE_LIBS/$${QMAKE_PREFIX_STATICLIB}$${lib}.$${QMAKE_EXTENSION_STATICLIB}
-       # Make sure we can link to uninstalled libraries
-       !isEmpty(MODULE_LIBS) {
-            for(rpl, QT.$${1}.rpath_link): \
-                QMAKE_RPATHLINKDIR *= $$rpl
-            !auto_use_privates:!isEqual(2, UsePrivate): \
-                for(rpl, QT.$${1}.rpath_link_private): \
-                    QMAKE_RPATHLINKDIR *= $$rpl
-       }
     }
     # Only link to this module if a libs directory is set, else this is just a module
     # to give access to sources or include files, and not for linking.

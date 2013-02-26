@@ -6,10 +6,7 @@ contains(TEMPLATE, ".*app") {
 }
 !CONFIG(QTDIR_build):CONFIG(android_install) {
     isEmpty(QT_BUILD_TREE) {
-        contains(ANDROID_TARGET_ARCH, armeabi-v7a) : target.path=/libs/armeabi-v7a/
-        contains(ANDROID_TARGET_ARCH, armeabi)     : target.path=/libs/armeabi/
-        contains(ANDROID_TARGET_ARCH, x86)         : target.path=/libs/x86/
-        contains(ANDROID_TARGET_ARCH, mips)        : target.path=/libs/mips/
+        target.path=/libs/$$ANDROID_TARGET_ARCH/
     } else {
         target.path=/
     }

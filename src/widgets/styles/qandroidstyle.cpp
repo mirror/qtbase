@@ -39,7 +39,7 @@
 **
 ****************************************************************************/
 
-#include "qandroidstyle.h"
+#include "qandroidstyle_p.h"
 
 #if !defined(QT_NO_STYLE_ANDROID) || defined(QT_PLUGIN)
 

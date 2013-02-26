@@ -49,7 +49,7 @@
 #ifndef QT_NO_STYLE_FUSION
 #include "qfusionstyle_p.h"
 #ifndef QT_NO_STYLE_ANDROID
-#include "qandroidstyle.h"
+#include "qandroidstyle_p.h"
 #endif
 #endif
 #ifndef QT_NO_STYLE_GTK

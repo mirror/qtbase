@@ -39,8 +39,19 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDSTYLE_H
-#define QANDROIDSTYLE_H
+#ifndef QANDROIDSTYLE_P_H
+#define QANDROIDSTYLE_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists for the convenience
+// of qstylefactory.cpp.  This header may change from version to version
+// without notice, or even be removed.
+//
+// We mean it.
+//
 
 #include <QtCore/QList>
 #include <QtCore/QMargins>
@@ -368,4 +379,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDSTYLE_H
+#endif // QANDROIDSTYLE_P_H

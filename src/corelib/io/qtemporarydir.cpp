@@ -94,9 +94,9 @@ static QString defaultTemplateName()
     return QDir::tempPath() + QLatin1Char('/') + baseName + QLatin1String("-XXXXXX");
 }
 
-#if defined(Q_OS_QNX ) || defined(Q_OS_WIN) || defined(Q_OS_ANDROID)
-static char *mkdtemp(char *templateName)
+static char *q_mkdtemp(char *templateName)
 {
+#if defined(Q_OS_QNX ) || defined(Q_OS_WIN) || defined(Q_OS_ANDROID)
     static const char letters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     const size_t length = strlen(templateName);
@@ -137,15 +137,17 @@ static char *mkdtemp(char *templateName)
         }
     }
     return 0;
-}
+#else
+    return mkdtemp(templateName);
 #endif
+}
 
 void QTemporaryDirPrivate::create(const QString &templateName)
 {
     QByteArray buffer = QFile::encodeName(templateName);
     if (!buffer.endsWith("XXXXXX"))
         buffer += "XXXXXX";
-    if (mkdtemp(buffer.data())) { // modifies buffer
+    if (q_mkdtemp(buffer.data())) { // modifies buffer
         success = true;
         path = QFile::decodeName(buffer.constData());
     }

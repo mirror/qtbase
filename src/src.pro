@@ -97,7 +97,4 @@ SUBDIRS += src_plugins
 
 nacl: SUBDIRS -= src_network src_testlib
 
-android {
-    CONFIG += qpa/android
-    SUBDIRS += src_android
-}
+android: SUBDIRS += src_android

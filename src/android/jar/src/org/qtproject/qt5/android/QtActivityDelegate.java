@@ -295,8 +295,7 @@ public class QtActivityDelegate
         /// check parameters integrity
         if (!loaderParams.containsKey(NATIVE_LIBRARIES_KEY)
                 || !loaderParams.containsKey(BUNDLED_LIBRARIES_KEY)
-                || !loaderParams.containsKey(ENVIRONMENT_VARIABLES_KEY)
-                || !loaderParams.containsKey(APPLICATION_PARAMETERS_KEY)) {
+                || !loaderParams.containsKey(ENVIRONMENT_VARIABLES_KEY)) {
             return false;
         }
 
@@ -361,7 +360,11 @@ public class QtActivityDelegate
         else
             m_environmentVariables = additionalEnvironmentVariables;
 
-        m_applicationParameters = loaderParams.getString(APPLICATION_PARAMETERS_KEY);
+        if (loaderParams.containsKey(APPLICATION_PARAMETERS_KEY))
+            m_applicationParameters = loaderParams.getString(APPLICATION_PARAMETERS_KEY);
+        else
+            m_applicationParameters = "";
+
         return true;
     }
 

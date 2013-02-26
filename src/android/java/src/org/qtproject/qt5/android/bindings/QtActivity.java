@@ -355,7 +355,6 @@ public class QtActivity extends Activity
                                                                   + "\tQML2_IMPORT_PATH=" + localPrefix + "/qml"
                                                                   + "\tQML_IMPORT_PATH=" + localPrefix + "/imports"
                                                                   + "\tQT_PLUGIN_PATH=" + localPrefix + "/plugins");
-                loaderParams.putString(APPLICATION_PARAMETERS_KEY,"-platform\tandroid");
                 loadApplication(loaderParams);
                 return;
             }

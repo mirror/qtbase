@@ -53,9 +53,6 @@
 // We mean it.
 //
 
-#ifdef Q_OS_ANDROID
-#include <semaphore.h>
-#endif
 #include "qsystemsemaphore.h"
 
 #ifndef QT_NO_SYSTEMSEMAPHORE
@@ -81,9 +78,6 @@ public:
 #ifdef Q_OS_WIN
     Qt::HANDLE handle(QSystemSemaphore::AccessMode mode = QSystemSemaphore::Open);
     void setErrorString(const QString &function);
-#elif defined(Q_OS_ANDROID)
-    void handle(QSystemSemaphore::AccessMode mode = QSystemSemaphore::Open);
-    void setErrorString(const QString &function);
 #else
     key_t handle(QSystemSemaphore::AccessMode mode = QSystemSemaphore::Open);
     void setErrorString(const QString &function);
@@ -97,8 +91,6 @@ public:
 #ifdef Q_OS_WIN
     Qt::HANDLE semaphore;
     Qt::HANDLE semaphoreLock;
-#elif defined(Q_OS_ANDROID)
-    sem_t *android_key;
 #else
     int semaphore;
     bool createdFile;

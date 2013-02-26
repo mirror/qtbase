@@ -231,7 +231,7 @@ void QSystemSemaphore::setKey(const QString &key, int initialValue, AccessMode m
         return;
     d->error = NoError;
     d->errorString = QString();
-#if !defined(Q_OS_WIN) && !defined(Q_OS_ANDROID)
+#if !defined(Q_OS_WIN)
     // optimization to not destroy/create the file & semaphore
     if (key == d->key && mode == Create && d->createdSemaphore && d->createdFile) {
         d->initialValue = initialValue;

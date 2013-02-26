@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2012 Collabora Ltd, author <robin.burchell@collabora.co.uk>
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -41,41 +41,67 @@
 
 #include "qsharedmemory.h"
 #include "qsharedmemory_p.h"
-#include <errno.h>
+#include <qdebug.h>
 
 #ifndef QT_NO_SHAREDMEMORY
 QT_BEGIN_NAMESPACE
 
+QSharedMemoryPrivate::QSharedMemoryPrivate()
+    : QObjectPrivate(), memory(0), size(0), error(QSharedMemory::NoError),
+#ifndef QT_NO_SYSTEMSEMAPHORE
+      systemSemaphore(QString()), lockedByMe(false),
+#endif
+      unix_key(0)
+{
+}
+
 void QSharedMemoryPrivate::setErrorString(const QString &function)
 {
-    // EINVAL is handled in functions so they can give better error strings
-    switch (errno) {
-    case EACCES:
-        errorString = QSharedMemory::tr("%1: permission denied").arg(function);
-        error = QSharedMemory::PermissionDenied;
-        break;
-    case EEXIST:
-        errorString = QSharedMemory::tr("%1: already exists").arg(function);
-        error = QSharedMemory::AlreadyExists;
-        break;
-    case ENOENT:
-        errorString = QSharedMemory::tr("%1: doesn't exist").arg(function);
-        error = QSharedMemory::NotFound;
-        break;
-    case EMFILE:
-    case ENOMEM:
-    case ENOSPC:
-        errorString = QSharedMemory::tr("%1: out of resources").arg(function);
-        error = QSharedMemory::OutOfResources;
-        break;
-    default:
-        errorString = QSharedMemory::tr("%1: unknown error %2").arg(function).arg(errno);
-        error = QSharedMemory::UnknownError;
-#if defined QSHAREDMEMORY_DEBUG
-        qDebug() << errorString << "key" << key << "errno" << errno << EINVAL;
-#endif
-    }
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
 }
+
+key_t QSharedMemoryPrivate::handle()
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return 0;
+}
+
+#endif // QT_NO_SHAREDMEMORY
+
+#if !(defined(QT_NO_SHAREDMEMORY) && defined(QT_NO_SYSTEMSEMAPHORE))
+int QSharedMemoryPrivate::createUnixKeyFile(const QString &fileName)
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return 0;
+}
+#endif // QT_NO_SHAREDMEMORY && QT_NO_SYSTEMSEMAPHORE
+
+#ifndef QT_NO_SHAREDMEMORY
+
+bool QSharedMemoryPrivate::cleanHandle()
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return true;
+}
+
+bool QSharedMemoryPrivate::create(int size)
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return false;
+}
+
+bool QSharedMemoryPrivate::attach(QSharedMemory::AccessMode mode)
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return false;
+}
+
+bool QSharedMemoryPrivate::detach()
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return false;
+}
+
 
 QT_END_NAMESPACE
 

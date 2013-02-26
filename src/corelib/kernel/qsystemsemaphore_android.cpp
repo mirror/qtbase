@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 BogDan Vatra <bogdan@kde.org>
+** Copyright (C) 2012 Collabora Ltd, author <robin.burchell@collabora.co.uk>
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the QtCore module of the Qt Toolkit.
@@ -43,63 +43,39 @@
 #include "qsystemsemaphore_p.h"
 
 #include <qdebug.h>
-#include <qfile.h>
-#include <qcoreapplication.h>
 
 #ifndef QT_NO_SYSTEMSEMAPHORE
-
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <fcntl.h>
-#include <errno.h>
-
 
 QT_BEGIN_NAMESPACE
 
 QSystemSemaphorePrivate::QSystemSemaphorePrivate() :
-        android_key(NULL), error(QSystemSemaphore::NoError)
+        semaphore(-1), createdFile(false),
+        createdSemaphore(false), unix_key(-1), error(QSystemSemaphore::NoError)
 {
 }
 
-/*!
-    \internal
-
-    Setup android_key
- */
-void QSystemSemaphorePrivate::handle(QSystemSemaphore::AccessMode mode)
+void QSystemSemaphorePrivate::setErrorString(const QString &function)
 {
-
-    android_key=sem_open(makeKeyFileName().toLatin1(), (mode == QSystemSemaphore::Open) ? O_CREAT : O_CREAT | O_EXCL);
-    if (SEM_FAILED == android_key)
-        setErrorString(QLatin1String("QSystemSemaphore::handle"));
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
 }
 
-/*!
-    \internal
+key_t QSystemSemaphorePrivate::handle(QSystemSemaphore::AccessMode mode)
+{
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return -1;
+}
 
-    Cleanup the android_key
- */
 void QSystemSemaphorePrivate::cleanHandle()
 {
-    if (android_key && SEM_FAILED != android_key)
-        sem_close(android_key);
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
 }
 
-/*!
-    \internal
- */
 bool QSystemSemaphorePrivate::modifySemaphore(int count)
 {
-    if (!android_key || SEM_FAILED == android_key)
-        return false;
-
-    if (count > 0)
-        while(count--)
-            sem_post(android_key);
-    else
-        sem_wait(android_key);
-    return true;
+    qWarning() << Q_FUNC_INFO << "Not yet implemented on Android";
+    return false;
 }
+
 
 QT_END_NAMESPACE
 

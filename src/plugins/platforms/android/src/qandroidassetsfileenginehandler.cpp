@@ -43,7 +43,6 @@
 #include "androidjnimain.h"
 
 #include <QCoreApplication>
-#include <QDateTime>
 
 class AndroidAbstractFileEngineIterator: public QAbstractFileEngineIterator
 {
@@ -249,7 +248,6 @@ private:
 AndroidAssetsFileEngineHandler::AndroidAssetsFileEngineHandler()
 {
     m_assetManager = QtAndroid::assetManager();
-    m_necessitasApiLevel = -1;
 }
 
 AndroidAssetsFileEngineHandler::~AndroidAssetsFileEngineHandler()
@@ -261,78 +259,30 @@ QAbstractFileEngine * AndroidAssetsFileEngineHandler::create(const QString &file
     if(fileName.isEmpty())
         return 0;
 
-    if (m_necessitasApiLevel == -1)
-        m_necessitasApiLevel = qgetenv("NECESSITAS_API_LEVEL").toInt();
+    if (!fileName.startsWith(QLatin1String("assets:/")))
+        return 0;
 
-    if (m_necessitasApiLevel > 1) {
-        if (!fileName.startsWith(QLatin1String("assets:/")))
-            return 0;
+    int prefixSize=8;
 
-        int prefixSize=8;
-
-        m_path.clear();
-        if (!fileName.endsWith(QLatin1Char('/'))) {
-            m_path = fileName.toUtf8();
-            AAsset *asset = AAssetManager_open(m_assetManager,
-                                               m_path.constData() + prefixSize,
-                                               AASSET_MODE_BUFFER);
-            if (asset)
-                return new AndroidAbstractFileEngine(asset, fileName);
-        }
-
-        if (!m_path.size())
-             m_path = fileName.left(fileName.length() - 1).toUtf8();
-
-        AAssetDir *assetDir=AAssetManager_openDir(m_assetManager, m_path.constData() + prefixSize);
-        if (assetDir) {
-            if (AAssetDir_getNextFileName(assetDir))
-                return new AndroidAbstractFileEngine(assetDir, fileName);
-            else
-                AAssetDir_close(assetDir);
-        }
-    } else {
-        AAsset *asset;
-        if (fileName[0] == QChar(QLatin1Char('/'))) {
-            asset = AAssetManager_open(m_assetManager,
-                                       fileName.toUtf8().constData() + 1,
-                                       AASSET_MODE_BUFFER);
-        } else {
-            if (fileName.startsWith(QLatin1String("file://"))) {
-                asset = AAssetManager_open(m_assetManager,
-                                           fileName.toUtf8().constData() + 7,
+    m_path.clear();
+    if (!fileName.endsWith(QLatin1Char('/'))) {
+        m_path = fileName.toUtf8();
+        AAsset *asset = AAssetManager_open(m_assetManager,
+                                           m_path.constData() + prefixSize,
                                            AASSET_MODE_BUFFER);
-            } else {
-                asset = AAssetManager_open(m_assetManager,
-                                           fileName.toUtf8().constData(),
-                                           AASSET_MODE_BUFFER);
-            }
-        }
-
         if (asset)
             return new AndroidAbstractFileEngine(asset, fileName);
-
-        if (!fileName.endsWith(QChar(QLatin1Char('/'))))
-            return 0;
-
-        QString dirName;
-        if (fileName[0] == QChar(QLatin1Char('/'))) {
-            dirName = fileName.mid(1, fileName.size() - 2);
-        } else {
-            if (fileName.startsWith(QLatin1String("file://")))
-                dirName = fileName.mid(7,fileName.size()-8);
-            else
-                dirName = fileName.left(fileName.size()-1);
-        }
-
-        AAssetDir *assetDir;
-        assetDir = AAssetManager_openDir(m_assetManager, dirName.toUtf8().constData());
-        if (assetDir) {
-            if (AAssetDir_getNextFileName(assetDir))
-                return new AndroidAbstractFileEngine(assetDir, fileName);
-            else
-                AAssetDir_close(assetDir);
-        }
     }
 
+    if (!m_path.size())
+         m_path = fileName.left(fileName.length() - 1).toUtf8();
+
+    AAssetDir *assetDir = AAssetManager_openDir(m_assetManager, m_path.constData() + prefixSize);
+    if (assetDir) {
+        if (AAssetDir_getNextFileName(assetDir))
+            return new AndroidAbstractFileEngine(assetDir, fileName);
+        else
+            AAssetDir_close(assetDir);
+    }
     return 0;
 }

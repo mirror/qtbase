@@ -408,6 +408,31 @@ public class QtActivityDelegate
                 }
             }
 
+
+            if ( /*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
+                    &&*/ m_activity.getIntent().getExtras() != null
+                    && m_activity.getIntent().getExtras().containsKey("debug_ping")
+                    && m_activity.getIntent().getExtras().getString("debug_ping").equals("true")) {
+                    String packagePath =
+                        m_activity.getPackageManager().getApplicationInfo(m_activity.getPackageName(),
+                                                                          PackageManager.GET_CONFIGURATIONS).dataDir + "/";
+                    String debugPing = packagePath + "debug_ping";
+                    int i = 0;
+                    while (true) {
+                        ++i;
+                        Log.i(QtNative.QtTAG, "DEBUGGER: WAITING FOR PING AT " + debugPing + ", ATTEMPT " + i);
+                        File file = new File(debugPing);
+                        if (file.exists()) {
+                            file.delete();
+                            break;
+                        }
+                        Thread.sleep(1000);
+                    }
+
+                    Log.i(QtNative.QtTAG, "DEBUGGER: GOT PING " + debugPing);
+            }
+
+
             if (/*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
                     &&*/ m_activity.getIntent().getExtras() != null
                     && m_activity.getIntent().getExtras().containsKey("qml_debug")

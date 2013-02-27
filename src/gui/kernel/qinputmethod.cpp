@@ -105,7 +105,7 @@ void QInputMethod::setInputItemTransform(const QTransform &transform)
 
     Returns the input item's geometry in input item coordinates.
 
-    \sa setInputRectangle()
+    \sa setInputItemRectangle()
 */
 QRectF QInputMethod::inputItemRectangle() const
 {
@@ -125,7 +125,6 @@ void QInputMethod::setInputItemRectangle(const QRectF &rect)
     Q_D(QInputMethod);
     d->inputRectangle = rect;
 }
-
 
 /*!
     \property QInputMethod::cursorRectangle

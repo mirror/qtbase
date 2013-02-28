@@ -374,22 +374,23 @@ public class QtActivityDelegate
         try {
             // FIXME turn on debuggable check
             // if the applications is debuggable and it has a native debug request
+            Bundle extras = m_activity.getIntent().getExtras();
             if ( /*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
-                    &&*/ m_activity.getIntent().getExtras() != null
-                    && m_activity.getIntent().getExtras().containsKey("native_debug")
-                    && m_activity.getIntent().getExtras().getString("native_debug").equals("true")) {
+                    &&*/ extras != null
+                    && extras.containsKey("native_debug")
+                    && extras.getString("native_debug").equals("true")) {
                 try {
                     String packagePath =
                         m_activity.getPackageManager().getApplicationInfo(m_activity.getPackageName(),
                                                                           PackageManager.GET_CONFIGURATIONS).dataDir + "/";
                     String gdbserverPath =
-                        m_activity.getIntent().getExtras().containsKey("gdbserver_path")
-                        ? m_activity.getIntent().getExtras().getString("gdbserver_path")
+                        extras.containsKey("gdbserver_path")
+                        ? extras.getString("gdbserver_path")
                         : packagePath+"lib/gdbserver ";
 
                     String socket =
-                        m_activity.getIntent().getExtras().containsKey("gdbserver_socket")
-                        ? m_activity.getIntent().getExtras().getString("gdbserver_socket")
+                        extras.containsKey("gdbserver_socket")
+                        ? extras.getString("gdbserver_socket")
                         : "+debug-socket";
 
                     // start debugger
@@ -410,9 +411,9 @@ public class QtActivityDelegate
 
 
             if ( /*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
-                    &&*/ m_activity.getIntent().getExtras() != null
-                    && m_activity.getIntent().getExtras().containsKey("debug_ping")
-                    && m_activity.getIntent().getExtras().getString("debug_ping").equals("true")) {
+                    &&*/ extras != null
+                    && extras.containsKey("debug_ping")
+                    && extras.getString("debug_ping").equals("true")) {
                     String packagePath =
                         m_activity.getPackageManager().getApplicationInfo(m_activity.getPackageName(),
                                                                           PackageManager.GET_CONFIGURATIONS).dataDir + "/";
@@ -434,12 +435,12 @@ public class QtActivityDelegate
 
 
             if (/*(ai.flags&ApplicationInfo.FLAG_DEBUGGABLE) != 0
-                    &&*/ m_activity.getIntent().getExtras() != null
-                    && m_activity.getIntent().getExtras().containsKey("qml_debug")
-                    && m_activity.getIntent().getExtras().getString("qml_debug").equals("true")) {
+                    &&*/ extras != null
+                    && extras.containsKey("qml_debug")
+                    && extras.getString("qml_debug").equals("true")) {
                 String qmljsdebugger;
-                if (m_activity.getIntent().getExtras().containsKey("qmljsdebugger")) {
-                    qmljsdebugger = m_activity.getIntent().getExtras().getString("qmljsdebugger");
+                if (extras.containsKey("qmljsdebugger")) {
+                    qmljsdebugger = extras.getString("qmljsdebugger");
                     qmljsdebugger.replaceAll("\\s", ""); // remove whitespace for security
                 } else {
                     qmljsdebugger = "port:3768";

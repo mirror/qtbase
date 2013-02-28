@@ -66,11 +66,9 @@ QNetworkAccessFileBackendFactory::create(QNetworkAccessManager::Operation op,
 
     QUrl url = request.url();
     if (url.scheme().compare(QLatin1String("qrc"), Qt::CaseInsensitive) == 0
-
 #if defined(Q_OS_ANDROID)
             || url.scheme().compare(QLatin1String("assets"), Qt::CaseInsensitive) == 0
 #endif
-
             || url.isLocalFile()) {
         return new QNetworkAccessFileBackend;
     } else if (!url.scheme().isEmpty() && url.authority().isEmpty() && (url.scheme().length() > 1)) {

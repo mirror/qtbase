@@ -188,7 +188,7 @@ public:
         FileFlags flags(ReadOwnerPerm|ReadUserPerm|ReadGroupPerm|ReadOtherPerm|ExistsFlag);
         if (m_assetFile)
             flags |= FileType;
-        if(m_assetDir)
+        if (m_assetDir)
             flags |= DirectoryType;
 
         return type & flags;
@@ -256,7 +256,7 @@ AndroidAssetsFileEngineHandler::~AndroidAssetsFileEngineHandler()
 
 QAbstractFileEngine * AndroidAssetsFileEngineHandler::create(const QString &fileName) const
 {
-    if(fileName.isEmpty())
+    if (fileName.isEmpty())
         return 0;
 
     if (!fileName.startsWith(QLatin1String("assets:/")))

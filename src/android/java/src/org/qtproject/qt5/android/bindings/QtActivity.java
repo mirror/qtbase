@@ -314,7 +314,7 @@ public class QtActivity extends Activity
                     localPrefix=getIntent().getExtras().getString("libs_prefix");
 
                 if (m_qtLibs != null) {
-                    for(int i=0;i<m_qtLibs.length;i++)
+                    for (int i=0;i<m_qtLibs.length;i++)
                         libraryList.add(localPrefix+"lib/lib"+m_qtLibs[i]+".so");
                 }
 

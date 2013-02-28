@@ -83,7 +83,7 @@ sub waitForProcess
     $sleepPeriod=1 if !defined($sleepPeriod);
     print "Waiting for $process ".$timeout*$sleepPeriod." seconds to";
     print $action?" start...\n":" die...\n";
-    while($timeout--)
+    while ($timeout--)
     {
         my $output = `$adb_tool $device_serial shell ps 2>&1`; # get current processes
         #FIXME check why $output is not matching m/.*S $process\n/ or m/.*S $process$/ (eol)
@@ -183,7 +183,7 @@ if ($deploy_qt)
     pushd($src_dir_qt);
     mkdir("$temp_dir/lib");
     my @libs=`find lib -name *.so`; # libs must be handled diferently
-    foreach(@libs)
+    foreach (@libs)
     {
         chomp;
         print ("cp -L $_ $temp_dir/lib\n");
@@ -208,7 +208,7 @@ system("make distclean") if ($make_clean);
 system("$qmake_path CONFIG-=QTDIR_build -r") == 0 or die "Can't run qmake\n"; #exec qmake
 system("make -j$jobs") == 0 or warn "Can't build all tests\n"; #exec make
 my $testsFiles=`find . -name libtst_*.so`; # only tests
-foreach(split("\n",$testsFiles))
+foreach (split("\n",$testsFiles))
 {
     chomp; #remove white spaces
     pushd(abs_path(dirname($_))); # cd to application dir

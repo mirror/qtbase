@@ -58,6 +58,11 @@ public:
     void lock() { m_lock.lock(); }
     void unlock() { m_lock.unlock(); }
 
+    bool isExposed() const;
+
+    void invalidateSurface();
+    void resetSurface();
+
 private:
     QSize m_scheduledResize;
     QMutex m_lock;

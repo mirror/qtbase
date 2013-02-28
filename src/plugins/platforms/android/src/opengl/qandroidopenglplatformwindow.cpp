@@ -40,12 +40,33 @@
 ****************************************************************************/
 
 #include "qandroidopenglplatformwindow.h"
+#include "androidjnimain.h"
+#include <qpa/qwindowsysteminterface.h>
 
 QT_BEGIN_NAMESPACE
 
 QAndroidOpenGLPlatformWindow::QAndroidOpenGLPlatformWindow(QWindow *window)
     : QEglFSWindow(window)
 {
+}
+
+bool QAndroidOpenGLPlatformWindow::isExposed() const
+{
+    return QtAndroid::nativeWindow(false) != 0 && QEglFSWindow::isExposed();
+}
+
+void QAndroidOpenGLPlatformWindow::invalidateSurface()
+{
+    QWindowSystemInterface::handleExposeEvent(window(), QRegion()); // Obscure event
+    QWindowSystemInterface::flushWindowSystemEvents();
+    QEglFSWindow::invalidateSurface();
+}
+
+void QAndroidOpenGLPlatformWindow::resetSurface()
+{
+    QEglFSWindow::resetSurface();
+    QWindowSystemInterface::handleExposeEvent(window(), QRegion(geometry())); // Expose event
+    QWindowSystemInterface::flushWindowSystemEvents();
 }
 
 QT_END_NAMESPACE

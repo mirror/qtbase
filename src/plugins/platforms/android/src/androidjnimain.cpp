@@ -115,7 +115,7 @@ static jfieldID m_surfaceFieldID = 0;
 
 
 static QSemaphore m_quitAppSemaphore;
-static QMutex m_surfaceMutex;
+static QMutex m_surfaceMutex(QMutex::Recursive);
 static QSemaphore m_pauseApplicationSemaphore;
 static QMutex m_pauseApplicationMutex;
 

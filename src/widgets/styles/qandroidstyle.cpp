@@ -75,9 +75,10 @@ namespace {
 QAndroidStyle::QAndroidStyle()
     : QCommonStyle()
 {
-    QString stylePath(QLatin1String(qgetenv("QT_ANDROID_NATIVE_STYLE_PATH")));
+    QString stylePath(QLatin1String(qgetenv("MINISTRO_ANDROID_STYLE_PATH")));
+
     if (stylePath.isEmpty())
-        return;
+        stylePath = QLatin1String("/data/data/org.kde.necessitas.ministro/files/qt/style/");
     Q_ASSERT(!stylePath.isEmpty());
 
     QFile f(stylePath + QLatin1String("style.json"));

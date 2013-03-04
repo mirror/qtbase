@@ -1511,14 +1511,16 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
 #ifdef Q_OS_ANDROID
            || (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back) || e->key == Qt::Key_Menu
 #endif
-            )
+            ) {
         window = QGuiApplication::focusWindow();
+    }
     if (!window
 #ifdef Q_OS_ANDROID
            && e->keyType != QEvent::KeyRelease && e->key != Qt::Key_Back
 #endif
-            )
+            ) {
         return;
+    }
     if (window->d_func()->blockedByModalWindow) {
         // a modal window is blocking this window, don't allow key events through
         return;
@@ -1530,18 +1532,15 @@ void QGuiApplicationPrivate::processKeyEvent(QWindowSystemInterfacePrivate::KeyE
     ev.setTimestamp(e->timestamp);
 
 #ifdef Q_OS_ANDROID
-    if (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back)
-    {
-        if (!window)
+    if (e->keyType == QEvent::KeyRelease && e->key == Qt::Key_Back) {
+        if (!window) {
             qApp->quit();
-        else
-        {
+        } else {
             QGuiApplication::sendEvent(window, &ev);
             if (!ev.isAccepted() && e->key == Qt::Key_Back)
                 QWindowSystemInterface::handleCloseEvent(window);
         }
-    }
-    else
+    } else
 #endif
         QGuiApplication::sendSpontaneousEvent(window, &ev);
 }

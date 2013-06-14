@@ -248,14 +248,33 @@ void tst_QCommandLineParser::testHelpOption()
     QCOMPARE(process.exitStatus(), QProcess::NormalExit);
     QString output = process.readAll();
     const char *expected =
-        "Usage: testhelper/qcommandlineparser_test_helper [options]\n"
+        "Usage: testhelper/qcommandlineparser_test_helper [options] command\n"
         "\n"
         "Test helper\n"
         "\n"
         "Options:\n"
         "  -h, --help                Displays this help.\n"
-        "  -v, --version             Displays version information.\n";
+        "  -v, --version             Displays version information.\n"
+        "  --load <url>              Load file from URL.\n"
+        "  -o, --output <file>       Set output file.\n";
     QCOMPARE(output, QString(expected));
+
+    process.start("testhelper/qcommandlineparser_test_helper", QStringList() << "resize" << "--help");
+    QVERIFY(process.waitForFinished(5000));
+    QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+    output = process.readAll();
+    const char *expectedResizeHelp =
+        "Usage: testhelper/qcommandlineparser_test_helper [options] resize\n"
+        "\n"
+        "Test helper\n"
+        "\n"
+        "Options:\n"
+        "  -h, --help                Displays this help.\n"
+        "  -v, --version             Displays version information.\n"
+        "  --load <url>              Load file from URL.\n"
+        "  -o, --output <file>       Set output file.\n"
+        "  --size <size>             New size.\n";
+    QCOMPARE(output, QString(expectedResizeHelp));
 }
 
 QTEST_APPLESS_MAIN(tst_QCommandLineParser)

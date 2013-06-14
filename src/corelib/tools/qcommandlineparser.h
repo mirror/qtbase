@@ -64,6 +64,7 @@ public:
     void addVersionOption();
     void addHelpOption(const QString &description);
     QString applicationDescription() const;
+    void setRemainingArgumentsHelpText(const QString &helpText);
 
     void process(const QCoreApplication &app);
 

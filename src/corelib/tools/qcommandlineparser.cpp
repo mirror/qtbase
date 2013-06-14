@@ -91,6 +91,9 @@ public:
     //! Application description
     QString description;
 
+    //! Documentation for remaining arguments
+    QString remainingArgsHelpText;
+
     /*
         Boolean variable whether or not to stop the command line argument
         parsing after the double dash occurrence without any options names involved
@@ -272,7 +275,20 @@ QString QCommandLineParser::applicationDescription() const
 }
 
 /*!
-    Parses the command line arguments.
+    Sets the description for the remaining arguments, as it
+    should appear when using --help, to \a helpText.
+    Example: "file", or "[files]" (if optional), or "source destination" (for "cp").
+
+    \sa addHelpOption()
+*/
+void QCommandLineParser::setRemainingArgumentsHelpText(const QString &helpText)
+{
+    d->remainingArgsHelpText = helpText;
+}
+
+
+/*!
+    Parses the command line \a arguments.
 
     Most programs don't need to call this, a simple call to process(app) is enough.
 
@@ -596,6 +612,10 @@ void QCommandLineParserPrivate::showHelp()
     if (!commandLineOptionList.isEmpty()) {
         usage += QLatin1Char(' ');
         usage += QCommandLineParser::tr("[options]");
+    }
+    if (!remainingArgsHelpText.isEmpty()) {
+        usage += QLatin1Char(' ');
+        usage += remainingArgsHelpText;
     }
     fprintf(stdout, "%s\n\n%s\n\n", qPrintable(usage), qPrintable(description));
     if (!commandLineOptionList.isEmpty()) {

@@ -51,8 +51,27 @@ int main(int argc, char *argv[])
 
     QCommandLineParser parser;
     parser.addHelpOption("Test helper");
+    parser.setRemainingArgumentsHelpText("command");
     parser.addVersionOption();
-    parser.process(app);
+    parser.addOption(QCommandLineOption(QStringList() << "load", "Load file from URL.", "url"));
+    parser.addOption(QCommandLineOption(QStringList() << "o" << "output", "Set output file.", "file"));
+
+    // This program supports different options depending on the "command" (first argument).
+    // Call parse() to find out the remaining arguments.
+    parser.parse(app.arguments());
+
+    const QStringList args = parser.remainingArguments();
+    const QString command = args.isEmpty() ? QString() : args.first();
+    if (command == "resize") {
+      parser.setRemainingArgumentsHelpText("resize");
+      parser.addOption(QCommandLineOption(QStringList() << "size", "New size.", "size"));
+      parser.process(app);
+      const QString size = parser.value("size");
+      printf("Resizing %s to %s and saving to %s\n", qPrintable(parser.value("load")), qPrintable(size), qPrintable(parser.value("o")));
+    } else {
+      // Call process again, to handle unknown options this time.
+      parser.process(app);
+    }
 
     printf("Remaining arguments: %s\n", qPrintable(parser.remainingArguments().join(",")));
 

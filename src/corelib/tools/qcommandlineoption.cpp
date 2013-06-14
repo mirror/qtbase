@@ -97,17 +97,17 @@ QCommandLineOption::QCommandLineOption()
     The names of the option are set to \a names and the description to \a description.
     It is customary to add a "." at the end of the description.
     In addition, the \a valueName can be set if the option expects a value.
-    The default values for the option can be set to \a defaultValues.
+    The default value for the option can be set to \a defaultValue.
 */
 QCommandLineOption::QCommandLineOption(const QStringList &names, const QString &description,
                                        const QString &valueName,
-                                       const QStringList &defaultValues)
+                                       const QString &defaultValue)
     : d(new QCommandLineOptionPrivate)
 {
     setNames(names);
     setValueName(valueName);
     setDescription(description);
-    setDefaultValues(defaultValues);
+    setDefaultValue(defaultValue);
 }
 
 /*!
@@ -236,12 +236,30 @@ QString QCommandLineOption::description() const
 }
 
 /*!
+    Sets the default value used for this option to \a defaultValue.
+
+    The default value is used if the user of the application does not specify
+    the option on the command line.
+
+    If \a defaultValue is empty, the option has no default values.
+
+    \sa defaultValues() setDefaultValues()
+ */
+void QCommandLineOption::setDefaultValue(const QString &defaultValue)
+{
+    if (defaultValue.isEmpty())
+        d->defaultValues.clear();
+    else
+        d->defaultValues = QStringList() << defaultValue;
+}
+
+/*!
     Sets the list of default values used for this option to \a defaultValues.
 
     The default values are used if the user of the application does not specify
-    this option on the command line.
+    the option on the command line.
 
-    \sa defaultValues()
+    \sa defaultValues() setDefaultValue()
  */
 void QCommandLineOption::setDefaultValues(const QStringList &defaultValues)
 {

@@ -56,7 +56,7 @@ public:
     QCommandLineOption();
     explicit QCommandLineOption(const QStringList &names, const QString &description = QString(),
                                 const QString &valueName = QString(),
-                                const QStringList &defaultValues = QStringList());
+                                const QString &defaultValue = QString());
     QCommandLineOption(const QCommandLineOption &other);
 
     ~QCommandLineOption();
@@ -79,6 +79,7 @@ public:
     void setDescription(const QString &description);
     QString description() const;
 
+    void setDefaultValue(const QString &defaultValue);
     void setDefaultValues(const QStringList &defaultValues);
     QStringList defaultValues() const;
 

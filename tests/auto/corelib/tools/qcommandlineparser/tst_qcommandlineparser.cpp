@@ -108,7 +108,7 @@ void tst_QCommandLineParser::testBooleanOption()
     parser.parse(args);
     QCOMPARE(parser.optionNames(), expectedOptionNames);
     QCOMPARE(parser.isSet("b"), expectedIsSet);
-    QCOMPARE(parser.arguments("b"), QStringList());
+    QCOMPARE(parser.values("b"), QStringList());
     QCOMPARE(parser.remainingArguments(), QStringList());
 }
 
@@ -161,8 +161,8 @@ void tst_QCommandLineParser::testSingleValueOption()
     parser.parse(args);
     QCOMPARE(parser.isSet("s"), expectedIsSet);
     QCOMPARE(parser.isSet("style"), expectedIsSet);
-    QCOMPARE(parser.arguments("s"), QStringList() << "oxygen");
-    QCOMPARE(parser.arguments("style"), QStringList() << "oxygen");
+    QCOMPARE(parser.values("s"), QStringList() << "oxygen");
+    QCOMPARE(parser.values("style"), QStringList() << "oxygen");
     QCOMPARE(parser.remainingArguments(), QStringList());
 }
 
@@ -178,8 +178,8 @@ void tst_QCommandLineParser::testValueNotSet()
     QCOMPARE(parser.optionNames(), QStringList());
     QVERIFY(!parser.isSet("s"));
     QVERIFY(!parser.isSet("style"));
-    QCOMPARE(parser.arguments("s"), QStringList());
-    QCOMPARE(parser.arguments("style"), QStringList());
+    QCOMPARE(parser.values("s"), QStringList());
+    QCOMPARE(parser.values("style"), QStringList());
 }
 
 void tst_QCommandLineParser::testMultipleValuesOption()
@@ -192,16 +192,16 @@ void tst_QCommandLineParser::testMultipleValuesOption()
         QVERIFY(parser.addOption(option));
         parser.parse(QStringList() << "tst" << "--param" << "key1=value1");
         QVERIFY(parser.isSet("param"));
-        QCOMPARE(parser.arguments("param"), QStringList() << "key1=value1");
-        QCOMPARE(parser.argument("param"), QString("key1=value1"));
+        QCOMPARE(parser.values("param"), QStringList() << "key1=value1");
+        QCOMPARE(parser.value("param"), QString("key1=value1"));
     }
     {
         QCommandLineParser parser;
         QVERIFY(parser.addOption(option));
         parser.parse(QStringList() << "tst" << "--param" << "key1=value1" << "--param" << "key2=value2");
         QVERIFY(parser.isSet("param"));
-        QCOMPARE(parser.arguments("param"), QStringList() << "key1=value1" << "key2=value2");
-        QCOMPARE(parser.argument("param"), QString("key2=value2"));
+        QCOMPARE(parser.values("param"), QStringList() << "key1=value1" << "key2=value2");
+        QCOMPARE(parser.value("param"), QString("key2=value2"));
     }
 }
 
@@ -220,8 +220,8 @@ void tst_QCommandLineParser::testProcessNotCalled()
     QVERIFY(parser.addOption(QCommandLineOption(QStringList() << "b", QStringLiteral("a boolean option"))));
     QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before isSet");
     QVERIFY(!parser.isSet("b"));
-    QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before arguments");
-    QCOMPARE(parser.arguments("b"), QStringList());
+    QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before values");
+    QCOMPARE(parser.values("b"), QStringList());
 }
 
 void tst_QCommandLineParser::testVersionOption()

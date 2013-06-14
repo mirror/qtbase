@@ -73,8 +73,8 @@ public:
     //! Hash mapping option names to their offsets in commandLineOptionList and optionArgumentList.
     NameHash_t nameHash;
 
-    //! Option arguments found (only for options with a value)
-    QHash<int, QStringList> optionArgumentListHash;
+    //! Option values found (only for options with a value)
+    QHash<int, QStringList> optionValuesHash;
 
     //! Names of options found on the command line.
     QStringList optionNames;
@@ -147,9 +147,9 @@ QStringList QCommandLineParserPrivate::aliases(const QString &optionName) const
     be passed as "--verbose" or "-verbose". Long options can not obviously be
     bundled together either.
 
-    Short options, taking an argument, cannot use the remaining characters in
-    the same argument. For example, if "v" takes an argument, passing "-vverbose"
-    cannot treat "verbose" as v's argument since "vverbose" could clash with the
+    Short options, taking a value, cannot use the remaining characters in
+    the same argument. For example, if "v" takes a value, passing "-vverbose"
+    cannot treat "verbose" as v's value since "vverbose" could clash with the
     equally named long option. One way to put the values is to have assignment
     operator to mark the end of the short name, as shown here: "-v=value".
     If there is no assignment operator, the next argument is used.
@@ -167,9 +167,9 @@ QStringList QCommandLineParserPrivate::aliases(const QString &optionName) const
     It is somewhat a simpler form, and does not potentially clash with the
     equally named long option names.
 
-    The parser does not support optional arguments - if an option is set to
-    require an argument, one must be present. If such an option is placed last
-    and has no argument, the option will be treated as if it had not been
+    The parser does not support optional values - if an option is set to
+    require a value, one must be present. If such an option is placed last
+    and has no value, the option will be treated as if it had not been
     specified.
 
     The parser does not automatically support negating or disabling long options
@@ -342,17 +342,17 @@ void QCommandLineParserPrivate::ensureParsed(const char *method)
     Any results from a previous parse operation are removed. If
     \c m_bStopParsingAtDoubleDash is \c true the parser will not look for
     further options once it encounters the option "--"; this does not
-    include when "--" follows an option that requires an argument.
+    include when "--" follows an option that requires a value.
 
-    Options that were successfully recognized, and their arguments, are
+    Options that were successfully recognized, and their values, are
     removed from the input list. If \c m_bRemoveUnknownLongNames is
     \c true, unrecognized options are removed and placed into a list of
     unknown option names. Anything left over is placed into a list of
     leftover arguments.
 
-    A long option that does not take an argument will still be recognized
-    if encountered in the form "--option=value". In this case, the argument
-    value will be ignored.
+    A long option that does not take a value will still be recognized
+    if encountered in the form "--option=value". In this case, the value
+    will be ignored.
  */
 void QCommandLineParserPrivate::parse(const QStringList &args)
 {
@@ -386,9 +386,9 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
                             ++argumentIterator;
 
                             if (argumentIterator != arguments.end())
-                                optionArgumentListHash[optionOffset].append(*argumentIterator);
+                                optionValuesHash[optionOffset].append(*argumentIterator);
                         } else {
-                            optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
+                            optionValuesHash[optionOffset].append(argument.section(assignChar, 1));
                         }
                     }
                 } else {
@@ -419,9 +419,9 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
                             ++argumentIterator;
 
                             if (argumentIterator != arguments.end())
-                                optionArgumentListHash[optionOffset].append(*argumentIterator);
+                                optionValuesHash[optionOffset].append(*argumentIterator);
                         } else {
-                            optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
+                            optionValuesHash[optionOffset].append(argument.section(assignChar, 1));
                         }
                     }
                 } else {
@@ -474,19 +474,19 @@ bool QCommandLineParser::isSet(const QString &name) const
     null string is returned.
 
     For options found by the parser, an empty string is returned if the
-    option does not take an argument, otherwise the last argument found for
+    option does not take a value, otherwise the last value found for
     that option is returned.
 
-    \sa arguments()
+    \sa values()
  */
 
-QString QCommandLineParser::argument(const QString &optionName) const
+QString QCommandLineParser::value(const QString &optionName) const
 {
-    d->ensureParsed("argument");
-    const QStringList argumentList = arguments(optionName);
+    d->ensureParsed("value");
+    const QStringList valueList = values(optionName);
 
-    if (!argumentList.isEmpty())
-        return argumentList.last();
+    if (!valueList.isEmpty())
+        return valueList.last();
 
     return QString();
 }
@@ -502,22 +502,22 @@ QString QCommandLineParser::argument(const QString &optionName) const
 
     For options found by the parser, the list will contain an entry for
     each time the option was encountered by the parser. These entries
-    will always be an empty string for options that do not take an argument.
-    Options that do take an argument will have the list populated with the
-    argument values in the order they were found.
+    will always be an empty string for options that do not take a value.
+    Options that do take a value will have the list populated with the
+    values in the order they were found.
 
-    \sa argument()
+    \sa value()
  */
 
-QStringList QCommandLineParser::arguments(const QString &optionName) const
+QStringList QCommandLineParser::values(const QString &optionName) const
 {
-    d->ensureParsed("arguments");
+    d->ensureParsed("values");
     const NameHash_t::mapped_type optionOffset = d->nameHash.value(optionName, optionNotFound);
     if (optionOffset != optionNotFound) {
-        QStringList args = d->optionArgumentListHash.value(optionOffset);
-        if (args.isEmpty())
-            args = d->commandLineOptionList.at(optionOffset).defaultValues();
-        return args;
+        QStringList values = d->optionValuesHash.value(optionOffset);
+        if (values.isEmpty())
+            values = d->commandLineOptionList.at(optionOffset).defaultValues();
+        return values;
     }
 
     return QStringList();
@@ -548,8 +548,8 @@ QStringList QCommandLineParser::remainingArguments() const
     Names may appear more than once in this list if they were encountered
     more than once by the parser.
 
-    Any entry in the list can be used with \c getArgument() or with
-    \c getArgumentList() to get any relevant arguments.
+    Any entry in the list can be used with \c value() or with
+    \c values() to get any relevant option values.
  */
 
 QStringList QCommandLineParser::optionNames() const

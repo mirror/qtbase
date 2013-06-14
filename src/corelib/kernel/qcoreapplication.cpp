@@ -593,6 +593,8 @@ void QCoreApplicationPrivate::initLocale()
     argv() function, you must convert them from the local string encoding
     using QString::fromLocal8Bit().
 
+    For more advanced command line option handling, create a QCommandLineParser.
+
     \section1 Locale Settings
 
     On Unix/Linux Qt is configured to use the system locale settings by
@@ -2062,7 +2064,7 @@ qint64 QCoreApplication::applicationPid()
     As a result of this, the string given by arguments().at(0) might not be
     the program name on Windows, depending on how the application was started.
 
-    \sa applicationFilePath()
+    \sa applicationFilePath(), QCommandLineParser
 */
 
 QStringList QCoreApplication::arguments()

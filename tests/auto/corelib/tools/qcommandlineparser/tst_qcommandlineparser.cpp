@@ -54,6 +54,10 @@ private slots:
     void testBooleanOption();
     void testMultipleNames_data();
     void testMultipleNames();
+    void testSingleValueOption_data();
+    void testSingleValueOption();
+    void testValueNotSet();
+    void testMultipleValuesOption();
     void testUnknownOptionErrorHandling();
     void testProcessNotCalled();
 };
@@ -116,6 +120,75 @@ void tst_QCommandLineParser::testMultipleNames()
     QCOMPARE(parser.optionNames(), expectedOptionNames);
     QVERIFY(parser.isSet("v"));
     QVERIFY(parser.isSet("version"));
+}
+
+void tst_QCommandLineParser::testSingleValueOption_data()
+{
+    QTest::addColumn<QStringList>("args");
+    QTest::addColumn<QStringList>("defaults");
+    QTest::addColumn<bool>("expectedIsSet");
+
+    QTest::newRow("short") << (QStringList() << "tst" << "-s" << "oxygen") << QStringList() << true;
+    QTest::newRow("long") << (QStringList() << "tst" << "--style" << "oxygen") << QStringList() << true;
+    QTest::newRow("longequal") << (QStringList() << "tst" << "--style=oxygen") << QStringList() << true;
+    QTest::newRow("default") << (QStringList() << "tst") << (QStringList() << "oxygen") << false;
+}
+
+void tst_QCommandLineParser::testSingleValueOption()
+{
+    QFETCH(QStringList, args);
+    QFETCH(QStringList, defaults);
+    QFETCH(bool, expectedIsSet);
+    QCoreApplication app(empty_argc, empty_argv);
+    QCommandLineParser parser;
+    QCommandLineOption option(QStringList() << "s" << "style", QStringLiteral("style name"), QCommandLineOption::OneValue);
+    option.setDefaultValues(defaults);
+    QVERIFY(parser.addOption(option));
+    parser.parse(args);
+    QCOMPARE(parser.isSet("s"), expectedIsSet);
+    QCOMPARE(parser.isSet("style"), expectedIsSet);
+    QCOMPARE(parser.arguments("s"), QStringList() << "oxygen");
+    QCOMPARE(parser.arguments("style"), QStringList() << "oxygen");
+    QCOMPARE(parser.remainingArguments(), QStringList());
+}
+
+void tst_QCommandLineParser::testValueNotSet()
+{
+    QCoreApplication app(empty_argc, empty_argv);
+    // Not set, no default value
+    QCommandLineParser parser;
+    QCommandLineOption option(QStringList() << "s" << "style", QStringLiteral("style name"));
+    option.setOptionType(QCommandLineOption::OneValue);
+    QVERIFY(parser.addOption(option));
+    parser.parse(QStringList() << "tst");
+    QCOMPARE(parser.optionNames(), QStringList());
+    QVERIFY(!parser.isSet("s"));
+    QVERIFY(!parser.isSet("style"));
+    QCOMPARE(parser.arguments("s"), QStringList());
+    QCOMPARE(parser.arguments("style"), QStringList());
+}
+
+void tst_QCommandLineParser::testMultipleValuesOption()
+{
+    QCoreApplication app(empty_argc, empty_argv);
+    QCommandLineOption option(QStringList() << "param", QStringLiteral("Pass parameter to the backend"));
+    option.setOptionType(QCommandLineOption::OneValue);
+    {
+        QCommandLineParser parser;
+        QVERIFY(parser.addOption(option));
+        parser.parse(QStringList() << "tst" << "--param" << "key1=value1");
+        QVERIFY(parser.isSet("param"));
+        QCOMPARE(parser.arguments("param"), QStringList() << "key1=value1");
+        QCOMPARE(parser.argument("param"), QString("key1=value1"));
+    }
+    {
+        QCommandLineParser parser;
+        QVERIFY(parser.addOption(option));
+        parser.parse(QStringList() << "tst" << "--param" << "key1=value1" << "--param" << "key2=value2");
+        QVERIFY(parser.isSet("param"));
+        QCOMPARE(parser.arguments("param"), QStringList() << "key1=value1" << "key2=value2");
+        QCOMPARE(parser.argument("param"), QString("key2=value2"));
+    }
 }
 
 void tst_QCommandLineParser::testUnknownOptionErrorHandling()

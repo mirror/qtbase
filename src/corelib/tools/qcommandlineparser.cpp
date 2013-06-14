@@ -465,9 +465,12 @@ QString QCommandLineParser::argument(const QString &optionName) const
 QStringList QCommandLineParser::arguments(const QString &optionName) const
 {
     d->ensureParsed("arguments");
-    if (d->nameHash.contains(optionName)) {
-        const NameHash_t::mapped_type optionOffset = *d->nameHash.constFind(optionName);
-        return d->optionArgumentListHash.value(optionOffset);
+    const NameHash_t::mapped_type optionOffset = d->nameHash.value(optionName, optionNotFound);
+    if (optionOffset != optionNotFound) {
+        QStringList args = d->optionArgumentListHash.value(optionOffset);
+        if (args.isEmpty())
+            args = d->commandLineOptionList.at(optionOffset).defaultValues();
+        return args;
     }
 
     return QStringList();

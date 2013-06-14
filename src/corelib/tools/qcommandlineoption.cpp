@@ -49,14 +49,14 @@ class QCommandLineOptionPrivate : public QSharedData
 {
 public:
     inline QCommandLineOptionPrivate()
-        : optionType(QCommandLineOption::NoValue)
     { }
 
     //! The list of names used for this option.
     QStringList nameSet;
 
-    //! The mode used for this option.
-    QCommandLineOption::OptionType optionType;
+    //! The documentation name for the value, if one is expected
+    //! Example: "-o <file>" means valueName == "file"
+    QString valueName;
 
     //! The description used for this option.
     QString description;
@@ -82,19 +82,6 @@ public:
 */
 
 /*!
-    \enum QCommandLineOption::OptionType
-
-    This enum defines the option type.
-
-    \value NoValue The option does not have any values assigned, thus it is more
-    like a boolean flag. Either --option is specified or not.
-
-    \value OneValue The option has exactly one value. For instance "-o file".
-
-    \sa optionType(), setOptionType()
-*/
-
-/*!
     Constructs a command line option object.
     The name and description are empty, the option doesn't take a value,
     and doesn't have a default value. Use setNames, setDescription,
@@ -108,16 +95,16 @@ QCommandLineOption::QCommandLineOption()
 /*!
     Constructs a command line option object with the given arguments.
     The names of the option are set to \a names and the description to \a description.
-    In addition, the \a optionType can be set if the option expects a value.
+    In addition, the \a valueName can be set if the option expects a value.
     The default values for the option can be set to \a defaultValues.
 */
 QCommandLineOption::QCommandLineOption(const QStringList &names, const QString &description,
-                                       OptionType optionType,
+                                       const QString &valueName,
                                        const QStringList &defaultValues)
     : d(new QCommandLineOptionPrivate)
 {
     setNames(names);
-    setOptionType(optionType);
+    setValueName(valueName);
     setDescription(description);
     setDefaultValues(defaultValues);
 }
@@ -191,23 +178,36 @@ void QCommandLineOption::setNames(const QStringList &names)
 }
 
 /*!
-    Sets the option type used for this option to \a optionType.
+    Sets the name of the expected value, for the documentation, to \a valueName.
 
-    \sa optionType()
+    Options without a value assigned have a boolean-like behavior:
+    either the user specifies --option or they don't.
+
+    Options with a value assigned, need to set a name for the expected value,
+    for the documentation of the option in the help output. An option with names "o" and "output",
+    and a value name of "file" will appear as  "-o, --output <file>".
+
+    The application should call QCommandLineParser::argument() if it expects the
+    option to be present only once, and QCommandLineParser::arguments() if it expects
+    that option to be present multiple times.
+
+    \sa valueName()
  */
-void QCommandLineOption::setOptionType(OptionType optionType)
+void QCommandLineOption::setValueName(const QString &valueName)
 {
-    d->optionType = optionType;
+    d->valueName = valueName;
 }
 
 /*!
-    Returns the mode used for this option.
+    Returns the name of the expected value.
 
-    \sa setOptionType()
+    If empty, the option doesn't take a value.
+
+    \sa setValueName()
  */
-QCommandLineOption::OptionType QCommandLineOption::optionType() const
+QString QCommandLineOption::valueName() const
 {
-    return d->optionType;
+    return d->valueName;
 }
 
 /*!

@@ -72,7 +72,7 @@ public:
     //! Hash mapping option names to their offsets in commandLineOptionList and optionArgumentList.
     NameHash_t nameHash;
 
-    //! Option arguments found (only for OneValue options)
+    //! Option arguments found (only for options with a value)
     QHash<int, QStringList> optionArgumentListHash;
 
     //! Names of options found on the command line.
@@ -332,9 +332,8 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
                 if (nameHash.contains(optionName)) {
                     optionNames.append(optionName);
                     const NameHash_t::mapped_type optionOffset = *nameHash.constFind(optionName);
-                    const QCommandLineOption::OptionType type = commandLineOptionList.at(optionOffset).optionType();
-
-                    if (type == QCommandLineOption::OneValue) {
+                    const bool withValue = !commandLineOptionList.at(optionOffset).valueName().isEmpty();
+                    if (withValue) {
                         if (!argument.contains(assignChar)) {
                             ++argumentIterator;
 
@@ -366,8 +365,8 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
                 if (nameHash.contains(optionName)) {
                     optionNames.append(optionName);
                     const NameHash_t::mapped_type optionOffset = *nameHash.constFind(optionName);
-                    const QCommandLineOption::OptionType type = commandLineOptionList.at(optionOffset).optionType();
-                    if (type == QCommandLineOption::OneValue) {
+                    const bool withValue = !commandLineOptionList.at(optionOffset).valueName().isEmpty();
+                    if (withValue) {
                         if (!argument.contains(assignChar)) {
                             ++argumentIterator;
 

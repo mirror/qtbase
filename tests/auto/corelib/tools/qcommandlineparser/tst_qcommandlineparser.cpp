@@ -150,7 +150,7 @@ void tst_QCommandLineParser::testSingleValueOption()
     QFETCH(bool, expectedIsSet);
     QCoreApplication app(empty_argc, empty_argv);
     QCommandLineParser parser;
-    QCommandLineOption option(QStringList() << "s" << "style", QStringLiteral("style name"), QCommandLineOption::OneValue);
+    QCommandLineOption option(QStringList() << "s" << "style", QStringLiteral("style name"), "styleName");
     option.setDefaultValues(defaults);
     QVERIFY(parser.addOption(option));
     parser.parse(args);
@@ -167,7 +167,7 @@ void tst_QCommandLineParser::testValueNotSet()
     // Not set, no default value
     QCommandLineParser parser;
     QCommandLineOption option(QStringList() << "s" << "style", QStringLiteral("style name"));
-    option.setOptionType(QCommandLineOption::OneValue);
+    option.setValueName("styleName");
     QVERIFY(parser.addOption(option));
     parser.parse(QStringList() << "tst");
     QCOMPARE(parser.optionNames(), QStringList());
@@ -181,7 +181,7 @@ void tst_QCommandLineParser::testMultipleValuesOption()
 {
     QCoreApplication app(empty_argc, empty_argv);
     QCommandLineOption option(QStringList() << "param", QStringLiteral("Pass parameter to the backend"));
-    option.setOptionType(QCommandLineOption::OneValue);
+    option.setValueName("key=value");
     {
         QCommandLineParser parser;
         QVERIFY(parser.addOption(option));

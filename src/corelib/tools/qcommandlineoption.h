@@ -53,14 +53,9 @@ class QCommandLineOptionPrivate;
 class Q_CORE_EXPORT QCommandLineOption
 {
 public:
-    enum OptionType {
-        NoValue,
-        OneValue
-    };
-
     QCommandLineOption();
     explicit QCommandLineOption(const QStringList &names, const QString &description = QString(),
-                                OptionType optionType = NoValue,
+                                const QString &valueName = QString(),
                                 const QStringList &defaultValues = QStringList());
     QCommandLineOption(const QCommandLineOption &other);
 
@@ -78,8 +73,8 @@ public:
     void setNames(const QStringList &names);
     QStringList names() const;
 
-    void setOptionType(OptionType optionType);
-    OptionType optionType() const;
+    void setValueName(const QString &name);
+    QString valueName() const;
 
     void setDescription(const QString &description);
     QString description() const;

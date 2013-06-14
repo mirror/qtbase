@@ -49,6 +49,7 @@ class tst_QCommandLineParser : public QObject
     Q_OBJECT
 
 private slots:
+    void testInvalidOptions();
     void testRemainingArguments();
     void testBooleanOption_data();
     void testBooleanOption();
@@ -64,6 +65,14 @@ private slots:
 
 static char *empty_argv[] = { const_cast<char*>("tst_qcommandlineparser") };
 static int empty_argc = 1;
+
+void tst_QCommandLineParser::testInvalidOptions()
+{
+    QCoreApplication app(empty_argc, empty_argv);
+    QCommandLineParser parser;
+    QTest::ignoreMessage(QtWarningMsg, "Option names cannot start with a '-'");
+    parser.addOption(QCommandLineOption(QStringList() << QLatin1String("-v"), QStringLiteral("Displays version information.")));
+}
 
 void tst_QCommandLineParser::testRemainingArguments()
 {

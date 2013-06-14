@@ -171,17 +171,22 @@ QStringList QCommandLineOption::names() const
     Sets the list of names used for this option to \a names.
 
     The name can be either short or long. Any name in the list that is one
-    character in length is a short name. Option names that start with dash
-    character, have zero length or are duplicates are ignored.
+    character in length is a short name. Option names must not be empty,
+    must not start with a dash character, and cannot be repeated.
 
     \sa names()
  */
 void QCommandLineOption::setNames(const QStringList &names)
 {
     foreach (const QString &name, names) {
-        if (!name.isEmpty() && !name.startsWith(QLatin1Char('-')) && !name.startsWith(QLatin1Char('?'))) {
+        if (name.isEmpty())
+            qWarning("Option names cannot be empty");
+        else if (name.startsWith(QLatin1Char('-')))
+            qWarning("Option names cannot start with a '-'");
+        else if (name.startsWith(QLatin1Char('?')))
+            qWarning("Option names cannot start with a '?'");
+        else
             d->nameSet.append(name);
-        }
     }
 }
 

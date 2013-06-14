@@ -185,9 +185,9 @@ QCommandLineParser::QCommandLineParser()
     : d(new QCommandLineParserPrivate)
 {
 #ifdef Q_OS_WIN32
-    addOption(QCommandLineOption(QStringList() << QStringLiteral("-h") << QStringLiteral("--help") << QStringLiteral("/?"), tr("Displays this help.")));
+    addOption(QCommandLineOption(QStringList() << QStringLiteral("h") << QStringLiteral("help") << QStringLiteral("?"), tr("Displays this help.")));
 #else
-    addOption(QCommandLineOption(QStringList() << QStringLiteral("-h") << QStringLiteral("--help"), tr("Displays this help.")));
+    addOption(QCommandLineOption(QStringList() << QStringLiteral("h") << QStringLiteral("help"), tr("Displays this help.")));
 #endif
 }
 

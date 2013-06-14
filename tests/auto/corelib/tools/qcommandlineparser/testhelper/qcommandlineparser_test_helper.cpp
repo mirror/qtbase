@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     app.setApplicationVersion("1.0");
 
     QCommandLineParser parser;
+    parser.addHelpOption("Test helper");
     parser.addVersionOption();
     parser.process(app);
 

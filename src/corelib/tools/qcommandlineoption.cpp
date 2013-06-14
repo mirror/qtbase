@@ -95,6 +95,7 @@ QCommandLineOption::QCommandLineOption()
 /*!
     Constructs a command line option object with the given arguments.
     The names of the option are set to \a names and the description to \a description.
+    It is customary to add a "." at the end of the description.
     In addition, the \a valueName can be set if the option expects a value.
     The default values for the option can be set to \a defaultValues.
 */
@@ -213,8 +214,9 @@ QString QCommandLineOption::valueName() const
 /*!
     Sets the description used for this option to \a description.
 
-    The description is used for instance while prompting some help output to the
-    user of the application.
+    It is customary to add a "." at the end of the description.
+
+    The description is used by QCommandLineParser::showHelp().
 
     \sa description()
  */

@@ -62,6 +62,8 @@ public:
     bool addOption(const QCommandLineOption &commandLineOption);
 
     void addVersionOption();
+    void addHelpOption(const QString &description);
+    QString applicationDescription() const;
 
     void process(const QCoreApplication &app);
 
@@ -73,6 +75,8 @@ public:
     QStringList remainingArguments() const;
     QStringList optionNames() const;
     QStringList unknownOptionNames() const;
+
+    void showHelp();
 
 private:
     Q_DISABLE_COPY(QCommandLineParser)

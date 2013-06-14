@@ -65,6 +65,7 @@ private slots:
 
     // QProcess-based tests using qcommandlineparser_test_helper
     void testVersionOption();
+    void testHelpOption();
 };
 
 static char *empty_argv[] = { const_cast<char*>("tst_qcommandlineparser") };
@@ -234,6 +235,27 @@ void tst_QCommandLineParser::testVersionOption()
     QCOMPARE(process.exitStatus(), QProcess::NormalExit);
     QString output = process.readAll();
     QCOMPARE(output, QString("qcommandlineparser_test_helper 1.0\n"));
+}
+
+void tst_QCommandLineParser::testHelpOption()
+{
+#ifdef Q_OS_WINCE
+    QSKIP("Reading and writing to a process is not supported on Qt/CE");
+#endif
+    QProcess process;
+    process.start("testhelper/qcommandlineparser_test_helper", QStringList() << "--help");
+    QVERIFY(process.waitForFinished(5000));
+    QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+    QString output = process.readAll();
+    const char *expected =
+        "Usage: testhelper/qcommandlineparser_test_helper [options]\n"
+        "\n"
+        "Test helper\n"
+        "\n"
+        "Options:\n"
+        "  -h, --help                Displays this help.\n"
+        "  -v, --version             Displays version information.\n";
+    QCOMPARE(output, QString(expected));
 }
 
 QTEST_APPLESS_MAIN(tst_QCommandLineParser)

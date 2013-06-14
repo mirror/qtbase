@@ -58,7 +58,6 @@ class QCommandLineParserPrivate
 public:
     inline QCommandLineParserPrivate()
         : builtinVersionOption(false),
-          parseAfterDoubleDash(true),
           needsParsing(true)
     { }
 
@@ -93,15 +92,6 @@ public:
 
     //! Documentation for remaining arguments
     QString remainingArgsHelpText;
-
-    /*
-        Boolean variable whether or not to stop the command line argument
-        parsing after the double dash occurrence without any options names involved
-        ('--').
-
-        Set to \c true by default.
-     */
-    bool parseAfterDoubleDash;
 
     //! True if parse() needs to be called
     bool needsParsing;
@@ -355,10 +345,9 @@ void QCommandLineParserPrivate::ensureParsed(const char *method)
     Returns true if the command line parsing was successful; otherwise returns
     false.
 
-    Any results from a previous parse operation are removed. If
-    \c m_bStopParsingAtDoubleDash is \c true the parser will not look for
-    further options once it encounters the option "--"; this does not
-    include when "--" follows an option that requires a value.
+    Any results from a previous parse operation are removed.
+    The parser will not look for further options once it encounters the option
+    "--"; this does not include when "--" follows an option that requires a value.
 
     Options that were successfully recognized, and their values, are
     removed from the input list. If \c m_bRemoveUnknownLongNames is
@@ -379,6 +368,7 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
     const QLatin1Char slashChar('/');
     const QLatin1Char assignChar('=');
 
+    bool doubleDashFound = false;
     remainingArgumentList.clear();
     optionNames.clear();
     unknownOptionNames.clear();
@@ -390,7 +380,9 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
     for (QStringList::const_iterator argumentIterator = arguments.begin(); argumentIterator != arguments.end() ; ++argumentIterator) {
         QString argument = *argumentIterator;
 
-        if (argument.startsWith(doubleDashString)) {
+        if (doubleDashFound) {
+            remainingArgumentList.append(argument);
+        } else if (argument.startsWith(doubleDashString)) {
             if (argument.length() > 2) {
                 QString optionName = argument.mid(2).section(assignChar, 0, 0);
 
@@ -411,12 +403,8 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
                 } else {
                     unknownOptionNames.append(optionName);
                 }
-            }
-            else {
-                if (parseAfterDoubleDash == true)
-                    remainingArgumentList.append(argument);
-                else
-                    break;
+            } else {
+                doubleDashFound = true;
             }
         }
 

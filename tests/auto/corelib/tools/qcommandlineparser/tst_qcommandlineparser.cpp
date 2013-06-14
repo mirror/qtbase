@@ -61,6 +61,7 @@ private slots:
     void testValueNotSet();
     void testMultipleValuesOption();
     void testUnknownOptionErrorHandling();
+    void testDoubleDash();
     void testProcessNotCalled();
 
     // QProcess-based tests using qcommandlineparser_test_helper
@@ -211,6 +212,21 @@ void tst_QCommandLineParser::testUnknownOptionErrorHandling()
     QCommandLineParser parser;
     parser.parse(QStringList() << "tst_qcommandlineparser" << "--foobar");
     QCOMPARE(parser.unknownOptionNames(), QStringList() << "foobar");
+}
+
+void tst_QCommandLineParser::testDoubleDash()
+{
+    QCoreApplication app(empty_argc, empty_argv);
+    QCommandLineParser parser;
+    parser.addOption(QCommandLineOption(QStringList() << "o" << "output", QStringLiteral("Output file"), QStringLiteral("filename")));
+    parser.parse(QStringList() << "tst_qcommandlineparser" << "--output" << "foo");
+    QCOMPARE(parser.value("output"), QString("foo"));
+    QCOMPARE(parser.remainingArguments(), QStringList());
+    QCOMPARE(parser.unknownOptionNames(), QStringList());
+    parser.parse(QStringList() << "tst_qcommandlineparser" << "--" << "--output" << "bar" << "-b" << "bleh");
+    QCOMPARE(parser.value("output"), QString());
+    QCOMPARE(parser.remainingArguments(), QStringList() << "--output" << "bar" << "-b" << "bleh");
+    QCOMPARE(parser.unknownOptionNames(), QStringList());
 }
 
 void tst_QCommandLineParser::testProcessNotCalled()

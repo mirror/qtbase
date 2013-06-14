@@ -50,6 +50,7 @@
 QT_BEGIN_NAMESPACE
 
 class QCommandLineParserPrivate;
+class QCoreApplication;
 
 class Q_CORE_EXPORT QCommandLineParser
 {
@@ -60,8 +61,9 @@ public:
 
     bool addOption(const QCommandLineOption &commandLineOption);
 
-    bool parse();
-    bool parse(const QStringList & arguments);
+    void process(const QCoreApplication &app);
+
+    void parse(const QStringList &arguments);
 
     QString argument(const QString &name) const;
     QStringList arguments(const QString &name) const;

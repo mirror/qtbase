@@ -44,6 +44,9 @@
 #include <qcoreapplication.h>
 #include <qhash.h>
 
+#include <stdio.h>
+#include <stdlib.h>
+
 QT_BEGIN_NAMESPACE
 
 typedef QHash<QString, int> NameHash_t;
@@ -52,8 +55,12 @@ class QCommandLineParserPrivate
 {
 public:
     inline QCommandLineParserPrivate()
-        : parseAfterDoubleDash(true)
+        : parseAfterDoubleDash(true),
+          needsParsing(true)
     { }
+
+    void parse(const QStringList &args);
+    void ensureParsed(const char *method);
 
     //! The command line options used for parsing
     QList<QCommandLineOption> commandLineOptionList;
@@ -81,6 +88,9 @@ public:
         Set to \c true by default.
      */
     bool parseAfterDoubleDash;
+
+    //! True if parse() needs to be called
+    bool needsParsing;
 };
 
 /*!
@@ -212,27 +222,53 @@ bool QCommandLineParser::addOption(const QCommandLineOption &option)
 /*!
     Parses the command line arguments.
 
-    Returns true if the command line parsing was successful; otherwise returns
-    false.
+    Most programs don't need to call this, a simple call to process(app) is enough.
 
-    The command line is obtained from the current \c QCoreApplication
-    instance - it will fail if this is not available. The first argument
-    in the list is the program name and is skipped.
+    parse() is more low-level, and only does the parsing. The application will have to
+    take care of the error handling on unknown options, using unknownOptionNames().
+    This can be useful for instance to show a graphical error message in graphical programs.
+
+    Calling parse() instead of process() can also be useful in order to ignore unknown
+    options temporarily, because more option definitions will be provided later on
+    (depending on one of the arguments), before calling process().
+
+    Don't forget that \a arguments starts with the name of the executable (ignored, though).
+*/
+void QCommandLineParser::parse(const QStringList &arguments)
+{
+    d->parse(arguments);
+}
+
+/*!
+    Process the command line arguments.
+
+    This means both parsing them, and handling the builtin options,
+    --version if addVersionOption was called, --help if addHelpOption was called,
+    as well as aborting on unknown option names, with an error message.
+
+    The command line is obtained from the QCoreApplication instance \a app.
 
     \sa QCoreApplication::arguments()
  */
-bool QCommandLineParser::parse()
+void QCommandLineParser::process(const QCoreApplication &app)
 {
-    QCoreApplication *pApp = QCoreApplication::instance();
-    if (pApp) {
-        QStringList args = pApp->arguments();
-        if (!args.isEmpty()) {
-            args.removeFirst();
-            return parse(args);
-        }
-    }
-    return false;
+    d->parse(app.arguments());
 
+    if (d->unknownOptionNames.count() == 1) {
+        fprintf(stderr, "Unknown option '%s'.\n", qPrintable(d->unknownOptionNames.first()));
+        ::exit(1);
+    }
+    if (d->unknownOptionNames.count() > 1) {
+        fprintf(stderr, "Unknown options: %s.\n", qPrintable(d->unknownOptionNames.join(QLatin1String(", "))));
+        ::exit(1);
+    }
+}
+
+void QCommandLineParserPrivate::ensureParsed(const char *method)
+{
+    if (needsParsing) {
+        qWarning("QCommandLineParser: call process or parse before %s", method);
+    }
 }
 
 /*!
@@ -258,16 +294,21 @@ bool QCommandLineParser::parse()
     if encountered in the form "--option=value". In this case, the argument
     value will be ignored.
  */
-bool QCommandLineParser::parse(const QStringList &arguments)
+void QCommandLineParserPrivate::parse(const QStringList &args)
 {
+    needsParsing = false;
+
     const QString     doubleDashString(QStringLiteral("--"));
     const QLatin1Char dashChar('-');
     const QLatin1Char slashChar('/');
     const QLatin1Char assignChar('=');
 
-    d->remainingArgumentList.clear();
-    d->optionNames.clear();
-    d->unknownOptionNames.clear();
+    remainingArgumentList.clear();
+    optionNames.clear();
+    unknownOptionNames.clear();
+
+    QStringList arguments = args;
+    arguments.removeFirst();
 
     for (QStringList::const_iterator argumentIterator = arguments.begin(); argumentIterator != arguments.end() ; ++argumentIterator) {
         QString argument = *argumentIterator;
@@ -276,28 +317,28 @@ bool QCommandLineParser::parse(const QStringList &arguments)
             if (argument.length() > 2) {
                 QString optionName = argument.mid(2).section(assignChar, 0, 1);
 
-                if (d->nameHash.contains(optionName)) {
-                    d->optionNames.append(optionName);
-                    const NameHash_t::mapped_type optionOffset = *d->nameHash.constFind(optionName);
-                    const QCommandLineOption::OptionType type = d->commandLineOptionList.at(optionOffset).optionType();
+                if (nameHash.contains(optionName)) {
+                    optionNames.append(optionName);
+                    const NameHash_t::mapped_type optionOffset = *nameHash.constFind(optionName);
+                    const QCommandLineOption::OptionType type = commandLineOptionList.at(optionOffset).optionType();
 
                     if (type == QCommandLineOption::OneValue) {
                         if (!argument.contains(assignChar)) {
                             ++argumentIterator;
 
                             if (argumentIterator != arguments.end())
-                                d->optionArgumentListHash[optionOffset].append(*argumentIterator);
+                                optionArgumentListHash[optionOffset].append(*argumentIterator);
                         } else {
-                            d->optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
+                            optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
                         }
                     }
                 } else {
-                    d->unknownOptionNames.append(optionName);
+                    unknownOptionNames.append(optionName);
                 }
             }
             else {
-                if (d->parseAfterDoubleDash == true)
-                    d->remainingArgumentList.append(argument);
+                if (parseAfterDoubleDash == true)
+                    remainingArgumentList.append(argument);
                 else
                     break;
             }
@@ -310,34 +351,30 @@ bool QCommandLineParser::parse(const QStringList &arguments)
                 argument.startsWith(dashChar)) {
             QString optionName = argument.mid(1);
             if (!optionName.isEmpty()) {
-                if (d->nameHash.contains(optionName)) {
-                    d->optionNames.append(optionName);
-                    const NameHash_t::mapped_type optionOffset = *d->nameHash.constFind(optionName);
-                    const QCommandLineOption::OptionType type = d->commandLineOptionList.at(optionOffset).optionType();
+                if (nameHash.contains(optionName)) {
+                    optionNames.append(optionName);
+                    const NameHash_t::mapped_type optionOffset = *nameHash.constFind(optionName);
+                    const QCommandLineOption::OptionType type = commandLineOptionList.at(optionOffset).optionType();
                     if (type == QCommandLineOption::OneValue) {
                         if (!argument.contains(assignChar)) {
                             ++argumentIterator;
 
                             if (argumentIterator != arguments.end())
-                                d->optionArgumentListHash[optionOffset].append(*argumentIterator);
+                                optionArgumentListHash[optionOffset].append(*argumentIterator);
                         } else {
-                            d->optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
+                            optionArgumentListHash[optionOffset].append(argument.section(assignChar, 1));
                         }
                     }
                 } else {
-                    d->unknownOptionNames.append(optionName);
+                    unknownOptionNames.append(optionName);
                 }
             } else {
-                d->remainingArgumentList.append(argument);
+                remainingArgumentList.append(argument);
             }
         } else {
-            d->remainingArgumentList.append(argument);
+            remainingArgumentList.append(argument);
         }
-
-        return true;
     }
-
-    return false;
 }
 
 /*!
@@ -358,7 +395,8 @@ bool QCommandLineParser::parse(const QStringList &arguments)
 
 QString QCommandLineParser::argument(const QString &optionName) const
 {
-    QStringList argumentList = arguments(optionName);
+    d->ensureParsed("argument");
+    const QStringList argumentList = arguments(optionName);
 
     if (!argumentList.isEmpty())
         return argumentList.last();
@@ -386,6 +424,7 @@ QString QCommandLineParser::argument(const QString &optionName) const
 
 QStringList QCommandLineParser::arguments(const QString &optionName) const
 {
+    d->ensureParsed("arguments");
     if (d->nameHash.contains(optionName)) {
         const NameHash_t::mapped_type optionOffset = *d->nameHash.constFind(optionName);
         return d->optionArgumentListHash.value(optionOffset);
@@ -403,6 +442,7 @@ QStringList QCommandLineParser::arguments(const QString &optionName) const
 
 QStringList QCommandLineParser::remainingArguments() const
 {
+    d->ensureParsed("remainingArguments");
     return d->remainingArgumentList;
 }
 
@@ -424,6 +464,7 @@ QStringList QCommandLineParser::remainingArguments() const
 
 QStringList QCommandLineParser::optionNames() const
 {
+    d->ensureParsed("optionNames");
     return d->optionNames;
 }
 
@@ -443,6 +484,7 @@ QStringList QCommandLineParser::optionNames() const
 
 QStringList QCommandLineParser::unknownOptionNames() const
 {
+    d->ensureParsed("unknownOptionNames");
     return d->unknownOptionNames;
 }
 

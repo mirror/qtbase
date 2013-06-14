@@ -382,6 +382,7 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
     remainingArgumentList.clear();
     optionNames.clear();
     unknownOptionNames.clear();
+    optionValuesHash.clear();
 
     QStringList arguments = args;
     arguments.removeFirst();

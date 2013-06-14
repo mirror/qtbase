@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Laszlo Papp <lpapp@kde.org>
+** Copyright (C) 2013 David Faure <faure+bluesystems@kde.org>
 ** Contact: http://www.qt-project.org/legal
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -39,47 +39,22 @@
 **
 ****************************************************************************/
 
-#ifndef QCOMMANDLINEPARSER_H
-#define QCOMMANDLINEPARSER_H
+#include <QDebug>
+#include <QCoreApplication>
+#include <QCommandLineParser>
+#include <stdio.h>
 
-#include <QtCore/qstringlist.h>
-
-#include <QtCore/qcoreapplication.h>
-#include <QtCore/qcommandlineoption.h>
-
-QT_BEGIN_NAMESPACE
-
-class QCommandLineParserPrivate;
-class QCoreApplication;
-
-class Q_CORE_EXPORT QCommandLineParser
+int main(int argc, char *argv[])
 {
-    Q_DECLARE_TR_FUNCTIONS(QCommandLineParser)
-public:
-    QCommandLineParser();
-    ~QCommandLineParser();
+    QCoreApplication app(argc, argv);
+    app.setApplicationVersion("1.0");
 
-    bool addOption(const QCommandLineOption &commandLineOption);
+    QCommandLineParser parser;
+    parser.addVersionOption();
+    parser.process(app);
 
-    void addVersionOption();
+    printf("Remaining arguments: %s\n", qPrintable(parser.remainingArguments().join(",")));
 
-    void process(const QCoreApplication &app);
+    return 0;
+}
 
-    void parse(const QStringList &arguments);
-
-    bool isSet(const QString &name) const;
-    QString argument(const QString &name) const;
-    QStringList arguments(const QString &name) const;
-    QStringList remainingArguments() const;
-    QStringList optionNames() const;
-    QStringList unknownOptionNames() const;
-
-private:
-    Q_DISABLE_COPY(QCommandLineParser)
-
-    QCommandLineParserPrivate* const d;
-};
-
-QT_END_NAMESPACE
-
-#endif // QCOMMANDLINEPARSER_H

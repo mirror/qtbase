@@ -49,6 +49,7 @@ class tst_QCommandLineParser : public QObject
     Q_OBJECT
 
 private slots:
+    // In-process tests
     void testInvalidOptions();
     void testRemainingArguments();
     void testBooleanOption_data();
@@ -61,6 +62,9 @@ private slots:
     void testMultipleValuesOption();
     void testUnknownOptionErrorHandling();
     void testProcessNotCalled();
+
+    // QProcess-based tests using qcommandlineparser_test_helper
+    void testVersionOption();
 };
 
 static char *empty_argv[] = { const_cast<char*>("tst_qcommandlineparser") };
@@ -217,6 +221,19 @@ void tst_QCommandLineParser::testProcessNotCalled()
     QVERIFY(!parser.isSet("b"));
     QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before arguments");
     QCOMPARE(parser.arguments("b"), QStringList());
+}
+
+void tst_QCommandLineParser::testVersionOption()
+{
+#ifdef Q_OS_WINCE
+    QSKIP("Reading and writing to a process is not supported on Qt/CE");
+#endif
+    QProcess process;
+    process.start("testhelper/qcommandlineparser_test_helper", QStringList() << "--version");
+    QVERIFY(process.waitForFinished(5000));
+    QCOMPARE(process.exitStatus(), QProcess::NormalExit);
+    QString output = process.readAll();
+    QCOMPARE(output, QString("qcommandlineparser_test_helper 1.0\n"));
 }
 
 QTEST_APPLESS_MAIN(tst_QCommandLineParser)

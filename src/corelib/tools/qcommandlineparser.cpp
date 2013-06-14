@@ -43,7 +43,6 @@
 
 #include <qcoreapplication.h>
 #include <qhash.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -58,7 +57,8 @@ class QCommandLineParserPrivate
 {
 public:
     inline QCommandLineParserPrivate()
-        : parseAfterDoubleDash(true),
+        : builtinVersionOption(false),
+          parseAfterDoubleDash(true),
           needsParsing(true)
     { }
 
@@ -83,6 +83,9 @@ public:
 
     //! Names of options which were unknown.
     QStringList unknownOptionNames;
+
+    //! Whether addVersionOption was called
+    bool builtinVersionOption;
 
     /*
         Boolean variable whether or not to stop the command line argument
@@ -232,6 +235,17 @@ bool QCommandLineParser::addOption(const QCommandLineOption &option)
 }
 
 /*!
+    Adds the -v / --version option.
+    This option is handled automatically by QCommandLineParser.
+    You can set the actual version string using QCoreApplication::setApplicationVersion()
+*/
+void QCommandLineParser::addVersionOption()
+{
+    d->builtinVersionOption = true;
+    addOption(QCommandLineOption(QStringList() << QLatin1String("v") << QLatin1String("version"), tr("Displays version information.")));
+}
+
+/*!
     Parses the command line arguments.
 
     Most programs don't need to call this, a simple call to process(app) is enough.
@@ -265,6 +279,11 @@ void QCommandLineParser::parse(const QStringList &arguments)
 void QCommandLineParser::process(const QCoreApplication &app)
 {
     d->parse(app.arguments());
+
+    if (d->builtinVersionOption && isSet(QStringLiteral("version"))) {
+        printf("%s %s\n", qPrintable(QCoreApplication::applicationName()), qPrintable(QCoreApplication::applicationVersion()));
+        ::exit(0);
+    }
 
     if (d->unknownOptionNames.count() == 1) {
         fprintf(stderr, "Unknown option '%s'.\n", qPrintable(d->unknownOptionNames.first()));

@@ -52,6 +52,8 @@ private slots:
     void testRemainingArguments();
     void testBooleanOption_data();
     void testBooleanOption();
+    void testMultipleNames_data();
+    void testMultipleNames();
     void testUnknownOptionErrorHandling();
     void testProcessNotCalled();
 };
@@ -71,22 +73,49 @@ void tst_QCommandLineParser::testBooleanOption_data()
 {
     QTest::addColumn<QStringList>("args");
     QTest::addColumn<QStringList>("expectedOptionNames");
+    QTest::addColumn<bool>("expectedIsSet");
 
-    QTest::newRow("set") << (QStringList() << "tst_qcommandlineparser" << "-b") << (QStringList() << "b");
-    QTest::newRow("unset") << (QStringList() << "tst_qcommandlineparser") << QStringList();
+    QTest::newRow("set") << (QStringList() << "tst_qcommandlineparser" << "-b") << (QStringList() << "b") << true;
+    QTest::newRow("unset") << (QStringList() << "tst_qcommandlineparser") << QStringList() << false;
 }
 
 void tst_QCommandLineParser::testBooleanOption()
 {
-    QCoreApplication app(empty_argc, empty_argv);
     QFETCH(QStringList, args);
     QFETCH(QStringList, expectedOptionNames);
+    QFETCH(bool, expectedIsSet);
+    QCoreApplication app(empty_argc, empty_argv);
     QCommandLineParser parser;
     QVERIFY(parser.addOption(QCommandLineOption(QStringList() << "b", QStringLiteral("a boolean option"))));
     parser.parse(args);
     QCOMPARE(parser.optionNames(), expectedOptionNames);
+    QCOMPARE(parser.isSet("b"), expectedIsSet);
     QCOMPARE(parser.arguments("b"), QStringList());
     QCOMPARE(parser.remainingArguments(), QStringList());
+}
+
+void tst_QCommandLineParser::testMultipleNames_data()
+{
+    QTest::addColumn<QStringList>("args");
+    QTest::addColumn<QStringList>("expectedOptionNames");
+
+    QTest::newRow("short") << (QStringList() << "tst_qcommandlineparser" << "-v") << (QStringList() << "v");
+    QTest::newRow("long") << (QStringList() << "tst_qcommandlineparser" << "--version") << (QStringList() << "version");
+}
+
+void tst_QCommandLineParser::testMultipleNames()
+{
+    QFETCH(QStringList, args);
+    QFETCH(QStringList, expectedOptionNames);
+    QCoreApplication app(empty_argc, empty_argv);
+    QCommandLineOption option(QStringList() << "v" << "version", QStringLiteral("Show version information"));
+    QCOMPARE(option.names(), QStringList() << "v" << "version");
+    QCommandLineParser parser;
+    QVERIFY(parser.addOption(option));
+    parser.parse(args);
+    QCOMPARE(parser.optionNames(), expectedOptionNames);
+    QVERIFY(parser.isSet("v"));
+    QVERIFY(parser.isSet("version"));
 }
 
 void tst_QCommandLineParser::testUnknownOptionErrorHandling()
@@ -102,6 +131,8 @@ void tst_QCommandLineParser::testProcessNotCalled()
     QCoreApplication app(empty_argc, empty_argv);
     QCommandLineParser parser;
     QVERIFY(parser.addOption(QCommandLineOption(QStringList() << "b", QStringLiteral("a boolean option"))));
+    QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before isSet");
+    QVERIFY(!parser.isSet("b"));
     QTest::ignoreMessage(QtWarningMsg, "QCommandLineParser: call process or parse before arguments");
     QCOMPARE(parser.arguments("b"), QStringList());
 }

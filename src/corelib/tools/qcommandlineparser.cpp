@@ -51,6 +51,9 @@ QT_BEGIN_NAMESPACE
 
 typedef QHash<QString, int> NameHash_t;
 
+// Special value for "not found" when doing hash lookups.
+static const NameHash_t::mapped_type optionNotFound = ~0;
+
 class QCommandLineParserPrivate
 {
 public:
@@ -61,6 +64,7 @@ public:
 
     void parse(const QStringList &args);
     void ensureParsed(const char *method);
+    QStringList aliases(const QString &name) const;
 
     //! The command line options used for parsing
     QList<QCommandLineOption> commandLineOptionList;
@@ -92,6 +96,14 @@ public:
     //! True if parse() needs to be called
     bool needsParsing;
 };
+
+QStringList QCommandLineParserPrivate::aliases(const QString &optionName) const
+{
+    const NameHash_t::mapped_type optionOffset = nameHash.value(optionName, optionNotFound);
+    if (optionOffset == optionNotFound)
+        return QStringList();
+    return commandLineOptionList.at(optionOffset).names();
+}
 
 /*!
     \since 5.2
@@ -375,6 +387,34 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
             remainingArgumentList.append(argument);
         }
     }
+}
+
+/*!
+    Checks whether the option \a name was passed to the application.
+
+    Returns true if the option \a name was set, false otherwise.
+
+    This is the recommended way to check for options with no values.
+
+    The name provided can be any long or short name of any option that was
+    added with \c addOption(). All the options names are treated as being
+    equivalent. If the name is not recognized or that option was not present,
+    false is returned.
+
+    Example:
+    \snippet code/src_corelib_tools_qcommandlineparser.cpp 0
+ */
+
+bool QCommandLineParser::isSet(const QString &name) const
+{
+    d->ensureParsed("isSet");
+    if (d->optionNames.contains(name))
+        return true;
+    foreach (const QString &optionName, d->optionNames) {
+        if (d->aliases(optionName).contains(name))
+            return true;
+    }
+    return false;
 }
 
 /*!

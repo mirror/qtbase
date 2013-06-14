@@ -65,6 +65,7 @@ public:
 
     void parse(const QStringList &arguments);
 
+    bool isSet(const QString &name) const;
     QString argument(const QString &name) const;
     QStringList arguments(const QString &name) const;
     QStringList remainingArguments() const;

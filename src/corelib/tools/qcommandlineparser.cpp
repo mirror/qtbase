@@ -327,7 +327,7 @@ void QCommandLineParserPrivate::parse(const QStringList &args)
 
         if (argument.startsWith(doubleDashString)) {
             if (argument.length() > 2) {
-                QString optionName = argument.mid(2).section(assignChar, 0, 1);
+                QString optionName = argument.mid(2).section(assignChar, 0, 0);
 
                 if (nameHash.contains(optionName)) {
                     optionNames.append(optionName);
